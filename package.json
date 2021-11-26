@@ -11,7 +11,9 @@
   "author": "CrowdCheck Inc.",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.24.0",
     "express": "^4.17.1",
+    "express-async-router": "^0.1.15",
     "http-errors": "^1.8.1"
   },
   "devDependencies": {

@@ -1,8 +1,12 @@
 import express from "express";
 import createError from "http-errors";
+import OauthController from "./controllers/oauth.js";
 
 const app = express();
 const port = 4000;
+
+// controllers
+app.use("/oauth", OauthController);
 
 // error handling
 app.use((req, res, next) => {
