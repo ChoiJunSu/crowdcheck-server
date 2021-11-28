@@ -1,12 +1,11 @@
 import { AsyncRouter } from "express-async-router";
-import { oauthLogin } from "../services/oauth.js";
+import OauthService from "../services/OauthService.js";
 
 const OauthController = AsyncRouter();
 
 OauthController.get("/login", async (req, res, next) => {
   const { provider, code, redirectUri } = req.query;
-  const response = await oauthLogin(provider, code, redirectUri);
-  console.log(response);
+  return await OauthService.oauthLogin(provider, code, redirectUri);
 });
 
 export default OauthController;

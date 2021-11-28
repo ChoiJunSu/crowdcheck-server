@@ -1,10 +1,15 @@
 import express from "express";
-import database from "./models/index.js";
+import cors from "cors";
+import database from "./models/Database.js";
 import createError from "http-errors";
-import OauthController from "./controllers/oauth.js";
+import OauthController from "./controllers/OauthController.js";
 
 const app = express();
 const port = 4000;
+const WEB_URI = "http://localhost:3000";
+
+// CORS
+app.use(cors({ origin: WEB_URI }));
 
 // database
 const { sequelize } = database;
@@ -18,7 +23,7 @@ sequelize
   });
 sequelize
   .sync({
-    force: false,
+    force: true,
   })
   .then(() => {
     console.log("database synchronized");

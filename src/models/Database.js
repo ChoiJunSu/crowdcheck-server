@@ -1,5 +1,5 @@
 import { Sequelize } from "sequelize";
-import UserModel from "./user.js";
+import UserModel from "./UserModel.js";
 
 const sequelize = new Sequelize("crowdcheck", "root", "password", {
   dialect: "mariadb",
@@ -7,11 +7,11 @@ const sequelize = new Sequelize("crowdcheck", "root", "password", {
 
 UserModel.init(sequelize);
 
-const database = {
+const Database = {
   sequelize,
   UserModel,
 };
 
-UserModel.associate(database);
+UserModel.associate(Database);
 
-export default database;
+export default Database;
