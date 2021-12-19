@@ -1,6 +1,6 @@
 import { Model, DataTypes } from 'sequelize';
 import { UserAttributes, UserCreationAttributes } from '@models/UserModel/type';
-import sequelize from '@models/index';
+import sequelize from '@models/BaseModel';
 
 class UserModel
   extends Model<UserAttributes, UserCreationAttributes>

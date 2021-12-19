@@ -1,9 +1,9 @@
-import express from 'express';
-import { Request, Response, NextFunction } from 'express-async-router';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
-import sequelize from '@models/index';
 import createError from 'http-errors';
+import { Error } from 'sequelize';
 import OauthController from '@controllers/OauthController';
+import sequelize from '@models/BaseModel';
 
 const app = express();
 const port = 4000;
@@ -18,7 +18,7 @@ sequelize
   .then(() => {
     console.log('database connected');
   })
-  .catch((error) => {
+  .catch((error: Error) => {
     console.error(error);
   });
 sequelize
@@ -28,7 +28,7 @@ sequelize
   .then(() => {
     console.log('database synchronized');
   })
-  .catch((error) => {
+  .catch((error: Error) => {
     console.error(error);
   });
 

@@ -1,11 +1,14 @@
-export interface getLoginRequestDto {
+import {
+  controllerRequestDto,
+  controllerResponseDto,
+} from '@controllers/BaseController/type';
+
+export interface getLoginRequestDto extends controllerRequestDto {
   provider: string;
   code: string;
   redirectUri: string;
 }
 
-export interface getLoginResponseDto {
-  ok: boolean;
-  error: string;
+export interface getLoginResponseDto extends controllerResponseDto {
   accessToken: any;
 }
