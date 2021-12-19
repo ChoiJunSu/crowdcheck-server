@@ -1,33 +1,43 @@
-import axios from "axios";
-import { URLSearchParams } from "url";
-import UserService from "./UserService.js";
+import axios from 'axios';
+import { URLSearchParams } from 'url';
+import UserService from '@services/UserService';
+import {
+  getEmailByOauthCodeRequestDto,
+  getEmailByOauthCodeResponseDto,
+  oauthLoginRequestDto,
+  oauthLoginResponseDto,
+} from '@services/OauthService/type';
 
 class OauthService {
-  static getEmailByOauthCode = async (provider, code, redirectUri) => {
-    const response = {
+  static getEmailByOauthCode = async ({
+    provider,
+    code,
+    redirectUri,
+  }: getEmailByOauthCodeRequestDto): Promise<getEmailByOauthCodeResponseDto> => {
+    const response: getEmailByOauthCodeResponseDto = {
       ok: false,
-      error: null,
-      email: null,
+      error: '',
+      email: '',
     };
     try {
       switch (provider) {
-        case "kakao": {
+        case 'kakao': {
           const params = new URLSearchParams({
-            grant_type: "authorization_code",
-            client_id: "752369a3217c1905b6ce8a71a15eaf8c",
+            grant_type: 'authorization_code',
+            client_id: '752369a3217c1905b6ce8a71a15eaf8c',
             redirect_uri: redirectUri,
             code,
-            client_secret: "LMYsThJdZqYizOZTPrdTcCLr6UnIqUAT",
+            client_secret: 'LMYsThJdZqYizOZTPrdTcCLr6UnIqUAT',
           });
           const {
             data: { access_token },
           } = await axios.post(
-            "https://kauth.kakao.com/oauth/token",
+            'https://kauth.kakao.com/oauth/token',
             params.toString(),
             {
               headers: {
-                "Content-Type":
-                  "application/x-www-form-urlencoded;charset=utf-8",
+                'Content-Type':
+                  'application/x-www-form-urlencoded;charset=utf-8',
               },
             }
           );
@@ -37,10 +47,10 @@ class OauthService {
           }
           const {
             data: { kakao_account },
-          } = await axios.get("https://kapi.kakao.com/v2/user/me", {
+          } = await axios.get('https://kapi.kakao.com/v2/user/me', {
             headers: {
               Authorization: `Bearer ${access_token}`,
-              "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
+              'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
             },
           });
           if (!kakao_account || !kakao_account.has_email) {
@@ -52,24 +62,24 @@ class OauthService {
           break;
         }
 
-        case "google": {
+        case 'google': {
           const params = new URLSearchParams({
-            grant_type: "authorization_code",
+            grant_type: 'authorization_code',
             client_id:
-              "646489201957-l6859a2jp95c6fles5lcos3tmnlm8eab.apps.googleusercontent.com",
+              '646489201957-l6859a2jp95c6fles5lcos3tmnlm8eab.apps.googleusercontent.com',
             redirect_uri: redirectUri,
             code,
-            client_secret: "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",
+            client_secret: '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',
           });
           const {
             data: { access_token },
           } = await axios.post(
-            "https://oauth2.googleapis.com/token",
+            'https://oauth2.googleapis.com/token',
             params.toString(),
             {
               headers: {
-                "Content-Type":
-                  "application/x-www-form-urlencoded;charset=utf-8",
+                'Content-Type':
+                  'application/x-www-form-urlencoded;charset=utf-8',
               },
             }
           );
@@ -78,12 +88,12 @@ class OauthService {
             return response;
           }
           const { data } = await axios.get(
-            "https://www.googleapis.com/oauth2/v2/userinfo",
+            'https://www.googleapis.com/oauth2/v2/userinfo',
             {
               headers: {
                 Authorization: `Bearer ${access_token}`,
-                "Content-Type":
-                  "application/x-www-form-urlencoded;charset=utf-8",
+                'Content-Type':
+                  'application/x-www-form-urlencoded;charset=utf-8',
               },
             }
           );
@@ -96,7 +106,7 @@ class OauthService {
           break;
         }
 
-        case "naver": {
+        case 'naver': {
           break;
         }
 
@@ -106,35 +116,39 @@ class OauthService {
       }
     } catch (error) {
       console.error(error);
-      response.error = "Internal error";
+      response.error = 'Internal error';
     }
 
     return response;
   };
 
-  static oauthLogin = async (provider, code, redirectUri) => {
-    const response = {
+  static oauthLogin = async ({
+    provider,
+    code,
+    redirectUri,
+  }: oauthLoginRequestDto): Promise<oauthLoginResponseDto> => {
+    const response: oauthLoginResponseDto = {
       ok: false,
-      error: null,
+      error: '',
       accessToken: null,
     };
-    const getEmailByOauthCodeResponse = await OauthService.getEmailByOauthCode(
+    const getEmailByOauthCodeResponse = await OauthService.getEmailByOauthCode({
       provider,
       code,
-      redirectUri
-    );
+      redirectUri,
+    });
     if (!getEmailByOauthCodeResponse.ok) {
       response.error = getEmailByOauthCodeResponse.error;
       return response;
     }
-    const getUserByEmailResponse = await UserService.getUserByEmail(
-      getEmailByOauthCodeResponse.email
-    );
+    const getUserByEmailResponse = await UserService.getUserByEmail({
+      email: getEmailByOauthCodeResponse.email,
+    });
     if (!getUserByEmailResponse.ok) {
-      if (getUserByEmailResponse.error === "User not found") {
-        const createUserResponse = await UserService.createUser(
-          getEmailByOauthCodeResponse.email
-        );
+      if (getUserByEmailResponse.error === 'User not found') {
+        const createUserResponse = await UserService.createUser({
+          email: getEmailByOauthCodeResponse.email,
+        });
         if (!createUserResponse.ok) {
           response.error = createUserResponse.error;
           return response;
