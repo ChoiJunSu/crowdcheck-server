@@ -10,5 +10,5 @@ export interface getLoginRequestDto extends controllerRequestDto {
 }
 
 export interface getLoginResponseDto extends controllerResponseDto {
-  accessToken: any;
+  token: any;
 }

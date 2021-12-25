@@ -20,5 +20,5 @@ export interface oauthLoginRequestDto extends serviceRequestDto {
 }
 
 export interface oauthLoginResponseDto extends serviceResponseDto {
-  accessToken: any;
+  token: any;
 }

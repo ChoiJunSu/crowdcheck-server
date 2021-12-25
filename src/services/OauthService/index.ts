@@ -7,6 +7,7 @@ import {
   oauthLoginRequestDto,
   oauthLoginResponseDto,
 } from '@services/OauthService/type';
+import JwtService from '@services/JwtService';
 
 class OauthService {
   static getEmailByOauthCode = async ({
@@ -130,7 +131,7 @@ class OauthService {
     const response: oauthLoginResponseDto = {
       ok: false,
       error: '',
-      accessToken: null,
+      token: null,
     };
     const getEmailByOauthCodeResponse = await OauthService.getEmailByOauthCode({
       provider,
@@ -158,7 +159,15 @@ class OauthService {
         return response;
       }
     }
-    // generate token
+    const generateTokenResponse = JwtService.generateToken({
+      email: getEmailByOauthCodeResponse.email,
+    });
+    if (!generateTokenResponse.ok) {
+      response.error = generateTokenResponse.error;
+      return response;
+    }
+    response.ok = true;
+    response.token = generateTokenResponse.token;
 
     return response;
   };
