@@ -2,10 +2,10 @@ import axios from 'axios';
 import { URLSearchParams } from 'url';
 import UserService from '@services/UserService';
 import {
-  getEmailByOauthCodeRequestDto,
-  getEmailByOauthCodeResponseDto,
-  oauthLoginRequestDto,
-  oauthLoginResponseDto,
+  IGetEmailByOauthCodeRequest,
+  IGetEmailByOauthCodeResponse,
+  IOauthLoginRequest,
+  IOauthLoginResponse,
 } from '@services/OauthService/type';
 import JwtService from '@services/JwtService';
 
@@ -14,8 +14,8 @@ class OauthService {
     provider,
     code,
     redirectUri,
-  }: getEmailByOauthCodeRequestDto): Promise<getEmailByOauthCodeResponseDto> => {
-    const response: getEmailByOauthCodeResponseDto = {
+  }: IGetEmailByOauthCodeRequest): Promise<IGetEmailByOauthCodeResponse> => {
+    const response: IGetEmailByOauthCodeResponse = {
       ok: false,
       error: '',
       email: '',
@@ -127,11 +127,12 @@ class OauthService {
     provider,
     code,
     redirectUri,
-  }: oauthLoginRequestDto): Promise<oauthLoginResponseDto> => {
-    const response: oauthLoginResponseDto = {
+  }: IOauthLoginRequest): Promise<IOauthLoginResponse> => {
+    const response: IOauthLoginResponse = {
       ok: false,
       error: '',
-      token: null,
+      token: '',
+      email: '',
     };
     const getEmailByOauthCodeResponse = await OauthService.getEmailByOauthCode({
       provider,
@@ -168,6 +169,7 @@ class OauthService {
     }
     response.ok = true;
     response.token = generateTokenResponse.token;
+    response.email = getEmailByOauthCodeResponse.email;
 
     return response;
   };

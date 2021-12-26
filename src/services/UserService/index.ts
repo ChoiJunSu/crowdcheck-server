@@ -1,16 +1,16 @@
 import UserModel from '@models/UserModel';
 import {
-  createUserRequestDto,
-  createUserResponseDto,
-  getUserByEmailRequestDto,
-  getUserByEmailResponseDto,
+  ICreateUserRequest,
+  ICreateUserResponse,
+  IGetUserByEmailRequest,
+  IGetUserByEmailResponse,
 } from '@services/UserService/type';
 
 class UserService {
   static getUserByEmail = async ({
     email,
-  }: getUserByEmailRequestDto): Promise<getUserByEmailResponseDto> => {
-    const response: getUserByEmailResponseDto = {
+  }: IGetUserByEmailRequest): Promise<IGetUserByEmailResponse> => {
+    const response: IGetUserByEmailResponse = {
       ok: false,
       error: '',
       user: null,
@@ -38,8 +38,8 @@ class UserService {
 
   static createUser = async ({
     email,
-  }: createUserRequestDto): Promise<createUserResponseDto> => {
-    const response: createUserResponseDto = {
+  }: ICreateUserRequest): Promise<ICreateUserResponse> => {
+    const response: ICreateUserResponse = {
       ok: false,
       error: '',
     };

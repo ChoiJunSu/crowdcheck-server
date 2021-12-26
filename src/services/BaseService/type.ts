@@ -1,5 +1,5 @@
-export interface serviceRequestDto {}
-export interface serviceResponseDto {
+export interface IBaseServiceRequest {}
+export interface IBaseServiceResponse {
   ok: boolean;
   error: string;
 }

@@ -1,8 +1,8 @@
 import { Optional } from 'sequelize';
 
-export interface UserAttributes {
+export interface IUserAttributes {
   email: string;
 }
 
-export interface UserCreationAttributes
-  extends Optional<UserAttributes, 'email'> {}
+export interface IUserCreationAttributes
+  extends Optional<IUserAttributes, 'email'> {}

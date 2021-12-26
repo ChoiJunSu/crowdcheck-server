@@ -1,14 +1,15 @@
 import {
-  controllerRequestDto,
-  controllerResponseDto,
+  IBaseControllerRequest,
+  IBaseControllerResponse,
 } from '@controllers/BaseController/type';
 
-export interface getLoginRequestDto extends controllerRequestDto {
+export interface IGetLoginRequest extends IBaseControllerRequest {
   provider: string;
   code: string;
   redirectUri: string;
 }
 
-export interface getLoginResponseDto extends controllerResponseDto {
-  token: any;
+export interface IGetLoginResponse extends IBaseControllerResponse {
+  token: string;
+  email: string;
 }

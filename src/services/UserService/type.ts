@@ -1,18 +1,18 @@
-export interface getUserByEmailRequestDto {
+import {
+  IBaseServiceRequest,
+  IBaseServiceResponse,
+} from '@services/BaseService/type';
+
+export interface IGetUserByEmailRequest extends IBaseServiceRequest {
   email: string;
 }
 
-export interface getUserByEmailResponseDto {
-  ok: boolean;
-  error: string;
+export interface IGetUserByEmailResponse extends IBaseServiceResponse {
   user: any;
 }
 
-export interface createUserRequestDto {
+export interface ICreateUserRequest extends IBaseServiceRequest {
   email: string;
 }
 
-export interface createUserResponseDto {
-  ok: boolean;
-  error: string;
-}
+export interface ICreateUserResponse extends IBaseServiceResponse {}

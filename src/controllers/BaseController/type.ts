@@ -1,5 +1,5 @@
-export interface controllerRequestDto {}
-export interface controllerResponseDto {
+export interface IBaseControllerRequest {}
+export interface IBaseControllerResponse {
   ok: boolean;
   error: string;
 }

@@ -6,8 +6,8 @@ import {
 } from 'express-async-router';
 import OauthService from '@services/OauthService';
 import {
-  getLoginRequestDto,
-  getLoginResponseDto,
+  IGetLoginRequest,
+  IGetLoginResponse,
 } from '@controllers/OauthController/type';
 
 const OauthController = AsyncRouter();
@@ -18,13 +18,13 @@ OauthController.get(
     req: Request,
     res: Response,
     next: NextFunction
-  ): Promise<getLoginResponseDto> => {
+  ): Promise<IGetLoginResponse> => {
     const { provider, code, redirectUri } = req.query;
     return await OauthService.oauthLogin({
       provider,
       code,
       redirectUri,
-    } as getLoginRequestDto);
+    } as IGetLoginRequest);
   }
 );
 

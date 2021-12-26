@@ -1,10 +1,13 @@
 import { Model, DataTypes } from 'sequelize';
-import { UserAttributes, UserCreationAttributes } from '@models/UserModel/type';
+import {
+  IUserAttributes,
+  IUserCreationAttributes,
+} from '@models/UserModel/type';
 import sequelize from '@models/BaseModel';
 
 class UserModel
-  extends Model<UserAttributes, UserCreationAttributes>
-  implements UserAttributes
+  extends Model<IUserAttributes, IUserCreationAttributes>
+  implements IUserAttributes
 {
   public email!: string;
 

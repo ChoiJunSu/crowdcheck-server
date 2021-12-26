@@ -4,7 +4,7 @@
   "description": "",
   "main": "./src/app.js",
   "scripts": {
-    "dev": "nodemon --watch \"./src/**/*\" --exec \"ts-node -r tsconfig-paths/register ./src/app.ts\""
+    "dev": "nodemon"
   },
   "author": "CrowdCheck Inc.",
   "license": "ISC",

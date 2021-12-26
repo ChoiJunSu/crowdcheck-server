@@ -1,24 +1,25 @@
 import {
-  serviceRequestDto,
-  serviceResponseDto,
+  IBaseServiceRequest,
+  IBaseServiceResponse,
 } from '@services/BaseService/type';
 
-export interface getEmailByOauthCodeRequestDto extends serviceRequestDto {
+export interface IGetEmailByOauthCodeRequest extends IBaseServiceRequest {
   provider: string;
   code: string;
   redirectUri: string;
 }
 
-export interface getEmailByOauthCodeResponseDto extends serviceResponseDto {
+export interface IGetEmailByOauthCodeResponse extends IBaseServiceResponse {
   email: string;
 }
 
-export interface oauthLoginRequestDto extends serviceRequestDto {
+export interface IOauthLoginRequest extends IBaseServiceRequest {
   provider: string;
   code: string;
   redirectUri: string;
 }
 
-export interface oauthLoginResponseDto extends serviceResponseDto {
-  token: any;
+export interface IOauthLoginResponse extends IBaseServiceResponse {
+  token: string;
+  email: string;
 }

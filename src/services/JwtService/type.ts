@@ -1,18 +1,18 @@
 import {
-  serviceRequestDto,
-  serviceResponseDto,
+  IBaseServiceRequest,
+  IBaseServiceResponse,
 } from '@services/BaseService/type';
 
-export interface generateTokenRequestDto extends serviceRequestDto {
+export interface IGenerateTokenRequest extends IBaseServiceRequest {
   email: string;
 }
 
-export interface generateTokenResponseDto extends serviceResponseDto {
+export interface IGenerateTokenResponse extends IBaseServiceResponse {
   token: any;
 }
 
-export interface verifyTokenRequestDto extends serviceRequestDto {
+export interface IVerifyTokenRequest extends IBaseServiceRequest {
   token: any;
 }
 
-export interface verifyTokenResponseDto extends serviceResponseDto {}
+export interface IVerifyTokenResponse extends IBaseServiceResponse {}

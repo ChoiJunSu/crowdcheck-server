@@ -1,9 +1,9 @@
 import { sign, verify } from 'jsonwebtoken';
 import {
-  generateTokenRequestDto,
-  generateTokenResponseDto,
-  verifyTokenRequestDto,
-  verifyTokenResponseDto,
+  IGenerateTokenRequest,
+  IGenerateTokenResponse,
+  IVerifyTokenRequest,
+  IVerifyTokenResponse,
 } from '@services/JwtService/type';
 
 const JWT_SECRET = 'crowdcheck';
@@ -13,8 +13,8 @@ const JWT_ISSUER = 'crowdcheck';
 class JwtService {
   static generateToken = ({
     email,
-  }: generateTokenRequestDto): generateTokenResponseDto => {
-    const response: generateTokenResponseDto = {
+  }: IGenerateTokenRequest): IGenerateTokenResponse => {
+    const response: IGenerateTokenResponse = {
       ok: false,
       error: '',
       token: null,
@@ -24,7 +24,6 @@ class JwtService {
         expiresIn: JWT_EXPIRES_IN,
         issuer: JWT_ISSUER,
       });
-      console.log(JwtService.verifyToken(response.token));
       response.ok = true;
     } catch (error) {
       console.error(error);
@@ -36,8 +35,8 @@ class JwtService {
 
   static verifyToken = ({
     token,
-  }: verifyTokenRequestDto): verifyTokenResponseDto => {
-    const response: verifyTokenResponseDto = {
+  }: IVerifyTokenRequest): IVerifyTokenResponse => {
+    const response: IVerifyTokenResponse = {
       ok: false,
       error: '',
     };
