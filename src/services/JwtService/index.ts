@@ -17,10 +17,10 @@ class JwtService {
     const response: IGenerateTokenResponse = {
       ok: false,
       error: '',
-      token: null,
+      authToken: '',
     };
     try {
-      response.token = sign({ email }, JWT_SECRET, {
+      response.authToken = sign({ email }, JWT_SECRET, {
         expiresIn: JWT_EXPIRES_IN,
         issuer: JWT_ISSUER,
       });
@@ -34,14 +34,14 @@ class JwtService {
   };
 
   static verifyToken = ({
-    token,
+    authToken,
   }: IVerifyTokenRequest): IVerifyTokenResponse => {
     const response: IVerifyTokenResponse = {
       ok: false,
       error: '',
     };
     try {
-      const decodedToken = verify(token, JWT_SECRET);
+      const decodedToken = verify(authToken, JWT_SECRET);
       console.log(decodedToken);
       response.ok = true;
     } catch (error) {

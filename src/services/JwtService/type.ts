@@ -8,11 +8,11 @@ export interface IGenerateTokenRequest extends IBaseServiceRequest {
 }
 
 export interface IGenerateTokenResponse extends IBaseServiceResponse {
-  token: any;
+  authToken: string;
 }
 
 export interface IVerifyTokenRequest extends IBaseServiceRequest {
-  token: any;
+  authToken: string;
 }
 
 export interface IVerifyTokenResponse extends IBaseServiceResponse {}

@@ -10,6 +10,6 @@ export interface IGetLoginRequest extends IBaseControllerRequest {
 }
 
 export interface IGetLoginResponse extends IBaseControllerResponse {
-  token: string;
+  authToken: string;
   email: string;
 }

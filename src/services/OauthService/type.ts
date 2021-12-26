@@ -20,6 +20,6 @@ export interface IOauthLoginRequest extends IBaseServiceRequest {
 }
 
 export interface IOauthLoginResponse extends IBaseServiceResponse {
-  token: string;
+  authToken: string;
   email: string;
 }

@@ -131,7 +131,7 @@ class OauthService {
     const response: IOauthLoginResponse = {
       ok: false,
       error: '',
-      token: '',
+      authToken: '',
       email: '',
     };
     const getEmailByOauthCodeResponse = await OauthService.getEmailByOauthCode({
@@ -168,7 +168,7 @@ class OauthService {
       return response;
     }
     response.ok = true;
-    response.token = generateTokenResponse.token;
+    response.authToken = generateTokenResponse.authToken;
     response.email = getEmailByOauthCodeResponse.email;
 
     return response;
