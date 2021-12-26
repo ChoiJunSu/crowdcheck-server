@@ -132,7 +132,6 @@ class OauthService {
       ok: false,
       error: '',
       authToken: '',
-      email: '',
     };
     const getEmailByOauthCodeResponse = await OauthService.getEmailByOauthCode({
       provider,
@@ -160,7 +159,7 @@ class OauthService {
         return response;
       }
     }
-    const generateTokenResponse = JwtService.generateToken({
+    const generateTokenResponse = await JwtService.generateToken({
       email: getEmailByOauthCodeResponse.email,
     });
     if (!generateTokenResponse.ok) {
@@ -169,7 +168,6 @@ class OauthService {
     }
     response.ok = true;
     response.authToken = generateTokenResponse.authToken;
-    response.email = getEmailByOauthCodeResponse.email;
 
     return response;
   };

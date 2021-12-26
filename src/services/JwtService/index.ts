@@ -7,20 +7,20 @@ import {
 } from '@services/JwtService/type';
 
 const JWT_SECRET = 'crowdcheck';
-const JWT_EXPIRES_IN = '1h';
+const JWT_EXPIRES_IN = '10s';
 const JWT_ISSUER = 'crowdcheck';
 
 class JwtService {
-  static generateToken = ({
+  static generateToken = async ({
     email,
-  }: IGenerateTokenRequest): IGenerateTokenResponse => {
+  }: IGenerateTokenRequest): Promise<IGenerateTokenResponse> => {
     const response: IGenerateTokenResponse = {
       ok: false,
       error: '',
       authToken: '',
     };
     try {
-      response.authToken = sign({ email }, JWT_SECRET, {
+      response.authToken = await sign({ email }, JWT_SECRET, {
         expiresIn: JWT_EXPIRES_IN,
         issuer: JWT_ISSUER,
       });
@@ -33,15 +33,15 @@ class JwtService {
     return response;
   };
 
-  static verifyToken = ({
+  static verifyToken = async ({
     authToken,
-  }: IVerifyTokenRequest): IVerifyTokenResponse => {
+  }: IVerifyTokenRequest): Promise<IVerifyTokenResponse> => {
     const response: IVerifyTokenResponse = {
       ok: false,
       error: '',
     };
     try {
-      const decodedToken = verify(authToken, JWT_SECRET);
+      const decodedToken = await verify(authToken, JWT_SECRET);
       console.log(decodedToken);
       response.ok = true;
     } catch (error) {

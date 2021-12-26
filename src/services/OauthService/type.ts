@@ -21,5 +21,4 @@ export interface IOauthLoginRequest extends IBaseServiceRequest {
 
 export interface IOauthLoginResponse extends IBaseServiceResponse {
   authToken: string;
-  email: string;
 }
