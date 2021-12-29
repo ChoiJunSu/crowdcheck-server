@@ -2,15 +2,16 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import createError from 'http-errors';
 import { Error } from 'sequelize';
-import OauthController from '@controllers/OauthController';
 import sequelize from '@models/BaseModel';
+import AuthMiddleware from '@middlewares/AuthMiddleware';
+import AuthController from '@controllers/AuthController';
 
-const index = express();
+const app = express();
 const port = 4000;
 const WEB_URI = 'http://localhost:3000';
 
 // CORS
-index.use(cors({ origin: WEB_URI }));
+app.use(cors({ origin: WEB_URI }));
 
 // database
 sequelize
@@ -32,19 +33,22 @@ sequelize
     console.error(error);
   });
 
+// middlewares
+app.use('/', AuthMiddleware);
+
 // controllers
-index.use('/oauth', OauthController);
+app.use('/auth', AuthController);
 
 // error handling
-index.use((req: Request, res: Response, next: NextFunction) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
   next(new createError.NotFound());
 });
-index.use((err: any, req: Request, res: Response, next: NextFunction) => {
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.log(err.stack);
   res.status(err.status || 500).send(err.message || 'Internal Server Error');
 });
 
 // server listen to port
-index.listen(port, () => {
+app.listen(port, () => {
   console.log(`server start on port ${port}`);
 });

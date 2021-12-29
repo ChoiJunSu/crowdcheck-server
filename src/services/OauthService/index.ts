@@ -159,15 +159,15 @@ class OauthService {
         return response;
       }
     }
-    const generateTokenResponse = await JwtService.generateToken({
+    const generateAuthTokenResponse = await JwtService.generateAuthToken({
       email: getEmailByOauthCodeResponse.email,
     });
-    if (!generateTokenResponse.ok) {
-      response.error = generateTokenResponse.error;
+    if (!generateAuthTokenResponse.ok) {
+      response.error = generateAuthTokenResponse.error;
       return response;
     }
     response.ok = true;
-    response.authToken = generateTokenResponse.authToken;
+    response.authToken = generateAuthTokenResponse.authToken;
 
     return response;
   };

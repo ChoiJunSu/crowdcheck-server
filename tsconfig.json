@@ -30,6 +30,7 @@
     "baseUrl": "./" /* Specify the base directory to resolve non-relative module names. */,
     "paths": {
       "@controllers/*": ["./src/controllers/*"],
+      "@middlewares/*": ["./src/middlewares/*"],
       "@models/*": ["./src/models/*"],
       "@services/*": ["./src/services/*"]
     } /* Specify a set of entries that re-map imports to additional lookup locations. */,

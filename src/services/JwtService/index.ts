@@ -1,9 +1,9 @@
 import { sign, verify } from 'jsonwebtoken';
 import {
-  IGenerateTokenRequest,
-  IGenerateTokenResponse,
-  IVerifyTokenRequest,
-  IVerifyTokenResponse,
+  IGenerateAuthTokenRequest,
+  IGenerateAuthTokenResponse,
+  IVerifyAuthTokenRequest,
+  IVerifyAuthTokenResponse,
 } from '@services/JwtService/type';
 
 const JWT_SECRET = 'crowdcheck';
@@ -11,10 +11,10 @@ const JWT_EXPIRES_IN = '10s';
 const JWT_ISSUER = 'crowdcheck';
 
 class JwtService {
-  static generateToken = async ({
+  static generateAuthToken = async ({
     email,
-  }: IGenerateTokenRequest): Promise<IGenerateTokenResponse> => {
-    const response: IGenerateTokenResponse = {
+  }: IGenerateAuthTokenRequest): Promise<IGenerateAuthTokenResponse> => {
+    const response: IGenerateAuthTokenResponse = {
       ok: false,
       error: '',
       authToken: '',
@@ -33,16 +33,16 @@ class JwtService {
     return response;
   };
 
-  static verifyToken = async ({
+  static verifyAuthToken = async ({
     authToken,
-  }: IVerifyTokenRequest): Promise<IVerifyTokenResponse> => {
-    const response: IVerifyTokenResponse = {
+  }: IVerifyAuthTokenRequest): Promise<IVerifyAuthTokenResponse> => {
+    const response: IVerifyAuthTokenResponse = {
       ok: false,
       error: '',
     };
     try {
-      const decodedToken = await verify(authToken, JWT_SECRET);
-      console.log(decodedToken);
+      const decodedAuthToken = await verify(authToken, JWT_SECRET);
+      console.log(decodedAuthToken);
       response.ok = true;
     } catch (error) {
       console.error(error);

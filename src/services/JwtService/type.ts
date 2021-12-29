@@ -3,16 +3,16 @@ import {
   IBaseServiceResponse,
 } from '@services/BaseService/type';
 
-export interface IGenerateTokenRequest extends IBaseServiceRequest {
+export interface IGenerateAuthTokenRequest extends IBaseServiceRequest {
   email: string;
 }
 
-export interface IGenerateTokenResponse extends IBaseServiceResponse {
+export interface IGenerateAuthTokenResponse extends IBaseServiceResponse {
   authToken: string;
 }
 
-export interface IVerifyTokenRequest extends IBaseServiceRequest {
+export interface IVerifyAuthTokenRequest extends IBaseServiceRequest {
   authToken: string;
 }
 
-export interface IVerifyTokenResponse extends IBaseServiceResponse {}
+export interface IVerifyAuthTokenResponse extends IBaseServiceResponse {}
