@@ -8,12 +8,12 @@ import OauthService from '@services/OauthService';
 import {
   IGetLoginRequest,
   IGetLoginResponse,
-} from '@controllers/OauthController/type';
+} from '@controllers/AuthController/type';
 
-const OauthController = AsyncRouter();
+const AuthController = AsyncRouter();
 
-OauthController.get(
-  '/login',
+AuthController.get(
+  '/oauthLogin',
   async (
     req: Request,
     res: Response,
@@ -28,4 +28,11 @@ OauthController.get(
   }
 );
 
-export default OauthController;
+AuthController.get(
+  '/renewAuthToken',
+  async (req: Request, res: Response, next: NextFunction) => {
+    console.log('renew auth token', req.headers);
+  }
+);
+
+export default AuthController;
