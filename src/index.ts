@@ -33,9 +33,6 @@ sequelize
     console.error(e);
   });
 
-// middlewares
-app.use('/', AuthMiddleware);
-
 // controllers
 app.use('/auth', AuthController);
 

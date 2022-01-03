@@ -1,10 +1,28 @@
 import { Request, Response, NextFunction } from 'express-async-router';
+import { verify } from 'jsonwebtoken';
+import { JWT_SECRET } from '@constants/jwt';
+import { IAuthTokenPayload } from '@services/AuthService/type';
 
-const AuthMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  // req url 기반으로 public 제외하고 헤더 검증
-  const { Authorization } = req.headers;
-  // exp 검증
-  // decode 검증
+const AuthMiddleware = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const response = {
+    ok: false,
+    error: 'Unauthorized',
+  };
+  const { authorization } = req.headers;
+  if (!authorization) return res.status(401).send(response);
+  const authToken = authorization.split(' ')[1];
+  try {
+    const { exp } = (await verify(authToken, JWT_SECRET)) as IAuthTokenPayload;
+    if (!exp || Date.now() > exp * 1000) return res.status(401).send(response);
+  } catch (e) {
+    console.error(e);
+    return res.status(401).send(response);
+  }
+
   return next();
 };
 

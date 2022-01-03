@@ -3,12 +3,12 @@ import {
   IBaseControllerResponse,
 } from '@controllers/BaseController/type';
 
-export interface IGetLoginRequest extends IBaseControllerRequest {
+export interface IGetOauthLoginRequest extends IBaseControllerRequest {
   provider: string;
   code: string;
   redirectUri: string;
 }
 
-export interface IGetLoginResponse extends IBaseControllerResponse {
+export interface IGetOauthLoginResponse extends IBaseControllerResponse {
   authToken: string;
 }

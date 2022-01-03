@@ -5,37 +5,42 @@ import {
   NextFunction,
 } from 'express-async-router';
 import {
-  IGetLoginRequest,
-  IGetLoginResponse,
+  IGetOauthLoginRequest,
+  IGetOauthLoginResponse,
 } from '@controllers/AuthController/type';
 import AuthService from '@services/AuthService';
-import { IRenewAuthTokenRequest } from '@services/AuthService/type';
+import {
+  IOauthLoginRequest,
+  IRenewAuthTokenRequest,
+} from '@services/AuthService/type';
+import AuthMiddleware from '@middlewares/AuthMiddleware';
 
 const AuthController = AsyncRouter();
 
 AuthController.get(
   '/oauthLogin',
-  async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<IGetLoginResponse> => {
+  async (req: Request, res: Response, next: NextFunction) => {
     const { provider, code, redirectUri } = req.query;
-    return await AuthService.oauthLogin({
-      provider,
-      code,
-      redirectUri,
-    } as IGetLoginRequest);
+    return res.send(
+      await AuthService.oauthLogin({
+        provider,
+        code,
+        redirectUri,
+      } as IOauthLoginRequest)
+    );
   }
 );
 
 AuthController.get(
   '/renewAuthToken',
+  AuthMiddleware,
   async (req: Request, res: Response, next: NextFunction) => {
     const { authorization } = req.headers;
-    return await AuthService.renewAuthToken({
-      authorization,
-    } as IRenewAuthTokenRequest);
+    return res.send(
+      await AuthService.renewAuthToken({
+        authorization,
+      } as IRenewAuthTokenRequest)
+    );
   }
 );
 
