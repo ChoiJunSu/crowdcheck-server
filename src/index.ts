@@ -19,8 +19,8 @@ sequelize
   .then(() => {
     console.log('database connected');
   })
-  .catch((error: Error) => {
-    console.error(error);
+  .catch((e: Error) => {
+    console.error(e);
   });
 sequelize
   .sync({
@@ -29,8 +29,8 @@ sequelize
   .then(() => {
     console.log('database synchronized');
   })
-  .catch((error: Error) => {
-    console.error(error);
+  .catch((e: Error) => {
+    console.error(e);
   });
 
 // middlewares

@@ -28,8 +28,8 @@ class UserService {
         response.ok = true;
         response.user = userFindOneResult;
       }
-    } catch (error) {
-      console.error(error);
+    } catch (e) {
+      console.error(e);
       response.error = 'Internal error';
     }
 
@@ -52,8 +52,8 @@ class UserService {
         return response;
       }
       response.ok = true;
-    } catch (error) {
-      console.error(error);
+    } catch (e) {
+      console.error(e);
       response.error = 'Internal error';
     }
 

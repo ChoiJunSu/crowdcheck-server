@@ -4,11 +4,12 @@ import {
   Response,
   NextFunction,
 } from 'express-async-router';
-import OauthService from '@services/OauthService';
 import {
   IGetLoginRequest,
   IGetLoginResponse,
 } from '@controllers/AuthController/type';
+import AuthService from '@services/AuthService';
+import { IRenewAuthTokenRequest } from '@services/AuthService/type';
 
 const AuthController = AsyncRouter();
 
@@ -20,7 +21,7 @@ AuthController.get(
     next: NextFunction
   ): Promise<IGetLoginResponse> => {
     const { provider, code, redirectUri } = req.query;
-    return await OauthService.oauthLogin({
+    return await AuthService.oauthLogin({
       provider,
       code,
       redirectUri,
@@ -31,7 +32,10 @@ AuthController.get(
 AuthController.get(
   '/renewAuthToken',
   async (req: Request, res: Response, next: NextFunction) => {
-    console.log('renew auth token', req.headers);
+    const { authorization } = req.headers;
+    return await AuthService.renewAuthToken({
+      authorization,
+    } as IRenewAuthTokenRequest);
   }
 );
 
