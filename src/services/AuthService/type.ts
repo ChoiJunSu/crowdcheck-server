@@ -1,7 +1,12 @@
+import { JwtPayload } from 'jsonwebtoken';
 import {
   IBaseServiceRequest,
   IBaseServiceResponse,
 } from '@services/BaseService/type';
+
+export interface IAuthTokenPayload extends JwtPayload {
+  email: string;
+}
 
 export interface IGetEmailByOauthCodeRequest extends IBaseServiceRequest {
   provider: string;
@@ -20,5 +25,13 @@ export interface IOauthLoginRequest extends IBaseServiceRequest {
 }
 
 export interface IOauthLoginResponse extends IBaseServiceResponse {
+  authToken: string;
+}
+
+export interface IRenewAuthTokenRequest extends IBaseServiceRequest {
+  authorization: string;
+}
+
+export interface IRenewAuthTokenResponse extends IBaseServiceResponse {
   authToken: string;
 }

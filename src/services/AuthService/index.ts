@@ -1,15 +1,19 @@
-import axios from 'axios';
-import { URLSearchParams } from 'url';
-import UserService from '@services/UserService';
+import { decode, sign } from 'jsonwebtoken';
 import {
+  IAuthTokenPayload,
   IGetEmailByOauthCodeRequest,
   IGetEmailByOauthCodeResponse,
   IOauthLoginRequest,
   IOauthLoginResponse,
-} from '@services/OauthService/type';
-import JwtService from '@services/JwtService';
+  IRenewAuthTokenRequest,
+  IRenewAuthTokenResponse,
+} from '@services/AuthService/type';
+import { JWT_EXPIRES_IN, JWT_ISSUER, JWT_SECRET } from '@constants/jwt';
+import { URLSearchParams } from 'url';
+import axios from 'axios';
+import UserService from '@services/UserService';
 
-class OauthService {
+class AuthService {
   static getEmailByOauthCode = async ({
     provider,
     code,
@@ -107,16 +111,12 @@ class OauthService {
           break;
         }
 
-        case 'naver': {
-          break;
-        }
-
         default: {
           break;
         }
       }
-    } catch (error) {
-      console.error(error);
+    } catch (e) {
+      console.error(e);
       response.error = 'Internal error';
     }
 
@@ -133,7 +133,7 @@ class OauthService {
       error: '',
       authToken: '',
     };
-    const getEmailByOauthCodeResponse = await OauthService.getEmailByOauthCode({
+    const getEmailByOauthCodeResponse = await AuthService.getEmailByOauthCode({
       provider,
       code,
       redirectUri,
@@ -159,18 +159,46 @@ class OauthService {
         return response;
       }
     }
-    const generateAuthTokenResponse = await JwtService.generateAuthToken({
-      email: getEmailByOauthCodeResponse.email,
-    });
-    if (!generateAuthTokenResponse.ok) {
-      response.error = generateAuthTokenResponse.error;
-      return response;
+    try {
+      response.authToken = await sign(
+        { email: getEmailByOauthCodeResponse.email },
+        JWT_SECRET,
+        {
+          expiresIn: JWT_EXPIRES_IN,
+          issuer: JWT_ISSUER,
+        }
+      );
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = 'Oauth login failed';
     }
-    response.ok = true;
-    response.authToken = generateAuthTokenResponse.authToken;
+
+    return response;
+  };
+
+  static renewAuthToken = async ({
+    authorization,
+  }: IRenewAuthTokenRequest): Promise<IRenewAuthTokenResponse> => {
+    const response: IRenewAuthTokenResponse = {
+      ok: false,
+      error: '',
+      authToken: '',
+    };
+    try {
+      const authToken = authorization.split(' ')[1];
+      const { email } = (await decode(authToken)) as IAuthTokenPayload;
+      response.authToken = await sign({ email }, JWT_SECRET, {
+        expiresIn: JWT_EXPIRES_IN,
+        issuer: JWT_ISSUER,
+      });
+      response.ok = true;
+    } catch (e) {
+      response.error = 'Renew authToken failed';
+    }
 
     return response;
   };
 }
 
-export default OauthService;
+export default AuthService;
