@@ -8,16 +8,6 @@ export interface IAuthTokenPayload extends JwtPayload {
   email: string;
 }
 
-export interface IGetEmailByOauthCodeRequest extends IBaseServiceRequest {
-  provider: string;
-  code: string;
-  redirectUri: string;
-}
-
-export interface IGetEmailByOauthCodeResponse extends IBaseServiceResponse {
-  email: string;
-}
-
 export interface IOauthLoginRequest extends IBaseServiceRequest {
   provider: string;
   code: string;
@@ -35,3 +25,21 @@ export interface IRenewAuthTokenRequest extends IBaseServiceRequest {
 export interface IRenewAuthTokenResponse extends IBaseServiceResponse {
   authToken: string;
 }
+
+export interface ICorporateLoginRequest extends IBaseServiceRequest {
+  email: string;
+  password: string;
+}
+
+export interface ICorporateLoginResponse extends IBaseServiceResponse {
+  authToken: string;
+}
+
+export interface ICorporateRegisterRequest extends IBaseServiceRequest {
+  name: string;
+  phone: string;
+  email: string;
+  password: string;
+}
+
+export interface ICorporateRegisterResponse extends IBaseServiceResponse {}

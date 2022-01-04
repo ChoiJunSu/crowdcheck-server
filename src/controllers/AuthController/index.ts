@@ -4,12 +4,10 @@ import {
   Response,
   NextFunction,
 } from 'express-async-router';
-import {
-  IGetOauthLoginRequest,
-  IGetOauthLoginResponse,
-} from '@controllers/AuthController/type';
 import AuthService from '@services/AuthService';
 import {
+  ICorporateLoginRequest,
+  ICorporateRegisterRequest,
   IOauthLoginRequest,
   IRenewAuthTokenRequest,
 } from '@services/AuthService/type';
@@ -21,6 +19,7 @@ AuthController.get(
   '/oauthLogin',
   async (req: Request, res: Response, next: NextFunction) => {
     const { provider, code, redirectUri } = req.query;
+
     return res.send(
       await AuthService.oauthLogin({
         provider,
@@ -36,10 +35,41 @@ AuthController.get(
   AuthMiddleware,
   async (req: Request, res: Response, next: NextFunction) => {
     const { authorization } = req.headers;
+
     return res.send(
       await AuthService.renewAuthToken({
         authorization,
       } as IRenewAuthTokenRequest)
+    );
+  }
+);
+
+AuthController.post(
+  '/corporateLogin',
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { email, password } = req.body;
+
+    return res.send(
+      await AuthService.corporateLogin({
+        email,
+        password,
+      } as ICorporateLoginRequest)
+    );
+  }
+);
+
+AuthController.post(
+  '/corporateRegister',
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { name, phone, email, password } = req.body;
+
+    return res.send(
+      await AuthService.corporateRegister({
+        name,
+        phone,
+        email,
+        password,
+      } as ICorporateRegisterRequest)
     );
   }
 );

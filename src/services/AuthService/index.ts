@@ -1,8 +1,10 @@
 import { decode, sign } from 'jsonwebtoken';
 import {
   IAuthTokenPayload,
-  IGetEmailByOauthCodeRequest,
-  IGetEmailByOauthCodeResponse,
+  ICorporateLoginRequest,
+  ICorporateLoginResponse,
+  ICorporateRegisterRequest,
+  ICorporateRegisterResponse,
   IOauthLoginRequest,
   IOauthLoginResponse,
   IRenewAuthTokenRequest,
@@ -11,20 +13,24 @@ import {
 import { JWT_EXPIRES_IN, JWT_ISSUER, JWT_SECRET } from '@constants/jwt';
 import { URLSearchParams } from 'url';
 import axios from 'axios';
-import UserService from '@services/UserService';
+import { compare, genSalt, hash } from 'bcrypt';
+import UserModel from '@models/UserModel';
+import CorporateModel from '@models/CorporateModel';
 
 class AuthService {
-  static getEmailByOauthCode = async ({
+  static oauthLogin = async ({
     provider,
     code,
     redirectUri,
-  }: IGetEmailByOauthCodeRequest): Promise<IGetEmailByOauthCodeResponse> => {
-    const response: IGetEmailByOauthCodeResponse = {
+  }: IOauthLoginRequest): Promise<IOauthLoginResponse> => {
+    const response: IOauthLoginResponse = {
       ok: false,
       error: '',
-      email: '',
+      authToken: '',
     };
+    let email;
     try {
+      // get email by oauth code
       switch (provider) {
         case 'kakao': {
           const params = new URLSearchParams({
@@ -34,6 +40,7 @@ class AuthService {
             code,
             client_secret: 'LMYsThJdZqYizOZTPrdTcCLr6UnIqUAT',
           });
+          // get access token by oauth code
           const {
             data: { access_token },
           } = await axios.post(
@@ -47,9 +54,10 @@ class AuthService {
             }
           );
           if (!access_token) {
-            response.error = `Failed to get access token`;
+            response.error = `카카오로부터 정보를 불러오지 못했습니다.`;
             return response;
           }
+          // get kakao account by oauth access token
           const {
             data: { kakao_account },
           } = await axios.get('https://kapi.kakao.com/v2/user/me', {
@@ -59,11 +67,10 @@ class AuthService {
             },
           });
           if (!kakao_account || !kakao_account.has_email) {
-            response.error = `Failed to get email`;
+            response.error = `카카오로부터 정보를 불러오지 못했습니다.`;
             return response;
           }
-          response.ok = true;
-          response.email = kakao_account.email;
+          email = kakao_account.email;
           break;
         }
 
@@ -76,6 +83,7 @@ class AuthService {
             code,
             client_secret: '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',
           });
+          // get access token by oauth code
           const {
             data: { access_token },
           } = await axios.post(
@@ -89,9 +97,10 @@ class AuthService {
             }
           );
           if (!access_token) {
-            response.error = `Failed to get access token`;
+            response.error = `구글로부터 정보를 불러오지 못했습니다.`;
             return response;
           }
+          // get google data by oauth access token
           const { data } = await axios.get(
             'https://www.googleapis.com/oauth2/v2/userinfo',
             {
@@ -103,11 +112,10 @@ class AuthService {
             }
           );
           if (!data) {
-            response.error = `Failed to get email`;
+            response.error = `구글로부터 정보를 불러오지 못했습니다.`;
             return response;
           }
-          response.ok = true;
-          response.email = data.email;
+          email = data.email;
           break;
         }
 
@@ -115,63 +123,31 @@ class AuthService {
           break;
         }
       }
-    } catch (e) {
-      console.error(e);
-      response.error = 'Internal error';
-    }
-
-    return response;
-  };
-
-  static oauthLogin = async ({
-    provider,
-    code,
-    redirectUri,
-  }: IOauthLoginRequest): Promise<IOauthLoginResponse> => {
-    const response: IOauthLoginResponse = {
-      ok: false,
-      error: '',
-      authToken: '',
-    };
-    const getEmailByOauthCodeResponse = await AuthService.getEmailByOauthCode({
-      provider,
-      code,
-      redirectUri,
-    });
-    if (!getEmailByOauthCodeResponse.ok) {
-      response.error = getEmailByOauthCodeResponse.error;
-      return response;
-    }
-    const getUserByEmailResponse = await UserService.getUserByEmail({
-      email: getEmailByOauthCodeResponse.email,
-    });
-    if (!getUserByEmailResponse.ok) {
-      if (getUserByEmailResponse.error === 'User not found') {
-        const createUserResponse = await UserService.createUser({
-          email: getEmailByOauthCodeResponse.email,
+      // find user by email
+      const userFindOneResult = await UserModel.findOne({
+        where: {
+          email,
+        },
+      });
+      if (!userFindOneResult) {
+        // create user
+        const userCreateResult = await UserModel.create({
+          email,
         });
-        if (!createUserResponse.ok) {
-          response.error = createUserResponse.error;
+        if (!userCreateResult) {
+          response.error = '개인회원 생성 오류입니다.';
           return response;
         }
-      } else {
-        response.error = getUserByEmailResponse.error;
-        return response;
       }
-    }
-    try {
-      response.authToken = await sign(
-        { email: getEmailByOauthCodeResponse.email },
-        JWT_SECRET,
-        {
-          expiresIn: JWT_EXPIRES_IN,
-          issuer: JWT_ISSUER,
-        }
-      );
+      // sign authToken with email
+      response.authToken = await sign({ email }, JWT_SECRET, {
+        expiresIn: JWT_EXPIRES_IN,
+        issuer: JWT_ISSUER,
+      });
       response.ok = true;
     } catch (e) {
       console.error(e);
-      response.error = 'Oauth login failed';
+      response.error = '개인회원 로그인에 실패했습니다.';
     }
 
     return response;
@@ -186,15 +162,92 @@ class AuthService {
       authToken: '',
     };
     try {
+      // extract and decode authToken from authorization header
       const authToken = authorization.split(' ')[1];
       const { email } = (await decode(authToken)) as IAuthTokenPayload;
+      // sign authToken with email
       response.authToken = await sign({ email }, JWT_SECRET, {
         expiresIn: JWT_EXPIRES_IN,
         issuer: JWT_ISSUER,
       });
       response.ok = true;
     } catch (e) {
-      response.error = 'Renew authToken failed';
+      response.error = '토큰 재발급에 실패했습니다.';
+    }
+
+    return response;
+  };
+
+  static corporateLogin = async ({
+    email,
+    password,
+  }: ICorporateLoginRequest): Promise<ICorporateLoginResponse> => {
+    const response: ICorporateLoginResponse = {
+      ok: false,
+      error: '',
+      authToken: '',
+    };
+    try {
+      // find corporate by email
+      const corporateFindOneResult = await CorporateModel.findOne({
+        where: {
+          email,
+        },
+      });
+      if (!corporateFindOneResult) {
+        response.error = '해당 이메일로 등록된 기업회원이 없습니다.';
+        return response;
+      }
+      const { name, hashed } = corporateFindOneResult;
+      // compare password with hashed
+      const compareResult = await compare(password, hashed);
+      if (!compareResult) {
+        response.error = '비밀번호가 다릅니다.';
+        return response;
+      }
+      // sign authToken with name, email
+      response.authToken = await sign({ name, email }, JWT_SECRET, {
+        expiresIn: JWT_EXPIRES_IN,
+        issuer: JWT_ISSUER,
+      });
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '기업회원 로그인에 실패했습니다.';
+    }
+
+    return response;
+  };
+
+  static corporateRegister = async ({
+    name,
+    phone,
+    email,
+    password,
+  }: ICorporateRegisterRequest): Promise<ICorporateRegisterResponse> => {
+    const response: ICorporateRegisterResponse = {
+      ok: false,
+      error: '',
+    };
+    try {
+      // hash password
+      const salt = await genSalt(10);
+      const hashed = await hash(password, salt);
+      // create corporate
+      const corporateCreateResult = CorporateModel.create({
+        name,
+        phone,
+        email,
+        hashed,
+      });
+      if (!corporateCreateResult) {
+        response.error = '기업회원 생성 오류입니다.';
+        return response;
+      }
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '기업회원 가입에 실패했습니다.';
     }
 
     return response;

@@ -3,7 +3,6 @@ import cors from 'cors';
 import createError from 'http-errors';
 import { Error } from 'sequelize';
 import sequelize from '@models/BaseModel';
-import AuthMiddleware from '@middlewares/AuthMiddleware';
 import AuthController from '@controllers/AuthController';
 
 const app = express();
@@ -32,6 +31,9 @@ sequelize
   .catch((e: Error) => {
     console.error(e);
   });
+
+// body parser
+app.use(express.json());
 
 // controllers
 app.use('/auth', AuthController);
