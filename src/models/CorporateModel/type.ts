@@ -1,11 +1,9 @@
 import { Optional } from 'sequelize';
 
 export interface ICorporateAttributes {
+  id?: number;
   name: string;
-  phone: string;
-  email: string;
-  hashed: string;
 }
 
 export interface ICorporateCreationAttributes
-  extends Optional<ICorporateAttributes, 'name'> {}
+  extends Optional<ICorporateAttributes, 'id'> {}

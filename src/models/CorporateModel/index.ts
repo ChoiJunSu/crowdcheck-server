@@ -9,32 +9,26 @@ class CorporateModel
   extends Model<ICorporateAttributes, ICorporateCreationAttributes>
   implements ICorporateAttributes
 {
-  public name!: string;
-  public phone!: string;
-  public email!: string;
-  public hashed!: string;
+  declare id: number;
+  declare name: string;
 
-  public static associations: {};
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
+
+  declare static associations: {};
 }
 
 CorporateModel.init(
   {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+    },
     name: {
-      type: DataTypes.STRING(40),
+      type: DataTypes.STRING,
       allowNull: false,
       unique: true,
-    },
-    phone: {
-      type: DataTypes.STRING(40),
-    },
-    email: {
-      type: DataTypes.STRING(40),
-      allowNull: false,
-      unique: true,
-    },
-    hashed: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
     },
   },
   {

@@ -3,8 +3,10 @@ import {
   IBaseControllerResponse,
 } from '@controllers/BaseController/type';
 
+export type TOauthProvider = 'google' | 'kakao';
+
 export interface IGetOauthLoginRequest extends IBaseControllerRequest {
-  provider: string;
+  provider: TOauthProvider;
   code: string;
   redirectUri: string;
 }

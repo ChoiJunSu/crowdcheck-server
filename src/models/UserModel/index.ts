@@ -2,24 +2,64 @@ import { Model, DataTypes } from 'sequelize';
 import {
   IUserAttributes,
   IUserCreationAttributes,
+  TUserType,
 } from '@models/UserModel/type';
 import sequelize from '@models/BaseModel';
+import CorporateModel from '@models/CorporateModel';
 
 class UserModel
   extends Model<IUserAttributes, IUserCreationAttributes>
   implements IUserAttributes
 {
-  public email!: string;
+  declare id: number;
+  declare email: string;
+  declare hashed: string | null;
+  declare name: string;
+  declare phone: string;
+  declare type: TUserType;
+  declare corporateId: number | null;
+  declare credit: number;
 
-  public static associations: {};
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
+
+  declare static associations: {};
 }
 
 UserModel.init(
   {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+    },
     email: {
-      type: DataTypes.STRING(40),
+      type: DataTypes.STRING,
       allowNull: false,
       unique: true,
+    },
+    hashed: {
+      type: DataTypes.STRING,
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    phone: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    type: {
+      type: DataTypes.ENUM('personal', 'corporate'),
+      allowNull: false,
+    },
+    corporateId: {
+      type: DataTypes.INTEGER,
+      unique: true,
+    },
+    credit: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
     },
   },
   {
@@ -32,5 +72,14 @@ UserModel.init(
     collate: 'utf8mb4_general_ci',
   }
 );
+
+CorporateModel.hasOne(UserModel, {
+  foreignKey: 'corporateId',
+  onDelete: 'RESTRICT',
+  onUpdate: 'CASCADE',
+});
+UserModel.belongsTo(CorporateModel, {
+  foreignKey: 'corporateId',
+});
 
 export default UserModel;

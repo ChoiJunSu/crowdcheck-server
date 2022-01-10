@@ -3,13 +3,14 @@ import {
   IBaseServiceRequest,
   IBaseServiceResponse,
 } from '@services/BaseService/type';
+import { TOauthProvider } from '@controllers/AuthController/type';
 
 export interface IAuthTokenPayload extends JwtPayload {
   email: string;
 }
 
 export interface IOauthLoginRequest extends IBaseServiceRequest {
-  provider: string;
+  provider: TOauthProvider;
   code: string;
   redirectUri: string;
 }

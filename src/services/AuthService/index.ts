@@ -130,14 +130,8 @@ class AuthService {
         },
       });
       if (!userFindOneResult) {
-        // create user
-        const userCreateResult = await UserModel.create({
-          email,
-        });
-        if (!userCreateResult) {
-          response.error = '개인회원 생성 오류입니다.';
-          return response;
-        }
+        response.error = '회원가입이 필요합니다.';
+        return response;
       }
       // sign authToken with email
       response.authToken = await sign({ email }, JWT_SECRET, {
@@ -189,16 +183,21 @@ class AuthService {
     };
     try {
       // find corporate by email
-      const corporateFindOneResult = await CorporateModel.findOne({
+      const userFindOneResult = await UserModel.findOne({
         where: {
           email,
+          type: 'corporate',
         },
       });
-      if (!corporateFindOneResult) {
+      if (!userFindOneResult) {
         response.error = '해당 이메일로 등록된 기업회원이 없습니다.';
         return response;
       }
-      const { name, hashed } = corporateFindOneResult;
+      const { name, hashed } = userFindOneResult;
+      if (!hashed) {
+        response.error = '비밀번호가 설정되어있지 않습니다.';
+        return response;
+      }
       // compare password with hashed
       const compareResult = await compare(password, hashed);
       if (!compareResult) {
@@ -229,26 +228,26 @@ class AuthService {
       ok: false,
       error: '',
     };
-    try {
-      // hash password
-      const salt = await genSalt(10);
-      const hashed = await hash(password, salt);
-      // create corporate
-      const corporateCreateResult = CorporateModel.create({
-        name,
-        phone,
-        email,
-        hashed,
-      });
-      if (!corporateCreateResult) {
-        response.error = '기업회원 생성 오류입니다.';
-        return response;
-      }
-      response.ok = true;
-    } catch (e) {
-      console.error(e);
-      response.error = '기업회원 가입에 실패했습니다.';
-    }
+    // try {
+    //   // hash password
+    //   const salt = await genSalt(10);
+    //   const hashed = await hash(password, salt);
+    //   // create corporate
+    //   const corporateCreateResult = CorporateModel.create({
+    //     name,
+    //     phone,
+    //     email,
+    //     hashed,
+    //   });
+    //   if (!corporateCreateResult) {
+    //     response.error = '기업회원 생성 오류입니다.';
+    //     return response;
+    //   }
+    //   response.ok = true;
+    // } catch (e) {
+    //   console.error(e);
+    //   response.error = '기업회원 가입에 실패했습니다.';
+    // }
 
     return response;
   };

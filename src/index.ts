@@ -4,6 +4,13 @@ import createError from 'http-errors';
 import { Error } from 'sequelize';
 import sequelize from '@models/BaseModel';
 import AuthController from '@controllers/AuthController';
+import CorporateModel from '@models/CorporateModel';
+import RequestModel from '@models/RequestModel';
+import UserModel from '@models/UserModel';
+import ReceiverModel from '@models/ReceiverModel';
+import CareerModel from '@models/CareerModel';
+import CandidateModel from '@models/CandidateModel';
+import AgreeModel from '@models/AgreeModel';
 
 const app = express();
 const port = 4000;
@@ -27,6 +34,34 @@ sequelize
   })
   .then(() => {
     console.log('database synchronized');
+    (async () => {
+      await CorporateModel.create({ name: 'crowdcheck' });
+      await UserModel.create({
+        email: 'ke@nv.com',
+        name: '최준수',
+        phone: '010020',
+        type: 'corporate',
+        corporateId: 1,
+      });
+      await RequestModel.create({ corporateId: 1, question: 'dfad' });
+      await ReceiverModel.create({ requestId: 1, userId: 1, answer: 'dasf' });
+      await CareerModel.create({
+        userId: 1,
+        corporateId: 1,
+        startAt: new Date(),
+      });
+      await CandidateModel.create({
+        requestId: 1,
+        name: '최준수',
+        phone: '102',
+      });
+      await AgreeModel.create({
+        requestId: 1,
+        corporateId: 1,
+        candidateId: 1,
+        startAt: new Date(),
+      });
+    })();
   })
   .catch((e: Error) => {
     console.error(e);
