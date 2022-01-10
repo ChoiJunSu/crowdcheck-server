@@ -5,12 +5,12 @@ import {
 
 export type TOauthProvider = 'google' | 'kakao';
 
-export interface IGetOauthLoginRequest extends IBaseControllerRequest {
+export interface IGetLoginOauthRequest extends IBaseControllerRequest {
   provider: TOauthProvider;
   code: string;
   redirectUri: string;
 }
 
-export interface IGetOauthLoginResponse extends IBaseControllerResponse {
+export interface IGetLoginOauthResponse extends IBaseControllerResponse {
   authToken: string;
 }

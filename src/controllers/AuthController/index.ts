@@ -7,42 +7,13 @@ import {
 import AuthService from '@services/AuthService';
 import {
   ICorporateLoginRequest,
-  ICorporateRegisterRequest,
-  IOauthLoginRequest,
-  IRenewAuthTokenRequest,
+  IRegisterCorporateRequest,
+  ILoginOauthRequest,
+  ITokenRenewRequest,
 } from '@services/AuthService/type';
 import AuthMiddleware from '@middlewares/AuthMiddleware';
 
 const AuthController = AsyncRouter();
-
-AuthController.get(
-  '/oauthLogin',
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { provider, code, redirectUri } = req.query;
-
-    return res.send(
-      await AuthService.oauthLogin({
-        provider,
-        code,
-        redirectUri,
-      } as IOauthLoginRequest)
-    );
-  }
-);
-
-AuthController.get(
-  '/renewAuthToken',
-  AuthMiddleware,
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { authorization } = req.headers;
-
-    return res.send(
-      await AuthService.renewAuthToken({
-        authorization,
-      } as IRenewAuthTokenRequest)
-    );
-  }
-);
 
 AuthController.post(
   '/login',
@@ -59,18 +30,47 @@ AuthController.post(
   }
 );
 
+AuthController.get(
+  '/login/oauth',
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { provider, code, redirectUri } = req.query;
+
+    return res.send(
+      await AuthService.loginOauth({
+        provider,
+        code,
+        redirectUri,
+      } as ILoginOauthRequest)
+    );
+  }
+);
+
+AuthController.get(
+  '/token/renew',
+  AuthMiddleware,
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { authorization } = req.headers;
+
+    return res.send(
+      await AuthService.tokenRenew({
+        authorization,
+      } as ITokenRenewRequest)
+    );
+  }
+);
+
 AuthController.post(
-  '/corporateRegister',
+  '/register/corporate',
   async (req: Request, res: Response, next: NextFunction) => {
     const { name, phone, email, password } = req.body;
 
     return res.send(
-      await AuthService.corporateRegister({
+      await AuthService.registerCorporate({
         name,
         phone,
         email,
         password,
-      } as ICorporateRegisterRequest)
+      } as IRegisterCorporateRequest)
     );
   }
 );

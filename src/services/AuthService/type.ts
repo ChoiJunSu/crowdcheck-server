@@ -12,21 +12,21 @@ export interface IAuthTokenPayload extends JwtPayload {
   type: TUserType;
 }
 
-export interface IOauthLoginRequest extends IBaseServiceRequest {
+export interface ILoginOauthRequest extends IBaseServiceRequest {
   provider: TOauthProvider;
   code: string;
   redirectUri: string;
 }
 
-export interface IOauthLoginResponse extends IBaseServiceResponse {
+export interface ILoginOauthResponse extends IBaseServiceResponse {
   authToken: string;
 }
 
-export interface IRenewAuthTokenRequest extends IBaseServiceRequest {
+export interface ITokenRenewRequest extends IBaseServiceRequest {
   authorization: string;
 }
 
-export interface IRenewAuthTokenResponse extends IBaseServiceResponse {
+export interface ITokenRenewResponse extends IBaseServiceResponse {
   authToken: string;
 }
 
@@ -40,11 +40,11 @@ export interface ICorporateLoginResponse extends IBaseServiceResponse {
   authToken: string;
 }
 
-export interface ICorporateRegisterRequest extends IBaseServiceRequest {
+export interface IRegisterCorporateRequest extends IBaseServiceRequest {
   name: string;
   phone: string;
   email: string;
   password: string;
 }
 
-export interface ICorporateRegisterResponse extends IBaseServiceResponse {}
+export interface IRegisterCorporateResponse extends IBaseServiceResponse {}

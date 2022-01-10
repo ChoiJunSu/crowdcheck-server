@@ -3,12 +3,12 @@ import {
   IAuthTokenPayload,
   ICorporateLoginRequest,
   ICorporateLoginResponse,
-  ICorporateRegisterRequest,
-  ICorporateRegisterResponse,
-  IOauthLoginRequest,
-  IOauthLoginResponse,
-  IRenewAuthTokenRequest,
-  IRenewAuthTokenResponse,
+  IRegisterCorporateRequest,
+  IRegisterCorporateResponse,
+  ILoginOauthRequest,
+  ILoginOauthResponse,
+  ITokenRenewRequest,
+  ITokenRenewResponse,
 } from '@services/AuthService/type';
 import { JWT_EXPIRES_IN, JWT_ISSUER, JWT_SECRET } from '@constants/jwt';
 import { URLSearchParams } from 'url';
@@ -18,12 +18,63 @@ import UserModel from '@models/UserModel';
 import CorporateModel from '@models/CorporateModel';
 
 class AuthService {
-  static oauthLogin = async ({
+  static login = async ({
+    email,
+    password,
+    type,
+  }: ICorporateLoginRequest): Promise<ICorporateLoginResponse> => {
+    const response: ICorporateLoginResponse = {
+      ok: false,
+      error: '',
+      authToken: '',
+    };
+    try {
+      // find corporate by email
+      const userFindOneResult = await UserModel.findOne({
+        where: {
+          email,
+          type,
+        },
+      });
+      if (!userFindOneResult) {
+        response.error = '해당 이메일로 등록된 회원이 없습니다.';
+        return response;
+      }
+      const { id, name, hashed } = userFindOneResult;
+      if (!hashed) {
+        response.error = '다른 방식으로 로그인 해주세요.';
+        return response;
+      }
+      // compare password with hashed
+      const compareResult = await compare(password, hashed);
+      if (!compareResult) {
+        response.error = '비밀번호가 다릅니다.';
+        return response;
+      }
+      // sign authToken with name, email
+      response.authToken = await sign(
+        { id, name, type } as IAuthTokenPayload,
+        JWT_SECRET,
+        {
+          expiresIn: JWT_EXPIRES_IN,
+          issuer: JWT_ISSUER,
+        }
+      );
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '로그인에 실패했습니다.';
+    }
+
+    return response;
+  };
+
+  static loginOauth = async ({
     provider,
     code,
     redirectUri,
-  }: IOauthLoginRequest): Promise<IOauthLoginResponse> => {
-    const response: IOauthLoginResponse = {
+  }: ILoginOauthRequest): Promise<ILoginOauthResponse> => {
+    const response: ILoginOauthResponse = {
       ok: false,
       error: '',
       authToken: '',
@@ -153,10 +204,10 @@ class AuthService {
     return response;
   };
 
-  static renewAuthToken = async ({
+  static tokenRenew = async ({
     authorization,
-  }: IRenewAuthTokenRequest): Promise<IRenewAuthTokenResponse> => {
-    const response: IRenewAuthTokenResponse = {
+  }: ITokenRenewRequest): Promise<ITokenRenewResponse> => {
+    const response: ITokenRenewResponse = {
       ok: false,
       error: '',
       authToken: '',
@@ -178,64 +229,13 @@ class AuthService {
     return response;
   };
 
-  static login = async ({
-    email,
-    password,
-    type,
-  }: ICorporateLoginRequest): Promise<ICorporateLoginResponse> => {
-    const response: ICorporateLoginResponse = {
-      ok: false,
-      error: '',
-      authToken: '',
-    };
-    try {
-      // find corporate by email
-      const userFindOneResult = await UserModel.findOne({
-        where: {
-          email,
-          type,
-        },
-      });
-      if (!userFindOneResult) {
-        response.error = '해당 이메일로 등록된 회원이 없습니다.';
-        return response;
-      }
-      const { id, name, hashed } = userFindOneResult;
-      if (!hashed) {
-        response.error = '다른 방식으로 로그인 해주세요.';
-        return response;
-      }
-      // compare password with hashed
-      const compareResult = await compare(password, hashed);
-      if (!compareResult) {
-        response.error = '비밀번호가 다릅니다.';
-        return response;
-      }
-      // sign authToken with name, email
-      response.authToken = await sign(
-        { id, name, type } as IAuthTokenPayload,
-        JWT_SECRET,
-        {
-          expiresIn: JWT_EXPIRES_IN,
-          issuer: JWT_ISSUER,
-        }
-      );
-      response.ok = true;
-    } catch (e) {
-      console.error(e);
-      response.error = '로그인에 실패했습니다.';
-    }
-
-    return response;
-  };
-
-  static corporateRegister = async ({
+  static registerCorporate = async ({
     name,
     phone,
     email,
     password,
-  }: ICorporateRegisterRequest): Promise<ICorporateRegisterResponse> => {
-    const response: ICorporateRegisterResponse = {
+  }: IRegisterCorporateRequest): Promise<IRegisterCorporateResponse> => {
+    const response: IRegisterCorporateResponse = {
       ok: false,
       error: '',
     };
