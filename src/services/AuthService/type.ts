@@ -4,9 +4,12 @@ import {
   IBaseServiceResponse,
 } from '@services/BaseService/type';
 import { TOauthProvider } from '@controllers/AuthController/type';
+import { TUserType } from '@models/UserModel/type';
 
 export interface IAuthTokenPayload extends JwtPayload {
-  email: string;
+  id: number;
+  name: string;
+  type: TUserType;
 }
 
 export interface IOauthLoginRequest extends IBaseServiceRequest {
@@ -30,6 +33,7 @@ export interface IRenewAuthTokenResponse extends IBaseServiceResponse {
 export interface ICorporateLoginRequest extends IBaseServiceRequest {
   email: string;
   password: string;
+  type: TUserType;
 }
 
 export interface ICorporateLoginResponse extends IBaseServiceResponse {

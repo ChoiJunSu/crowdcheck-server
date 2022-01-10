@@ -37,10 +37,10 @@ sequelize
     (async () => {
       await CorporateModel.create({ name: 'crowdcheck' });
       await UserModel.create({
-        email: 'ke@nv.com',
-        name: '최준수',
+        email: 'dev.crowdcheck@gmail.com',
+        name: '크라우드체크',
         phone: '010020',
-        type: 'corporate',
+        type: 'personal',
         corporateId: 1,
       });
       await RequestModel.create({ corporateId: 1, question: 'dfad' });

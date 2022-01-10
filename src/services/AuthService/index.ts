@@ -127,21 +127,27 @@ class AuthService {
       const userFindOneResult = await UserModel.findOne({
         where: {
           email,
+          type: 'personal',
         },
       });
       if (!userFindOneResult) {
         response.error = '회원가입이 필요합니다.';
         return response;
       }
+      const { id, name } = userFindOneResult;
       // sign authToken with email
-      response.authToken = await sign({ email }, JWT_SECRET, {
-        expiresIn: JWT_EXPIRES_IN,
-        issuer: JWT_ISSUER,
-      });
+      response.authToken = await sign(
+        { id, name, type: 'personal' } as IAuthTokenPayload,
+        JWT_SECRET,
+        {
+          expiresIn: JWT_EXPIRES_IN,
+          issuer: JWT_ISSUER,
+        }
+      );
       response.ok = true;
     } catch (e) {
       console.error(e);
-      response.error = '개인회원 로그인에 실패했습니다.';
+      response.error = 'Oauth 로그인에 실패했습니다.';
     }
 
     return response;
@@ -172,9 +178,10 @@ class AuthService {
     return response;
   };
 
-  static corporateLogin = async ({
+  static login = async ({
     email,
     password,
+    type,
   }: ICorporateLoginRequest): Promise<ICorporateLoginResponse> => {
     const response: ICorporateLoginResponse = {
       ok: false,
@@ -186,16 +193,16 @@ class AuthService {
       const userFindOneResult = await UserModel.findOne({
         where: {
           email,
-          type: 'corporate',
+          type,
         },
       });
       if (!userFindOneResult) {
-        response.error = '해당 이메일로 등록된 기업회원이 없습니다.';
+        response.error = '해당 이메일로 등록된 회원이 없습니다.';
         return response;
       }
-      const { name, hashed } = userFindOneResult;
+      const { id, name, hashed } = userFindOneResult;
       if (!hashed) {
-        response.error = '비밀번호가 설정되어있지 않습니다.';
+        response.error = '다른 방식으로 로그인 해주세요.';
         return response;
       }
       // compare password with hashed
@@ -205,14 +212,18 @@ class AuthService {
         return response;
       }
       // sign authToken with name, email
-      response.authToken = await sign({ name, email }, JWT_SECRET, {
-        expiresIn: JWT_EXPIRES_IN,
-        issuer: JWT_ISSUER,
-      });
+      response.authToken = await sign(
+        { id, name, type } as IAuthTokenPayload,
+        JWT_SECRET,
+        {
+          expiresIn: JWT_EXPIRES_IN,
+          issuer: JWT_ISSUER,
+        }
+      );
       response.ok = true;
     } catch (e) {
       console.error(e);
-      response.error = '기업회원 로그인에 실패했습니다.';
+      response.error = '로그인에 실패했습니다.';
     }
 
     return response;

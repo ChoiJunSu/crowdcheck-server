@@ -45,14 +45,15 @@ AuthController.get(
 );
 
 AuthController.post(
-  '/corporateLogin',
+  '/login',
   async (req: Request, res: Response, next: NextFunction) => {
-    const { email, password } = req.body;
+    const { email, password, type } = req.body;
 
     return res.send(
-      await AuthService.corporateLogin({
+      await AuthService.login({
         email,
         password,
+        type,
       } as ICorporateLoginRequest)
     );
   }
