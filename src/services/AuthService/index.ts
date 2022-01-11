@@ -282,6 +282,10 @@ class AuthService {
           startAt,
           endAt,
         });
+        if (!careerCreateResult) {
+          response.error = '경력 생성 오류입니다.';
+          return response;
+        }
       }
       response.ok = true;
     } catch (e) {
