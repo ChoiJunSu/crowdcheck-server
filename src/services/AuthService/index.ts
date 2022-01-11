@@ -1,14 +1,16 @@
 import { decode, sign } from 'jsonwebtoken';
 import {
   IAuthTokenPayload,
-  ICorporateLoginRequest,
-  ICorporateLoginResponse,
   IRegisterCorporateRequest,
   IRegisterCorporateResponse,
   ILoginOauthRequest,
   ILoginOauthResponse,
   ITokenRenewRequest,
   ITokenRenewResponse,
+  ILoginRequest,
+  ILoginResponse,
+  IRegisterPersonalRequest,
+  IRegisterPersonalResponse,
 } from '@services/AuthService/type';
 import { JWT_EXPIRES_IN, JWT_ISSUER, JWT_SECRET } from '@constants/jwt';
 import { URLSearchParams } from 'url';
@@ -16,14 +18,15 @@ import axios from 'axios';
 import { compare, genSalt, hash } from 'bcrypt';
 import UserModel from '@models/UserModel';
 import CorporateModel from '@models/CorporateModel';
+import CareerModel from '@models/CareerModel';
 
 class AuthService {
   static login = async ({
     email,
     password,
     type,
-  }: ICorporateLoginRequest): Promise<ICorporateLoginResponse> => {
-    const response: ICorporateLoginResponse = {
+  }: ILoginRequest): Promise<ILoginResponse> => {
+    const response: ILoginResponse = {
       ok: false,
       error: '',
       authToken: '',
@@ -31,6 +34,7 @@ class AuthService {
     try {
       // find corporate by email
       const userFindOneResult = await UserModel.findOne({
+        attributes: ['id', 'name', 'hashed'],
         where: {
           email,
           type,
@@ -176,6 +180,7 @@ class AuthService {
       }
       // find user by email
       const userFindOneResult = await UserModel.findOne({
+        attributes: ['id', 'name'],
         where: {
           email,
           type: 'personal',
@@ -185,7 +190,12 @@ class AuthService {
         response.error = '회원가입이 필요합니다.';
         return response;
       }
-      const { id, name } = userFindOneResult;
+      const { id, name, oauthProvider } = userFindOneResult;
+      // if oauth provider not matched
+      if (oauthProvider !== provider) {
+        response.error = '다른 방식으로 로그인 해주세요.';
+        return response;
+      }
       // sign authToken with email
       response.authToken = await sign(
         { id, name, type: 'personal' } as IAuthTokenPayload,
@@ -229,6 +239,59 @@ class AuthService {
     return response;
   };
 
+  static registerPersonal = async ({
+    name,
+    phone,
+    email,
+    password,
+    career,
+  }: IRegisterPersonalRequest): Promise<IRegisterPersonalResponse> => {
+    const response: IRegisterPersonalResponse = {
+      ok: false,
+      error: '',
+    };
+    try {
+      // hash password
+      const salt = await genSalt(10);
+      const hashed = await hash(password, salt);
+      // create user
+      const userCreateResult = await UserModel.create({
+        name,
+        phone,
+        email,
+        hashed,
+        type: 'personal',
+      });
+      if (!userCreateResult) {
+        response.error = '회원 생성 오류입니다.';
+        return response;
+      }
+      // create career
+      for (const { name, department, startAt, endAt } of career) {
+        const corporateFindResult = await CorporateModel.findOne({
+          where: { name },
+        });
+        if (!corporateFindResult) {
+          response.error = '경력 오류입니다.';
+          return response;
+        }
+        const careerCreateResult = await CareerModel.create({
+          userId: userCreateResult.id,
+          corporateId: corporateFindResult.id,
+          department,
+          startAt,
+          endAt,
+        });
+      }
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '개인회원 가입에 실패했습니다.';
+    }
+
+    return response;
+  };
+
   static registerCorporate = async ({
     name,
     phone,
@@ -239,26 +302,37 @@ class AuthService {
       ok: false,
       error: '',
     };
-    // try {
-    //   // hash password
-    //   const salt = await genSalt(10);
-    //   const hashed = await hash(password, salt);
-    //   // create corporate
-    //   const corporateCreateResult = CorporateModel.create({
-    //     name,
-    //     phone,
-    //     email,
-    //     hashed,
-    //   });
-    //   if (!corporateCreateResult) {
-    //     response.error = '기업회원 생성 오류입니다.';
-    //     return response;
-    //   }
-    //   response.ok = true;
-    // } catch (e) {
-    //   console.error(e);
-    //   response.error = '기업회원 가입에 실패했습니다.';
-    // }
+    try {
+      // hash password
+      const salt = await genSalt(10);
+      const hashed = await hash(password, salt);
+      // create corporate
+      const corporateCreateResult = await CorporateModel.create({
+        name,
+      });
+      if (!corporateCreateResult) {
+        response.error = '기업 생성 오류입니다.';
+        return response;
+      }
+      const { id } = corporateCreateResult;
+      // create user
+      const userCreateResult = UserModel.create({
+        name,
+        phone,
+        email,
+        hashed,
+        type: 'corporate',
+        corporateId: id,
+      });
+      if (!userCreateResult) {
+        response.error = '회원 생성 오류입니다.';
+        return response;
+      }
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '기업회원 가입에 실패했습니다.';
+    }
 
     return response;
   };

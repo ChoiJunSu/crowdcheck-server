@@ -11,6 +11,7 @@ import ReceiverModel from '@models/ReceiverModel';
 import CareerModel from '@models/CareerModel';
 import CandidateModel from '@models/CandidateModel';
 import AgreeModel from '@models/AgreeModel';
+import CorporateController from '@controllers/CorporateController';
 
 const app = express();
 const port = 4000;
@@ -72,6 +73,7 @@ app.use(express.json());
 
 // controllers
 app.use('/auth', AuthController);
+app.use('/corporate', CorporateController);
 
 // error handling
 app.use((req: Request, res: Response, next: NextFunction) => {

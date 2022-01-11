@@ -3,13 +3,27 @@ import {
   IBaseServiceRequest,
   IBaseServiceResponse,
 } from '@services/BaseService/type';
-import { TOauthProvider } from '@controllers/AuthController/type';
+import { ICareer, TOauthProvider } from '@controllers/AuthController/type';
 import { TUserType } from '@models/UserModel/type';
+import {
+  IBaseControllerRequest,
+  IBaseControllerResponse,
+} from '@controllers/BaseController/type';
 
 export interface IAuthTokenPayload extends JwtPayload {
   id: number;
   name: string;
   type: TUserType;
+}
+
+export interface ILoginRequest extends IBaseServiceRequest {
+  email: string;
+  password: string;
+  type: TUserType;
+}
+
+export interface ILoginResponse extends IBaseServiceResponse {
+  authToken: string;
 }
 
 export interface ILoginOauthRequest extends IBaseServiceRequest {
@@ -30,15 +44,15 @@ export interface ITokenRenewResponse extends IBaseServiceResponse {
   authToken: string;
 }
 
-export interface ICorporateLoginRequest extends IBaseServiceRequest {
+export interface IRegisterPersonalRequest extends IBaseServiceRequest {
+  name: string;
+  phone: string;
   email: string;
   password: string;
-  type: TUserType;
+  career: Array<ICareer>;
 }
 
-export interface ICorporateLoginResponse extends IBaseServiceResponse {
-  authToken: string;
-}
+export interface IRegisterPersonalResponse extends IBaseServiceResponse {}
 
 export interface IRegisterCorporateRequest extends IBaseServiceRequest {
   name: string;

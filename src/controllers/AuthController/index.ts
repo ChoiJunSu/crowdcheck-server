@@ -6,10 +6,11 @@ import {
 } from 'express-async-router';
 import AuthService from '@services/AuthService';
 import {
-  ICorporateLoginRequest,
   IRegisterCorporateRequest,
   ILoginOauthRequest,
   ITokenRenewRequest,
+  ILoginRequest,
+  IRegisterPersonalRequest,
 } from '@services/AuthService/type';
 import AuthMiddleware from '@middlewares/AuthMiddleware';
 
@@ -25,7 +26,7 @@ AuthController.post(
         email,
         password,
         type,
-      } as ICorporateLoginRequest)
+      } as ILoginRequest)
     );
   }
 );
@@ -55,6 +56,23 @@ AuthController.get(
       await AuthService.tokenRenew({
         authorization,
       } as ITokenRenewRequest)
+    );
+  }
+);
+
+AuthController.post(
+  '/register/personal',
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { name, phone, email, password, career } = req.body;
+
+    return res.send(
+      await AuthService.registerPersonal({
+        name,
+        phone,
+        email,
+        password,
+        career,
+      } as IRegisterPersonalRequest)
     );
   }
 );

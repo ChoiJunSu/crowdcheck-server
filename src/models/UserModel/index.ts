@@ -6,6 +6,7 @@ import {
 } from '@models/UserModel/type';
 import sequelize from '@models/BaseModel';
 import CorporateModel from '@models/CorporateModel';
+import { TOauthProvider } from '@controllers/AuthController/type';
 
 class UserModel
   extends Model<IUserAttributes, IUserCreationAttributes>
@@ -17,6 +18,7 @@ class UserModel
   declare name: string;
   declare phone: string;
   declare type: TUserType;
+  declare oauthProvider: TOauthProvider | null;
   declare corporateId: number | null;
   declare credit: number;
 
@@ -52,6 +54,10 @@ UserModel.init(
     type: {
       type: DataTypes.ENUM('personal', 'corporate'),
       allowNull: false,
+    },
+    oauthProvider: {
+      type: DataTypes.ENUM('google', 'kakao'),
+      defaultValue: null,
     },
     corporateId: {
       type: DataTypes.INTEGER,
