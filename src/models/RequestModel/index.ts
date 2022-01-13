@@ -1,4 +1,4 @@
-import { Model, DataTypes } from 'sequelize';
+import { Model, DataTypes, Sequelize } from 'sequelize';
 import {
   IRequestAttributes,
   IRequestCreationAttributes,
@@ -52,7 +52,7 @@ RequestModel.init(
     },
     sentAt: {
       type: DataTypes.DATE,
-      defaultValue: new Date(),
+      defaultValue: Sequelize.fn('now'),
       allowNull: false,
     },
     agreedAt: {

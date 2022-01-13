@@ -3,19 +3,19 @@ import {
   IBaseServiceResponse,
 } from '@services/BaseService/type';
 
-export interface ISearchRequest extends IBaseServiceRequest {
+export interface ICorporateSearchRequest extends IBaseServiceRequest {
   word: string;
 }
 
-export interface ISearchResponse extends IBaseServiceResponse {
+export interface ICorporateSearchResponse extends IBaseServiceResponse {
   corporates: Array<{
     id: number;
     name: string;
   }>;
 }
 
-export interface IAddRequest extends IBaseServiceRequest {
+export interface ICorporateAddRequest extends IBaseServiceRequest {
   name: string;
 }
 
-export interface IAddResponse extends IBaseServiceResponse {}
+export interface ICorporateAddResponse extends IBaseServiceResponse {}

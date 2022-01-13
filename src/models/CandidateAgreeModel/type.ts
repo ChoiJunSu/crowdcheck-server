@@ -1,14 +1,15 @@
 import { Optional } from 'sequelize';
 
-export interface IAgreeAttributes {
+export interface ICandidateAgreeAttributes {
   id?: number;
   requestId: number;
   corporateId: number;
   candidateId: number;
+  department?: string | null;
   startAt: Date;
   endAt?: Date | null;
   agreedAt?: Date | null;
 }
 
-export interface IAgreeCreationAttributes
-  extends Optional<IAgreeAttributes, 'id'> {}
+export interface ICandidateAgreeCreationAttributes
+  extends Optional<ICandidateAgreeAttributes, 'id'> {}

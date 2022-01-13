@@ -1,21 +1,22 @@
 import { Model, DataTypes } from 'sequelize';
 import {
-  IAgreeAttributes,
-  IAgreeCreationAttributes,
-} from '@models/AgreeModel/type';
+  ICandidateAgreeAttributes,
+  ICandidateAgreeCreationAttributes,
+} from '@models/CandidateAgreeModel/type';
 import sequelize from '@models/BaseModel';
 import RequestModel from '@models/RequestModel';
 import CorporateModel from '@models/CorporateModel';
 import CandidateModel from '@models/CandidateModel';
 
-class AgreeModel
-  extends Model<IAgreeAttributes, IAgreeCreationAttributes>
-  implements IAgreeAttributes
+class CandidateAgreeModel
+  extends Model<ICandidateAgreeAttributes, ICandidateAgreeCreationAttributes>
+  implements ICandidateAgreeAttributes
 {
   declare id: number;
   declare requestId: number;
   declare corporateId: number;
   declare candidateId: number;
+  declare department: string | null;
   declare startAt: Date;
   declare endAt: Date | null;
   declare agreedAt: Date | null;
@@ -26,7 +27,7 @@ class AgreeModel
   declare static associations: {};
 }
 
-AgreeModel.init(
+CandidateAgreeModel.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -45,6 +46,9 @@ AgreeModel.init(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    department: {
+      type: DataTypes.STRING,
+    },
     startAt: {
       type: DataTypes.DATE,
       allowNull: false,
@@ -61,39 +65,39 @@ AgreeModel.init(
   {
     sequelize,
     underscored: false,
-    modelName: 'AgreeModel',
-    tableName: 'agree',
+    modelName: 'CandidateAgreeModel',
+    tableName: 'candidateAgree',
     paranoid: false,
     charset: 'utf8mb4',
     collate: 'utf8mb4_general_ci',
   }
 );
 
-RequestModel.hasOne(AgreeModel, {
+RequestModel.hasOne(CandidateAgreeModel, {
   foreignKey: 'requestId',
   onDelete: 'CASCADE',
   onUpdate: 'CASCADE',
 });
-AgreeModel.belongsTo(RequestModel, {
+CandidateAgreeModel.belongsTo(RequestModel, {
   foreignKey: 'requestId',
 });
 
-CorporateModel.hasOne(AgreeModel, {
+CorporateModel.hasOne(CandidateAgreeModel, {
   foreignKey: 'corporateId',
-  onDelete: 'CASCADE',
+  onDelete: 'RESTRICT',
   onUpdate: 'CASCADE',
 });
-AgreeModel.belongsTo(CorporateModel, {
+CandidateAgreeModel.belongsTo(CorporateModel, {
   foreignKey: 'corporateId',
 });
 
-CandidateModel.hasOne(AgreeModel, {
+CandidateModel.hasOne(CandidateAgreeModel, {
   foreignKey: 'candidateId',
   onDelete: 'CASCADE',
   onUpdate: 'CASCADE',
 });
-AgreeModel.belongsTo(CandidateModel, {
+CandidateAgreeModel.belongsTo(CandidateModel, {
   foreignKey: 'candidateId',
 });
 
-export default AgreeModel;
+export default CandidateAgreeModel;

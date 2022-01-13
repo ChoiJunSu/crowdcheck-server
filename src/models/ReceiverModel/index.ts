@@ -1,4 +1,4 @@
-import { Model, DataTypes } from 'sequelize';
+import { Model, DataTypes, Sequelize } from 'sequelize';
 import {
   IReceiverAttributes,
   IReceiverCreationAttributes,
@@ -54,7 +54,7 @@ ReceiverModel.init(
     },
     arrivedAt: {
       type: DataTypes.DATE,
-      defaultValue: new Date(),
+      defaultValue: Sequelize.fn('now'),
       allowNull: false,
     },
     rejectedAt: {

@@ -10,8 +10,9 @@ import UserModel from '@models/UserModel';
 import ReceiverModel from '@models/ReceiverModel';
 import CareerModel from '@models/CareerModel';
 import CandidateModel from '@models/CandidateModel';
-import AgreeModel from '@models/AgreeModel';
+import CandidateAgreeModel from '@models/CandidateAgreeModel';
 import CorporateController from '@controllers/CorporateController';
+import RequestController from '@controllers/RequestController';
 
 const app = express();
 const port = 4000;
@@ -56,7 +57,7 @@ sequelize
         name: '최준수',
         phone: '102',
       });
-      await AgreeModel.create({
+      await CandidateAgreeModel.create({
         requestId: 1,
         corporateId: 1,
         candidateId: 1,
@@ -74,6 +75,7 @@ app.use(express.json());
 // controllers
 app.use('/auth', AuthController);
 app.use('/corporate', CorporateController);
+app.use('/request', RequestController);
 
 // error handling
 app.use((req: Request, res: Response, next: NextFunction) => {

@@ -1,16 +1,16 @@
 import { decode, sign } from 'jsonwebtoken';
 import {
   IAuthTokenPayload,
-  IRegisterCorporateRequest,
-  IRegisterCorporateResponse,
-  ILoginOauthRequest,
-  ILoginOauthResponse,
-  ITokenRenewRequest,
-  ITokenRenewResponse,
-  ILoginRequest,
-  ILoginResponse,
-  IRegisterPersonalRequest,
-  IRegisterPersonalResponse,
+  IAuthRegisterCorporateRequest,
+  IAuthRegisterCorporateResponse,
+  IAuthLoginOauthRequest,
+  IAuthLoginOauthResponse,
+  IAuthTokenRenewRequest,
+  IAuthTokenRenewResponse,
+  IAuthLoginRequest,
+  IAuthLoginResponse,
+  IAuthRegisterPersonalRequest,
+  IAuthRegisterPersonalResponse,
 } from '@services/AuthService/type';
 import { JWT_EXPIRES_IN, JWT_ISSUER, JWT_SECRET } from '@constants/jwt';
 import { URLSearchParams } from 'url';
@@ -25,8 +25,8 @@ class AuthService {
     email,
     password,
     type,
-  }: ILoginRequest): Promise<ILoginResponse> => {
-    const response: ILoginResponse = {
+  }: IAuthLoginRequest): Promise<IAuthLoginResponse> => {
+    const response: IAuthLoginResponse = {
       ok: false,
       error: '',
       authToken: '',
@@ -77,8 +77,8 @@ class AuthService {
     provider,
     code,
     redirectUri,
-  }: ILoginOauthRequest): Promise<ILoginOauthResponse> => {
-    const response: ILoginOauthResponse = {
+  }: IAuthLoginOauthRequest): Promise<IAuthLoginOauthResponse> => {
+    const response: IAuthLoginOauthResponse = {
       ok: false,
       error: '',
       authToken: '',
@@ -216,8 +216,8 @@ class AuthService {
 
   static tokenRenew = async ({
     authorization,
-  }: ITokenRenewRequest): Promise<ITokenRenewResponse> => {
-    const response: ITokenRenewResponse = {
+  }: IAuthTokenRenewRequest): Promise<IAuthTokenRenewResponse> => {
+    const response: IAuthTokenRenewResponse = {
       ok: false,
       error: '',
       authToken: '',
@@ -245,8 +245,8 @@ class AuthService {
     email,
     password,
     career,
-  }: IRegisterPersonalRequest): Promise<IRegisterPersonalResponse> => {
-    const response: IRegisterPersonalResponse = {
+  }: IAuthRegisterPersonalRequest): Promise<IAuthRegisterPersonalResponse> => {
+    const response: IAuthRegisterPersonalResponse = {
       ok: false,
       error: '',
     };
@@ -301,8 +301,8 @@ class AuthService {
     phone,
     email,
     password,
-  }: IRegisterCorporateRequest): Promise<IRegisterCorporateResponse> => {
-    const response: IRegisterCorporateResponse = {
+  }: IAuthRegisterCorporateRequest): Promise<IAuthRegisterCorporateResponse> => {
+    const response: IAuthRegisterCorporateResponse = {
       ok: false,
       error: '',
     };

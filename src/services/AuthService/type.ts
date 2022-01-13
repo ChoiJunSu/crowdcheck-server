@@ -5,10 +5,6 @@ import {
 } from '@services/BaseService/type';
 import { ICareer, TOauthProvider } from '@controllers/AuthController/type';
 import { TUserType } from '@models/UserModel/type';
-import {
-  IBaseControllerRequest,
-  IBaseControllerResponse,
-} from '@controllers/BaseController/type';
 
 export interface IAuthTokenPayload extends JwtPayload {
   id: number;
@@ -16,35 +12,35 @@ export interface IAuthTokenPayload extends JwtPayload {
   type: TUserType;
 }
 
-export interface ILoginRequest extends IBaseServiceRequest {
+export interface IAuthLoginRequest extends IBaseServiceRequest {
   email: string;
   password: string;
   type: TUserType;
 }
 
-export interface ILoginResponse extends IBaseServiceResponse {
+export interface IAuthLoginResponse extends IBaseServiceResponse {
   authToken: string;
 }
 
-export interface ILoginOauthRequest extends IBaseServiceRequest {
+export interface IAuthLoginOauthRequest extends IBaseServiceRequest {
   provider: TOauthProvider;
   code: string;
   redirectUri: string;
 }
 
-export interface ILoginOauthResponse extends IBaseServiceResponse {
+export interface IAuthLoginOauthResponse extends IBaseServiceResponse {
   authToken: string;
 }
 
-export interface ITokenRenewRequest extends IBaseServiceRequest {
+export interface IAuthTokenRenewRequest extends IBaseServiceRequest {
   authorization: string;
 }
 
-export interface ITokenRenewResponse extends IBaseServiceResponse {
+export interface IAuthTokenRenewResponse extends IBaseServiceResponse {
   authToken: string;
 }
 
-export interface IRegisterPersonalRequest extends IBaseServiceRequest {
+export interface IAuthRegisterPersonalRequest extends IBaseServiceRequest {
   name: string;
   phone: string;
   email: string;
@@ -52,13 +48,13 @@ export interface IRegisterPersonalRequest extends IBaseServiceRequest {
   career: Array<ICareer>;
 }
 
-export interface IRegisterPersonalResponse extends IBaseServiceResponse {}
+export interface IAuthRegisterPersonalResponse extends IBaseServiceResponse {}
 
-export interface IRegisterCorporateRequest extends IBaseServiceRequest {
+export interface IAuthRegisterCorporateRequest extends IBaseServiceRequest {
   name: string;
   phone: string;
   email: string;
   password: string;
 }
 
-export interface IRegisterCorporateResponse extends IBaseServiceResponse {}
+export interface IAuthRegisterCorporateResponse extends IBaseServiceResponse {}

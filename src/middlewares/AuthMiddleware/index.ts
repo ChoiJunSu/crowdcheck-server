@@ -1,29 +1,72 @@
-import { Request, Response, NextFunction } from 'express-async-router';
 import { verify } from 'jsonwebtoken';
 import { JWT_SECRET } from '@constants/jwt';
 import { IAuthTokenPayload } from '@services/AuthService/type';
+import {
+  INextFunction,
+  IRequest,
+  IResponse,
+} from '@controllers/BaseController/type';
 
-const AuthMiddleware = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const response = {
-    ok: false,
-    error: 'Unauthorized',
+class AuthMiddleware {
+  static isLoggedIn = async (
+    req: IRequest,
+    res: IResponse,
+    next: INextFunction
+  ) => {
+    const response = {
+      ok: false,
+      error: '로그인이 필요합니다.',
+    };
+    const { authorization } = req.headers;
+    if (!authorization) return res.status(401).send(response);
+    const authToken = authorization.split(' ')[1];
+    try {
+      const { name, id, type, exp } = (await verify(
+        authToken,
+        JWT_SECRET
+      )) as IAuthTokenPayload;
+      if (!exp || Date.now() > exp * 1000)
+        return res.status(401).send(response);
+      req.user = { name, id, type };
+    } catch (e) {
+      console.error(e);
+      return res.status(401).send(response);
+    }
+
+    return next();
   };
-  const { authorization } = req.headers;
-  if (!authorization) return res.status(401).send(response);
-  const authToken = authorization.split(' ')[1];
-  try {
-    const { exp } = (await verify(authToken, JWT_SECRET)) as IAuthTokenPayload;
-    if (!exp || Date.now() > exp * 1000) return res.status(401).send(response);
-  } catch (e) {
-    console.error(e);
-    return res.status(401).send(response);
-  }
 
-  return next();
-};
+  static isCorporate = async (
+    req: IRequest,
+    res: IResponse,
+    next: INextFunction
+  ) => {
+    const response = {
+      ok: false,
+      error: '로그인이 필요합니다.',
+    };
+    const { authorization } = req.headers;
+    if (!authorization) return res.status(401).send(response);
+    const authToken = authorization.split(' ')[1];
+    try {
+      const { name, id, type, exp } = (await verify(
+        authToken,
+        JWT_SECRET
+      )) as IAuthTokenPayload;
+      if (!exp || Date.now() > exp * 1000)
+        return res.status(401).send(response);
+      if (type !== 'corporate') {
+        response.error = '잘못된 접근입니다.';
+        return res.status(403).send(response);
+      }
+      req.user = { name, id, type };
+    } catch (e) {
+      console.error(e);
+      return res.status(401).send(response);
+    }
+
+    return next();
+  };
+}
 
 export default AuthMiddleware;

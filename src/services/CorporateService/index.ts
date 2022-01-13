@@ -1,17 +1,17 @@
 import CorporateModel from '@models/CorporateModel';
 import {
-  IAddRequest,
-  IAddResponse,
-  ISearchRequest,
-  ISearchResponse,
+  ICorporateAddRequest,
+  ICorporateAddResponse,
+  ICorporateSearchRequest,
+  ICorporateSearchResponse,
 } from '@services/CorporateService/type';
 import { Op } from 'sequelize';
 
 class CorporateService {
   static search = async ({
     word,
-  }: ISearchRequest): Promise<ISearchResponse> => {
-    const response: ISearchResponse = {
+  }: ICorporateSearchRequest): Promise<ICorporateSearchResponse> => {
+    const response: ICorporateSearchResponse = {
       ok: false,
       error: '',
       corporates: [],
@@ -39,8 +39,10 @@ class CorporateService {
     return response;
   };
 
-  static add = async ({ name }: IAddRequest): Promise<IAddResponse> => {
-    const response: IAddResponse = {
+  static add = async ({
+    name,
+  }: ICorporateAddRequest): Promise<ICorporateAddResponse> => {
+    const response: ICorporateAddResponse = {
       ok: false,
       error: '',
     };
