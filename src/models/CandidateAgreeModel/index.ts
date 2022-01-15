@@ -18,7 +18,7 @@ class CandidateAgreeModel
   declare candidateId: number;
   declare department: string | null;
   declare startAt: Date;
-  declare endAt: Date | null;
+  declare endAt: Date;
   declare agreedAt: Date | null;
 
   declare readonly createdAt: Date;
@@ -55,7 +55,7 @@ CandidateAgreeModel.init(
     },
     endAt: {
       type: DataTypes.DATE,
-      defaultValue: null,
+      allowNull: false,
     },
     agreedAt: {
       type: DataTypes.DATE,
@@ -65,7 +65,7 @@ CandidateAgreeModel.init(
   {
     sequelize,
     underscored: false,
-    modelName: 'CandidateAgreeModel',
+    modelName: 'CandidateAgree',
     tableName: 'candidateAgree',
     paranoid: false,
     charset: 'utf8mb4',
@@ -73,7 +73,8 @@ CandidateAgreeModel.init(
   }
 );
 
-RequestModel.hasOne(CandidateAgreeModel, {
+RequestModel.hasMany(CandidateAgreeModel, {
+  as: 'CandidateAgree',
   foreignKey: 'requestId',
   onDelete: 'CASCADE',
   onUpdate: 'CASCADE',
@@ -82,7 +83,8 @@ CandidateAgreeModel.belongsTo(RequestModel, {
   foreignKey: 'requestId',
 });
 
-CorporateModel.hasOne(CandidateAgreeModel, {
+CorporateModel.hasMany(CandidateAgreeModel, {
+  as: 'CandidateAgree',
   foreignKey: 'corporateId',
   onDelete: 'RESTRICT',
   onUpdate: 'CASCADE',
@@ -91,7 +93,8 @@ CandidateAgreeModel.belongsTo(CorporateModel, {
   foreignKey: 'corporateId',
 });
 
-CandidateModel.hasOne(CandidateAgreeModel, {
+CandidateModel.hasMany(CandidateAgreeModel, {
+  as: 'CandidateAgree',
   foreignKey: 'candidateId',
   onDelete: 'CASCADE',
   onUpdate: 'CASCADE',

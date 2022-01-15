@@ -32,6 +32,16 @@ export interface IAuthLoginOauthResponse extends IBaseServiceResponse {
   authToken: string;
 }
 
+export interface IAuthLoginCandidateRequest extends IBaseServiceRequest {
+  name: string;
+  phone: string;
+  code: string;
+}
+
+export interface IAuthLoginCandidateResponse extends IBaseServiceResponse {
+  authToken: string;
+}
+
 export interface IAuthTokenRenewRequest extends IBaseServiceRequest {
   authorization: string;
 }

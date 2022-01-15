@@ -15,7 +15,7 @@ class ReceiverModel
   declare id: number;
   declare requestId: number;
   declare userId: number;
-  declare answer: string;
+  declare answer: string | null;
   declare status: TReceiverStatus;
   declare arrivedAt: Date;
   declare rejectedAt: Date | null;
@@ -45,7 +45,7 @@ ReceiverModel.init(
     },
     answer: {
       type: DataTypes.TEXT,
-      allowNull: false,
+      defaultValue: null,
     },
     status: {
       type: DataTypes.ENUM('arrived', 'rejected', 'answered', 'closed'),
@@ -77,7 +77,7 @@ ReceiverModel.init(
   {
     sequelize,
     underscored: false,
-    modelName: 'ReceiverModel',
+    modelName: 'Receiver',
     tableName: 'receiver',
     paranoid: false,
     charset: 'utf8mb4',

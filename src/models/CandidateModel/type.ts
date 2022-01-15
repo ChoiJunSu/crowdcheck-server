@@ -5,6 +5,8 @@ export interface ICandidateAttributes {
   requestId: number;
   name: string;
   phone: string;
+  code: string;
+  userId?: number | null;
 }
 
 export interface ICandidateCreationAttributes

@@ -5,6 +5,7 @@ import {
 } from '@models/CandidateModel/type';
 import sequelize from '@models/BaseModel';
 import RequestModel from '@models/RequestModel';
+import UserModel from '@models/UserModel';
 
 class CandidateModel
   extends Model<ICandidateAttributes, ICandidateCreationAttributes>
@@ -14,6 +15,8 @@ class CandidateModel
   declare requestId: number;
   declare name: string;
   declare phone: string;
+  declare code: string;
+  declare userId: number | null;
 
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
@@ -40,11 +43,19 @@ CandidateModel.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    code: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    userId: {
+      type: DataTypes.INTEGER,
+      defaultValue: null,
+    },
   },
   {
     sequelize,
     underscored: false,
-    modelName: 'CandidateModel',
+    modelName: 'Candidate',
     tableName: 'candidate',
     paranoid: false,
     charset: 'utf8mb4',
@@ -59,6 +70,15 @@ RequestModel.hasOne(CandidateModel, {
 });
 CandidateModel.belongsTo(RequestModel, {
   foreignKey: 'requestId',
+});
+
+UserModel.hasOne(CandidateModel, {
+  foreignKey: 'userId',
+  onDelete: 'SET NULL',
+  onUpdate: 'CASCADE',
+});
+CandidateModel.belongsTo(UserModel, {
+  foreignKey: 'userId',
 });
 
 export default CandidateModel;

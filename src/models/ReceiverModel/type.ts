@@ -11,7 +11,7 @@ export interface IReceiverAttributes {
   id?: number;
   requestId: number;
   userId: number;
-  answer: string;
+  answer?: string | null;
   status?: TReceiverStatus;
   arrivedAt?: Date;
   rejectedAt?: Date | null;

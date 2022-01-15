@@ -13,13 +13,15 @@ import CandidateModel from '@models/CandidateModel';
 import CandidateAgreeModel from '@models/CandidateAgreeModel';
 import CorporateController from '@controllers/CorporateController';
 import RequestController from '@controllers/RequestController';
+import { WEB_URL } from '@constants/url';
+import CandidateController from '@controllers/CandidateController';
+import { MAX_TIMESTAMP } from '@constants/date';
 
 const app = express();
 const port = 4000;
-const WEB_URI = 'http://localhost:3000';
 
 // CORS
-app.use(cors({ origin: WEB_URI }));
+app.use(cors({ origin: WEB_URL }));
 
 // database
 sequelize
@@ -32,7 +34,7 @@ sequelize
   });
 sequelize
   .sync({
-    force: true,
+    force: false,
   })
   .then(() => {
     console.log('database synchronized');
@@ -42,7 +44,7 @@ sequelize
         email: 'dev.crowdcheck@gmail.com',
         name: '크라우드체크',
         phone: '010020',
-        type: 'personal',
+        type: 'corporate',
         corporateId: 1,
       });
       await RequestModel.create({ corporateId: 1, question: 'dfad' });
@@ -51,17 +53,20 @@ sequelize
         userId: 1,
         corporateId: 1,
         startAt: new Date(),
+        endAt: new Date(MAX_TIMESTAMP),
       });
       await CandidateModel.create({
         requestId: 1,
         name: '최준수',
         phone: '102',
+        code: 'asdfgqwert',
       });
       await CandidateAgreeModel.create({
         requestId: 1,
         corporateId: 1,
         candidateId: 1,
         startAt: new Date(),
+        endAt: new Date(MAX_TIMESTAMP),
       });
     })();
   })
@@ -74,6 +79,7 @@ app.use(express.json());
 
 // controllers
 app.use('/auth', AuthController);
+app.use('/candidate', CandidateController);
 app.use('/corporate', CorporateController);
 app.use('/request', RequestController);
 

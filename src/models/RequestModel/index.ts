@@ -6,6 +6,7 @@ import {
 } from '@models/RequestModel/type';
 import sequelize from '@models/BaseModel';
 import CorporateModel from '@models/CorporateModel';
+import CandidateModel from '@models/CandidateModel';
 
 class RequestModel
   extends Model<IRequestAttributes, IRequestCreationAttributes>
@@ -15,6 +16,7 @@ class RequestModel
   declare corporateId: number;
   declare question: string;
   declare deadline: Date | null;
+  declare agreeDescription: string | null;
   declare status: TRequestStatus;
   declare sentAt: Date;
   declare agreedAt: Date | null;
@@ -22,6 +24,9 @@ class RequestModel
 
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
+
+  declare readonly Corporate?: CorporateModel;
+  declare readonly Candidate?: CandidateModel;
 
   declare static associations: {};
 }
@@ -45,9 +50,13 @@ RequestModel.init(
       type: DataTypes.DATE,
       defaultValue: null,
     },
+    agreeDescription: {
+      type: DataTypes.STRING,
+      defaultValue: null,
+    },
     status: {
-      type: DataTypes.ENUM('sent', 'agreed', 'closed'),
-      defaultValue: 'sent',
+      type: DataTypes.ENUM('registered', 'agreed', 'closed'),
+      defaultValue: 'registered',
       allowNull: false,
     },
     sentAt: {
@@ -67,7 +76,7 @@ RequestModel.init(
   {
     sequelize,
     underscored: false,
-    modelName: 'RequestModel',
+    modelName: 'Request',
     tableName: 'request',
     paranoid: false,
     charset: 'utf8mb4',

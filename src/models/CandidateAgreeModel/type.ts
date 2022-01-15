@@ -7,7 +7,7 @@ export interface ICandidateAgreeAttributes {
   candidateId: number;
   department?: string | null;
   startAt: Date;
-  endAt?: Date | null;
+  endAt: Date;
   agreedAt?: Date | null;
 }
 

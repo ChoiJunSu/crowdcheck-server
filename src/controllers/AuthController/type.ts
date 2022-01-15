@@ -1,7 +1,8 @@
 export type TOauthProvider = 'google' | 'kakao';
 
 export interface ICareer {
-  name: string;
+  corporateId: number;
+  corporateName: string;
   department?: string | null;
   startAt: Date;
   endAt?: Date | null;

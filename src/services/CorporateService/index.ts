@@ -30,7 +30,6 @@ class CorporateService {
         response.corporates.push({ id, name });
       });
       response.ok = true;
-      console.log('search for ', word, ': ', corporateFindAllResult);
     } catch (e) {
       console.error(e);
       response.error = '기업 검색에 실패했습니다.';

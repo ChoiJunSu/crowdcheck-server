@@ -6,7 +6,7 @@ export interface ICareerAttributes {
   corporateId: number;
   department?: string | null;
   startAt: Date;
-  endAt?: Date | null;
+  endAt: Date;
   verifiedAt?: Date | null;
 }
 

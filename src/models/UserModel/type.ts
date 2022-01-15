@@ -1,7 +1,7 @@
 import { Optional } from 'sequelize';
 import { TOauthProvider } from '@controllers/AuthController/type';
 
-export type TUserType = 'personal' | 'corporate';
+export type TUserType = 'personal' | 'corporate' | 'candidate';
 
 export interface IUserAttributes {
   id?: number;

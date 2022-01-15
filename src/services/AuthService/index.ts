@@ -11,6 +11,8 @@ import {
   IAuthLoginResponse,
   IAuthRegisterPersonalRequest,
   IAuthRegisterPersonalResponse,
+  IAuthLoginCandidateRequest,
+  IAuthLoginCandidateResponse,
 } from '@services/AuthService/type';
 import { JWT_EXPIRES_IN, JWT_ISSUER, JWT_SECRET } from '@constants/jwt';
 import { URLSearchParams } from 'url';
@@ -19,6 +21,8 @@ import { compare, genSalt, hash } from 'bcrypt';
 import UserModel from '@models/UserModel';
 import CorporateModel from '@models/CorporateModel';
 import CareerModel from '@models/CareerModel';
+import CandidateModel from '@models/CandidateModel';
+import { MAX_TIMESTAMP } from '@constants/date';
 
 class AuthService {
   static login = async ({
@@ -56,7 +60,7 @@ class AuthService {
         return response;
       }
       // sign authToken with name, email
-      response.authToken = await sign(
+      response.authToken = sign(
         { id, name, type } as IAuthTokenPayload,
         JWT_SECRET,
         {
@@ -197,7 +201,7 @@ class AuthService {
         return response;
       }
       // sign authToken with email
-      response.authToken = await sign(
+      response.authToken = sign(
         { id, name, type: 'personal' } as IAuthTokenPayload,
         JWT_SECRET,
         {
@@ -209,6 +213,53 @@ class AuthService {
     } catch (e) {
       console.error(e);
       response.error = 'Oauth 로그인에 실패했습니다.';
+    }
+
+    return response;
+  };
+
+  static loginCandidate = async ({
+    name,
+    phone,
+    code,
+  }: IAuthLoginCandidateRequest): Promise<IAuthLoginCandidateResponse> => {
+    const response: IAuthLoginCandidateResponse = {
+      ok: false,
+      error: '',
+      authToken: '',
+    };
+
+    try {
+      // find candidate
+      const candidateFindOneResult = await CandidateModel.findOne({
+        attributes: ['id', 'requestId'],
+        where: {
+          name,
+          phone,
+          code,
+        },
+      });
+      if (!candidateFindOneResult) {
+        response.error = '지원자를 찾을 수 없습니다.';
+        return response;
+      }
+      // sign authToken with email
+      response.authToken = sign(
+        {
+          id: candidateFindOneResult.id,
+          name,
+          type: 'candidate',
+        } as IAuthTokenPayload,
+        JWT_SECRET,
+        {
+          expiresIn: JWT_EXPIRES_IN,
+          issuer: JWT_ISSUER,
+        }
+      );
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '지원자 인증에 실패했습니다.';
     }
 
     return response;
@@ -227,7 +278,7 @@ class AuthService {
       const authToken = authorization.split(' ')[1];
       const { email } = (await decode(authToken)) as IAuthTokenPayload;
       // sign authToken with email
-      response.authToken = await sign({ email }, JWT_SECRET, {
+      response.authToken = sign({ email }, JWT_SECRET, {
         expiresIn: JWT_EXPIRES_IN,
         issuer: JWT_ISSUER,
       });
@@ -267,20 +318,31 @@ class AuthService {
         return response;
       }
       // create career
-      for (const { name, department, startAt, endAt } of career) {
+      for (const {
+        corporateId,
+        corporateName,
+        department,
+        startAt,
+        endAt,
+      } of career) {
+        // verify corporateId and corporateName
         const corporateFindResult = await CorporateModel.findOne({
-          where: { name },
+          where: {
+            id: corporateId,
+            name: corporateName,
+          },
         });
         if (!corporateFindResult) {
           response.error = '경력 오류입니다.';
           return response;
         }
+        // create career
         const careerCreateResult = await CareerModel.create({
           userId: userCreateResult.id,
-          corporateId: corporateFindResult.id,
+          corporateId: corporateId,
           department,
           startAt,
-          endAt,
+          endAt: endAt || new Date(MAX_TIMESTAMP),
         });
         if (!careerCreateResult) {
           response.error = '경력 생성 오류입니다.';

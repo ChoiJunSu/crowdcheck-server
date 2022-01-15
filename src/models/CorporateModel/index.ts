@@ -4,6 +4,7 @@ import {
   ICorporateCreationAttributes,
 } from '@models/CorporateModel/type';
 import sequelize from '@models/BaseModel';
+import CareerModel from '@models/CareerModel';
 
 class CorporateModel
   extends Model<ICorporateAttributes, ICorporateCreationAttributes>
@@ -14,6 +15,8 @@ class CorporateModel
 
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
+
+  declare readonly Career?: CareerModel;
 
   declare static associations: {};
 }
@@ -34,7 +37,7 @@ CorporateModel.init(
   {
     sequelize,
     underscored: false,
-    modelName: 'CorporateModel',
+    modelName: 'Corporate',
     tableName: 'corporate',
     paranoid: false,
     charset: 'utf8mb4',

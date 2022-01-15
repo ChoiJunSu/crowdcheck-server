@@ -71,7 +71,7 @@ UserModel.init(
   {
     sequelize,
     underscored: false,
-    modelName: 'UserModel',
+    modelName: 'User',
     tableName: 'user',
     paranoid: false,
     charset: 'utf8mb4',

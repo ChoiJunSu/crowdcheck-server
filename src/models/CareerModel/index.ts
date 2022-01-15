@@ -6,6 +6,7 @@ import {
 import sequelize from '@models/BaseModel';
 import UserModel from '@models/UserModel';
 import CorporateModel from '@models/CorporateModel';
+import CandidateAgreeModel from '@models/CandidateAgreeModel';
 
 class CareerModel
   extends Model<ICareerAttributes, ICareerCreationAttributes>
@@ -16,11 +17,13 @@ class CareerModel
   declare corporateId: number;
   declare department: string | null;
   declare startAt: Date;
-  declare endAt: Date | null;
+  declare endAt: Date;
   declare verifiedAt: Date | null;
 
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
+
+  declare readonly CandidateAgree?: CandidateAgreeModel;
 
   declare static associations: {};
 }
@@ -50,7 +53,7 @@ CareerModel.init(
     },
     endAt: {
       type: DataTypes.DATE,
-      defaultValue: null,
+      allowNull: false,
     },
     verifiedAt: {
       type: DataTypes.DATE,
@@ -60,7 +63,7 @@ CareerModel.init(
   {
     sequelize,
     underscored: false,
-    modelName: 'CareerModel',
+    modelName: 'Career',
     tableName: 'career',
     paranoid: false,
     charset: 'utf8mb4',
