@@ -60,25 +60,20 @@ class RequestService {
         return response;
       }
       // create candidate agree
-      for (const {
-        corporateId,
-        corporateName,
-        department,
-        startAt,
-        endAt,
-      } of career) {
-        // verify corporateId with corporateName
-        const corporateFindResult = await CorporateModel.findOne({
-          where: { id: corporateId, name: corporateName },
+      for (const { corporateName, department, startAt, endAt } of career) {
+        // find or create corporate
+        const corporateFindOrCreateResult = await CorporateModel.findOrCreate({
+          where: { name: corporateName },
+          defaults: { name: corporateName },
         });
-        if (!corporateFindResult) {
+        if (!corporateFindOrCreateResult) {
           response.error = '경력 오류입니다.';
           return response;
         }
         // create candidateAgree
         const candidateAgreeCreateResult = await CandidateAgreeModel.create({
           requestId: createRequestResult.id,
-          corporateId,
+          corporateId: corporateFindOrCreateResult[0].id,
           candidateId: createCandidateResult.id,
           department,
           startAt,
@@ -134,7 +129,6 @@ class RequestService {
           return response;
         }
         response.career.push({
-          corporateId,
           corporateName: corporateFindOneResult.name,
           department,
           startAt,

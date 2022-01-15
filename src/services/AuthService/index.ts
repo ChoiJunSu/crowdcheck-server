@@ -318,28 +318,24 @@ class AuthService {
         return response;
       }
       // create career
-      for (const {
-        corporateId,
-        corporateName,
-        department,
-        startAt,
-        endAt,
-      } of career) {
-        // verify corporateId and corporateName
-        const corporateFindResult = await CorporateModel.findOne({
+      for (const { corporateName, department, startAt, endAt } of career) {
+        // find or create corporate
+        const corporateFindOrCreateResult = await CorporateModel.findOrCreate({
           where: {
-            id: corporateId,
+            name: corporateName,
+          },
+          defaults: {
             name: corporateName,
           },
         });
-        if (!corporateFindResult) {
+        if (!corporateFindOrCreateResult) {
           response.error = '경력 오류입니다.';
           return response;
         }
         // create career
         const careerCreateResult = await CareerModel.create({
           userId: userCreateResult.id,
-          corporateId: corporateId,
+          corporateId: corporateFindOrCreateResult[0].id,
           department,
           startAt,
           endAt: endAt || new Date(MAX_TIMESTAMP),
@@ -372,23 +368,23 @@ class AuthService {
       // hash password
       const salt = await genSalt(10);
       const hashed = await hash(password, salt);
-      // create corporate
-      const corporateCreateResult = await CorporateModel.create({
-        name,
+      // find or create corporate
+      const corporateFindOrCreateResult = await CorporateModel.findOrCreate({
+        where: { name },
+        defaults: { name },
       });
-      if (!corporateCreateResult) {
+      if (!corporateFindOrCreateResult) {
         response.error = '기업 생성 오류입니다.';
         return response;
       }
-      const { id } = corporateCreateResult;
       // create user
-      const userCreateResult = UserModel.create({
+      const userCreateResult = await UserModel.create({
         name,
         phone,
         email,
         hashed,
         type: 'corporate',
-        corporateId: id,
+        corporateId: corporateFindOrCreateResult[0].id,
       });
       if (!userCreateResult) {
         response.error = '회원 생성 오류입니다.';
