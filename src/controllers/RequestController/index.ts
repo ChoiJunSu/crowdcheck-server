@@ -2,9 +2,13 @@ import { AsyncRouter } from 'express-async-router';
 import RequestService from '@services/RequestService';
 import {
   IRequestAgreeRequest,
+  IRequestAnswerRequest,
   IRequestGetCandidateRequest,
+  IRequestGetReceiverRequest,
   IRequestListCandidateRequest,
+  IRequestListReceiverRequest,
   IRequestRegisterRequest,
+  IRequestVerifyRequest,
 } from '@services/RequestService/type';
 import AuthMiddleware from '@middlewares/AuthMiddleware';
 import {
@@ -23,7 +27,7 @@ RequestController.post(
 
     return res.send(
       await RequestService.register({
-        corporateId: req.user!.id,
+        userId: req.user!.id,
         name,
         phone,
         career,
@@ -35,7 +39,20 @@ RequestController.post(
 );
 
 RequestController.get(
-  '/candidate',
+  '/get/receiver',
+  AuthMiddleware.isPersonal,
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    const { requestId } = req.query;
+
+    return await RequestService.getReceiver({
+      requestId,
+      userId: req.user!.id,
+    } as IRequestGetReceiverRequest);
+  }
+);
+
+RequestController.get(
+  '/get/candidate',
   AuthMiddleware.isCandidate,
   async (req: IRequest, res: IResponse, next: INextFunction) => {
     const { requestId } = req.query;
@@ -44,6 +61,16 @@ RequestController.get(
       requestId,
       candidateId: req.user!.id,
     } as IRequestGetCandidateRequest);
+  }
+);
+
+RequestController.get(
+  '/list/receiver',
+  AuthMiddleware.isPersonal,
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    return await RequestService.listReceiver({
+      userId: req.user!.id,
+    } as IRequestListReceiverRequest);
   }
 );
 
@@ -68,6 +95,34 @@ RequestController.post(
       agree,
       agreeDescription,
     } as IRequestAgreeRequest);
+  }
+);
+
+RequestController.post(
+  '/verify',
+  AuthMiddleware.isPersonal,
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    const { requestId, candidatePhone } = req.body;
+
+    return await RequestService.verify({
+      requestId,
+      userId: req.user!.id,
+      candidatePhone,
+    } as IRequestVerifyRequest);
+  }
+);
+
+RequestController.post(
+  '/answer',
+  AuthMiddleware.isPersonal,
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    const { requestId, answer } = req.body;
+
+    return await RequestService.answer({
+      requestId,
+      userId: req.user!.id,
+      answer,
+    } as IRequestAnswerRequest);
   }
 );
 

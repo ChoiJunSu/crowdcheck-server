@@ -276,12 +276,16 @@ class AuthService {
     try {
       // extract and decode authToken from authorization header
       const authToken = authorization.split(' ')[1];
-      const { email } = (await decode(authToken)) as IAuthTokenPayload;
+      const { id, name, type } = (await decode(authToken)) as IAuthTokenPayload;
       // sign authToken with email
-      response.authToken = sign({ email }, JWT_SECRET, {
-        expiresIn: JWT_EXPIRES_IN,
-        issuer: JWT_ISSUER,
-      });
+      response.authToken = sign(
+        { id, name, type } as IAuthTokenPayload,
+        JWT_SECRET,
+        {
+          expiresIn: JWT_EXPIRES_IN,
+          issuer: JWT_ISSUER,
+        }
+      );
       response.ok = true;
     } catch (e) {
       response.error = '토큰 재발급에 실패했습니다.';

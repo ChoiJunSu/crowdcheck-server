@@ -7,6 +7,7 @@ import {
 import sequelize from '@models/BaseModel';
 import CorporateModel from '@models/CorporateModel';
 import CandidateModel from '@models/CandidateModel';
+import ReceiverModel from '@models/ReceiverModel';
 
 class RequestModel
   extends Model<IRequestAttributes, IRequestCreationAttributes>
@@ -15,7 +16,7 @@ class RequestModel
   declare id: number;
   declare corporateId: number;
   declare question: string;
-  declare deadline: Date | null;
+  declare deadline: Date;
   declare agreeDescription: string | null;
   declare status: TRequestStatus;
   declare sentAt: Date;
@@ -27,6 +28,7 @@ class RequestModel
 
   declare readonly Corporate?: CorporateModel;
   declare readonly Candidate?: CandidateModel;
+  declare readonly Receiver?: ReceiverModel;
 
   declare static associations: {};
 }
@@ -48,7 +50,7 @@ RequestModel.init(
     },
     deadline: {
       type: DataTypes.DATE,
-      defaultValue: null,
+      allowNull: false,
     },
     agreeDescription: {
       type: DataTypes.STRING,
@@ -59,7 +61,7 @@ RequestModel.init(
       defaultValue: 'registered',
       allowNull: false,
     },
-    sentAt: {
+    registeredAt: {
       type: DataTypes.DATE,
       defaultValue: Sequelize.fn('now'),
       allowNull: false,

@@ -18,6 +18,7 @@ class ReceiverModel
   declare answer: string | null;
   declare status: TReceiverStatus;
   declare arrivedAt: Date;
+  declare verifiedAt: Date | null;
   declare rejectedAt: Date | null;
   declare answeredAt: Date | null;
   declare closedAt: Date | null;
@@ -48,7 +49,13 @@ ReceiverModel.init(
       defaultValue: null,
     },
     status: {
-      type: DataTypes.ENUM('arrived', 'rejected', 'answered', 'closed'),
+      type: DataTypes.ENUM(
+        'arrived',
+        'verified',
+        'rejected',
+        'answered',
+        'closed'
+      ),
       defaultValue: 'arrived',
       allowNull: false,
     },
@@ -56,6 +63,10 @@ ReceiverModel.init(
       type: DataTypes.DATE,
       defaultValue: Sequelize.fn('now'),
       allowNull: false,
+    },
+    verifiedAt: {
+      type: DataTypes.DATE,
+      defaultValue: null,
     },
     rejectedAt: {
       type: DataTypes.DATE,

@@ -6,10 +6,10 @@ export interface IRequestAttributes {
   id?: number;
   corporateId: number;
   question: string;
-  deadline?: Date | null;
+  deadline: Date;
   agreeDescription?: string | null;
   status?: TRequestStatus;
-  sentAt?: Date;
+  registeredAt?: Date;
   agreedAt?: Date | null;
   closedAt?: Date | null;
 }

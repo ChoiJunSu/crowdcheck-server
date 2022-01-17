@@ -14,7 +14,6 @@ import CandidateAgreeModel from '@models/CandidateAgreeModel';
 import CorporateController from '@controllers/CorporateController';
 import RequestController from '@controllers/RequestController';
 import { WEB_URL } from '@constants/url';
-import CandidateController from '@controllers/CandidateController';
 import { MAX_TIMESTAMP } from '@constants/date';
 
 const app = express();
@@ -47,7 +46,11 @@ sequelize
         type: 'corporate',
         corporateId: 1,
       });
-      await RequestModel.create({ corporateId: 1, question: 'dfad' });
+      await RequestModel.create({
+        corporateId: 1,
+        question: 'dfad',
+        deadline: new Date(MAX_TIMESTAMP),
+      });
       await ReceiverModel.create({ requestId: 1, userId: 1, answer: 'dasf' });
       await CareerModel.create({
         userId: 1,
@@ -79,7 +82,6 @@ app.use(express.json());
 
 // controllers
 app.use('/auth', AuthController);
-app.use('/candidate', CandidateController);
 app.use('/corporate', CorporateController);
 app.use('/request', RequestController);
 
