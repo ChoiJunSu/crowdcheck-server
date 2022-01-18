@@ -51,7 +51,12 @@ sequelize
         question: 'dfad',
         deadline: new Date(MAX_TIMESTAMP),
       });
-      await ReceiverModel.create({ requestId: 1, userId: 1, answer: 'dasf' });
+      await ReceiverModel.create({
+        requestId: 1,
+        userId: 1,
+        corporateId: 1,
+        answer: 'dasf',
+      });
       await CareerModel.create({
         userId: 1,
         corporateId: 1,

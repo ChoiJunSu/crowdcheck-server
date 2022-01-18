@@ -7,6 +7,7 @@ import {
 import sequelize from '@models/BaseModel';
 import RequestModel from '@models/RequestModel';
 import UserModel from '@models/UserModel';
+import CorporateModel from '@models/CorporateModel';
 
 class ReceiverModel
   extends Model<IReceiverAttributes, IReceiverCreationAttributes>
@@ -15,6 +16,7 @@ class ReceiverModel
   declare id: number;
   declare requestId: number;
   declare userId: number;
+  declare corporateId: number;
   declare answer: string | null;
   declare status: TReceiverStatus;
   declare arrivedAt: Date;
@@ -41,6 +43,10 @@ ReceiverModel.init(
       allowNull: false,
     },
     userId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    corporateId: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
@@ -76,10 +82,6 @@ ReceiverModel.init(
       type: DataTypes.DATE,
       defaultValue: null,
     },
-    paidAt: {
-      type: DataTypes.DATE,
-      defaultValue: null,
-    },
     closedAt: {
       type: DataTypes.DATE,
       defaultValue: null,
@@ -96,7 +98,8 @@ ReceiverModel.init(
   }
 );
 
-RequestModel.hasOne(ReceiverModel, {
+RequestModel.hasMany(ReceiverModel, {
+  as: 'Receiver',
   foreignKey: 'requestId',
   onDelete: 'CASCADE',
   onUpdate: 'CASCADE',
@@ -105,13 +108,24 @@ ReceiverModel.belongsTo(RequestModel, {
   foreignKey: 'requestId',
 });
 
-UserModel.hasOne(ReceiverModel, {
+UserModel.hasMany(ReceiverModel, {
+  as: 'Receiver',
   foreignKey: 'userId',
   onDelete: 'CASCADE',
   onUpdate: 'CASCADE',
 });
 ReceiverModel.belongsTo(UserModel, {
   foreignKey: 'userId',
+});
+
+CorporateModel.hasMany(ReceiverModel, {
+  as: 'Receiver',
+  foreignKey: 'corporateId',
+  onDelete: 'RESTRICT',
+  onUpdate: 'CASCADE',
+});
+ReceiverModel.belongsTo(CorporateModel, {
+  foreignKey: 'corporateId',
 });
 
 export default ReceiverModel;

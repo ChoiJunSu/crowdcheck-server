@@ -4,8 +4,10 @@ import {
   IRequestAgreeRequest,
   IRequestAnswerRequest,
   IRequestGetCandidateRequest,
+  IRequestGetCorporateRequest,
   IRequestGetReceiverRequest,
   IRequestListCandidateRequest,
+  IRequestListCorporateRequest,
   IRequestListReceiverRequest,
   IRequestRegisterRequest,
   IRequestVerifyRequest,
@@ -45,9 +47,22 @@ RequestController.get(
     const { requestId } = req.query;
 
     return await RequestService.getReceiver({
-      requestId,
+      requestId: parseInt(requestId as string),
       userId: req.user!.id,
     } as IRequestGetReceiverRequest);
+  }
+);
+
+RequestController.get(
+  '/get/corporate',
+  AuthMiddleware.isCorporate,
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    const { requestId } = req.query;
+
+    return await RequestService.getCorporate({
+      requestId: parseInt(requestId as string),
+      userId: req.user!.id,
+    } as IRequestGetCorporateRequest);
   }
 );
 
@@ -58,7 +73,7 @@ RequestController.get(
     const { requestId } = req.query;
 
     return await RequestService.getCandidate({
-      requestId,
+      requestId: parseInt(requestId as string),
       candidateId: req.user!.id,
     } as IRequestGetCandidateRequest);
   }
@@ -71,6 +86,16 @@ RequestController.get(
     return await RequestService.listReceiver({
       userId: req.user!.id,
     } as IRequestListReceiverRequest);
+  }
+);
+
+RequestController.get(
+  '/list/corporate',
+  AuthMiddleware.isCorporate,
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    return await RequestService.listCorporate({
+      userId: req.user!.id,
+    } as IRequestListCorporateRequest);
   }
 );
 
@@ -91,7 +116,8 @@ RequestController.post(
     const { requestId, agree, agreeDescription } = req.body;
 
     return await RequestService.agree({
-      requestId,
+      candidateId: req.user!.id,
+      requestId: parseInt(requestId),
       agree,
       agreeDescription,
     } as IRequestAgreeRequest);
@@ -105,7 +131,7 @@ RequestController.post(
     const { requestId, candidatePhone } = req.body;
 
     return await RequestService.verify({
-      requestId,
+      requestId: parseInt(requestId),
       userId: req.user!.id,
       candidatePhone,
     } as IRequestVerifyRequest);
@@ -119,7 +145,7 @@ RequestController.post(
     const { requestId, answer } = req.body;
 
     return await RequestService.answer({
-      requestId,
+      requestId: parseInt(requestId),
       userId: req.user!.id,
       answer,
     } as IRequestAnswerRequest);

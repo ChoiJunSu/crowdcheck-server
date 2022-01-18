@@ -15,6 +15,10 @@ import {
   IRequestGetReceiverResponse,
   IRequestAnswerRequest,
   IRequestAnswerResponse,
+  IRequestListCorporateRequest,
+  IRequestListCorporateResponse,
+  IRequestGetCorporateRequest,
+  IRequestGetCorporateResponse,
 } from '@services/RequestService/type';
 import RequestModel from '@models/RequestModel';
 import CorporateModel from '@models/CorporateModel';
@@ -26,6 +30,11 @@ import { Op, Sequelize } from 'sequelize';
 import ReceiverModel from '@models/ReceiverModel';
 import { MAX_TIMESTAMP } from '@constants/date';
 import UserModel from '@models/UserModel';
+import { TRequestStatus } from '@models/RequestModel/type';
+import {
+  ICorporateRequest,
+  IReceiver,
+} from '@controllers/RequestController/type';
 
 class RequestService {
   static register = async ({
@@ -125,6 +134,20 @@ class RequestService {
     };
 
     try {
+      // verify userId with receiver
+      const receiverFindOneResult = await ReceiverModel.findOne({
+        attributes: ['userId'],
+        where: { requestId },
+      });
+      if (!receiverFindOneResult) {
+        response.error = '사용자 검색 오류입니다.';
+        return response;
+      }
+      if (receiverFindOneResult.userId !== userId) {
+        response.error = '잘못된 접근입니다.';
+        return response;
+      }
+      // find request, corporate, candidate
       const requestFindOneResult = await RequestModel.findOne({
         attributes: ['question'],
         where: { id: requestId },
@@ -147,6 +170,85 @@ class RequestService {
       response.corporateName = Corporate!.name;
       response.candidateName = Candidate!.name;
       response.question = question;
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '의뢰 정보를 불러오는데 실패했습니다.';
+    }
+
+    return response;
+  };
+
+  static getCorporate = async ({
+    requestId,
+    userId,
+  }: IRequestGetCorporateRequest): Promise<IRequestGetCorporateResponse> => {
+    const response: IRequestGetCorporateResponse = {
+      ok: false,
+      error: '',
+      candidateName: '',
+      question: '',
+      answer: [],
+    };
+
+    try {
+      // verify requestId with userId
+      const userFindOneResult = await UserModel.findOne({
+        attributes: ['corporateId'],
+        where: { id: userId },
+      });
+      if (!userFindOneResult) {
+        response.error = '사용자 검색 오류입니다.';
+        return response;
+      }
+      const requestFindOnResult = await RequestModel.findOne({
+        attributes: ['corporateId', 'question'],
+        where: { id: requestId },
+      });
+      if (!requestFindOnResult) {
+        response.error = '의뢰 검색 오류입니다.';
+        return response;
+      }
+      if (requestFindOnResult.corporateId !== userFindOneResult.corporateId) {
+        response.error = '잘못된 접근입니다';
+        return response;
+      }
+      // find candidate
+      const candidateFindOneResult = await CandidateModel.findOne({
+        attributes: ['name'],
+        where: { requestId },
+      });
+      if (!candidateFindOneResult) {
+        response.error = '지원자 검색 오류입니다.';
+        return response;
+      }
+      // find receiver
+      const receiverFindAllResult = await ReceiverModel.findAll({
+        attributes: ['id', 'corporateId', 'answer', 'status'],
+        where: { requestId },
+      });
+      if (!receiverFindAllResult) {
+        response.error = '평가자 검색 오류입니다.';
+        return response;
+      }
+      for (const { id, corporateId, answer, status } of receiverFindAllResult) {
+        const corporateFindOneResult = await CorporateModel.findOne({
+          attributes: ['name'],
+          where: { id: corporateId },
+        });
+        if (!corporateFindOneResult) {
+          response.error = '기업 검색 오류입니다.';
+          return response;
+        }
+        response.answer.push({
+          id,
+          corporateName: corporateFindOneResult.name,
+          answer,
+          status,
+        });
+      }
+      response.question = requestFindOnResult.question;
+      response.candidateName = candidateFindOneResult.name;
       response.ok = true;
     } catch (e) {
       console.error(e);
@@ -231,44 +333,108 @@ class RequestService {
     };
 
     try {
-      const requestFindAllResult = await RequestModel.findAll({
-        attributes: ['id'],
-        include: [
-          {
-            model: ReceiverModel,
-            attributes: ['status'],
-            where: { userId },
-          },
-          {
-            model: CandidateModel,
-            attributes: ['name'],
-          },
-          {
-            model: CorporateModel,
-            attributes: ['name'],
-          },
-        ],
+      const receiverFindAllResult = await ReceiverModel.findAll({
+        attributes: ['requestId', 'status'],
+        where: { userId },
       });
-      if (!requestFindAllResult) {
-        response.error = '의뢰 목록 검색 오류입니다.';
+      if (!receiverFindAllResult) {
+        response.error = '요청 검색 오류입니다.';
+        return response;
       }
-      for (const {
-        id,
-        Receiver,
-        Candidate,
-        Corporate,
-      } of requestFindAllResult) {
+      for (const { requestId, status } of receiverFindAllResult) {
+        const requestFindOneResult = await RequestModel.findOne({
+          attributes: ['id'],
+          where: { id: requestId },
+          include: [
+            {
+              model: CandidateModel,
+              attributes: ['name'],
+            },
+            {
+              model: CorporateModel,
+              attributes: ['name'],
+            },
+          ],
+        });
+        if (!requestFindOneResult) {
+          response.error = '의뢰 목록 검색 오류입니다.';
+          return response;
+        }
         response.request.push({
-          id,
-          corporateName: Corporate!.name,
-          candidateName: Candidate!.name,
-          status: Receiver!.status,
+          id: requestFindOneResult.id,
+          corporateName: requestFindOneResult.Corporate!.name,
+          candidateName: requestFindOneResult.Candidate!.name,
+          status,
         });
       }
       response.ok = true;
     } catch (e) {
       console.error(e);
-      response.error = '의뢰 목록 검색에 실패했습니다.';
+      response.error = '의뢰 목록을 불러오는데 실패했습니다.';
+    }
+
+    return response;
+  };
+
+  static listCorporate = async ({
+    userId,
+  }: IRequestListCorporateRequest): Promise<IRequestListCorporateResponse> => {
+    const response: IRequestListCorporateResponse = {
+      ok: false,
+      error: '',
+      request: [],
+    };
+
+    try {
+      // find user
+      const userFindOneResult = await UserModel.findOne({
+        attributes: ['corporateId'],
+        where: { id: userId },
+      });
+      if (!userFindOneResult) {
+        response.error = '사용자 검색 오류입니다.';
+        return response;
+      }
+      // find request and candidate
+      const requestFindAllResult = await RequestModel.findAll({
+        attributes: ['id', 'status'],
+        where: { corporateId: userFindOneResult.corporateId },
+        include: [
+          {
+            model: CandidateModel,
+            attributes: ['name'],
+          },
+        ],
+      });
+      if (!requestFindAllResult) {
+        response.error = '의뢰 검색 오류입니다.';
+        return response;
+      }
+      // find receiver and push request
+      for (const { id, status, Candidate } of requestFindAllResult) {
+        const request: ICorporateRequest = {
+          id,
+          status,
+          candidateName: Candidate!.name,
+          receiver: [],
+        };
+        const receiverFindAllResult = await ReceiverModel.findAll({
+          attributes: ['id', 'status'],
+          where: { requestId: id },
+        });
+        if (!receiverFindAllResult) {
+          response.error = '평가자 검색 오류입니다.';
+          return response;
+        }
+        for (const { id, status } of receiverFindAllResult) {
+          request.receiver.push({ id, status });
+        }
+        response.request.push(request);
+      }
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '의뢰 목록을 불러오는데 실패했습니다.';
     }
 
     return response;
@@ -316,13 +482,14 @@ class RequestService {
       response.ok = true;
     } catch (e) {
       console.error(e);
-      response.error = '지원자 의뢰 목록 검색에 실패했습니다.';
+      response.error = '의뢰 목록을 불러오는데 실패했습니다.';
     }
 
     return response;
   };
 
   static agree = async ({
+    candidateId,
     requestId,
     agree,
     agreeDescription,
@@ -333,6 +500,20 @@ class RequestService {
     };
 
     try {
+      // verify candidateId with request
+      const candidateFindOneResult = await CandidateModel.findOne({
+        attributes: ['requestId'],
+        where: { id: candidateId },
+      });
+      if (!candidateFindOneResult) {
+        response.error = '지원자 검색 오류입니다.';
+        return response;
+      }
+      if (candidateFindOneResult.requestId !== requestId) {
+        console.log(typeof candidateFindOneResult.requestId, typeof requestId);
+        response.error = '잘못된 접근입니다.';
+        return response;
+      }
       for (const { corporateId, agreed } of agree) {
         // update candidateAgree
         if (!agreed) continue;
@@ -376,6 +557,7 @@ class RequestService {
         for (const { Career } of corporateFindAllResult) {
           const receiverCreateResult = await ReceiverModel.create({
             userId: Career!.userId,
+            corporateId,
             requestId,
           });
         }
@@ -409,7 +591,7 @@ class RequestService {
     };
 
     try {
-      // verify receiver status
+      // verify user, request, and receiver status
       const receiverFindOneResult = await ReceiverModel.findOne({
         attributes: ['id', 'status'],
         where: {
@@ -474,7 +656,7 @@ class RequestService {
     };
 
     try {
-      // verify receiver status
+      // verify user, request and receiver status
       const receiverFindOneResult = await ReceiverModel.findOne({
         attributes: ['id', 'status'],
         where: { requestId, userId },

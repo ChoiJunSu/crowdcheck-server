@@ -5,7 +5,9 @@ import {
 import { ICareer } from '@controllers/AuthController/type';
 import {
   IAgree,
+  IAnswer,
   ICandidateRequest,
+  ICorporateRequest,
   IReceiverRequest,
 } from '@controllers/RequestController/type';
 
@@ -23,7 +25,7 @@ export interface IRequestRegisterResponse extends IBaseServiceResponse {
 }
 
 export interface IRequestGetReceiverRequest extends IBaseServiceRequest {
-  requestId: string;
+  requestId: number;
   userId: number;
 }
 
@@ -33,8 +35,19 @@ export interface IRequestGetReceiverResponse extends IBaseServiceResponse {
   question: string;
 }
 
+export interface IRequestGetCorporateRequest extends IBaseServiceRequest {
+  requestId: number;
+  userId: number;
+}
+
+export interface IRequestGetCorporateResponse extends IBaseServiceResponse {
+  candidateName: string;
+  question: string;
+  answer: Array<IAnswer>;
+}
+
 export interface IRequestGetCandidateRequest extends IBaseServiceRequest {
-  requestId: string;
+  requestId: number;
   candidateId: number;
 }
 
@@ -51,6 +64,14 @@ export interface IRequestListReceiverResponse extends IBaseServiceResponse {
   request: Array<IReceiverRequest>;
 }
 
+export interface IRequestListCorporateRequest extends IBaseServiceRequest {
+  userId: number;
+}
+
+export interface IRequestListCorporateResponse extends IBaseServiceResponse {
+  request: Array<ICorporateRequest>;
+}
+
 export interface IRequestListCandidateRequest extends IBaseServiceRequest {
   candidateId: number;
 }
@@ -60,6 +81,7 @@ export interface IRequestListCandidateResponse extends IBaseServiceResponse {
 }
 
 export interface IRequestAgreeRequest extends IBaseServiceRequest {
+  candidateId: number;
   requestId: number;
   agree: Array<IAgree>;
   agreeDescription: string;
