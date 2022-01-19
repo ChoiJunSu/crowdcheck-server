@@ -104,3 +104,10 @@ export interface IRequestAnswerRequest extends IBaseServiceRequest {
 }
 
 export interface IRequestAnswerResponse extends IBaseServiceResponse {}
+
+export interface IRequestRejectRequest extends IBaseServiceRequest {
+  requestId: number;
+  userId: number;
+}
+
+export interface IRequestRejectResponse extends IBaseServiceResponse {}

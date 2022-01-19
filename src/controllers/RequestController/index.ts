@@ -152,4 +152,17 @@ RequestController.post(
   }
 );
 
+RequestController.get(
+  '/reject',
+  AuthMiddleware.isPersonal,
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    const { requestId } = req.query;
+
+    return await RequestService.reject({
+      requestId: parseInt(requestId as string),
+      userId: req.user!.id,
+    } as IRequestAnswerRequest);
+  }
+);
+
 export default RequestController;
