@@ -15,7 +15,7 @@ export interface IRequestRegisterRequest extends IBaseServiceRequest {
   userId: number;
   name: string;
   phone: string;
-  career: Array<ICareer>;
+  careers: Array<ICareer>;
   question: string;
   deadline?: Date | null;
 }
@@ -43,7 +43,7 @@ export interface IRequestGetCorporateRequest extends IBaseServiceRequest {
 export interface IRequestGetCorporateResponse extends IBaseServiceResponse {
   candidateName: string;
   question: string;
-  answer: Array<IAnswer>;
+  answers: Array<IAnswer>;
 }
 
 export interface IRequestGetCandidateRequest extends IBaseServiceRequest {
@@ -53,7 +53,7 @@ export interface IRequestGetCandidateRequest extends IBaseServiceRequest {
 
 export interface IRequestGetCandidateResponse extends IBaseServiceResponse {
   corporateName: string;
-  career: Array<ICareer>;
+  careers: Array<ICareer>;
 }
 
 export interface IRequestListReceiverRequest extends IBaseServiceRequest {
@@ -61,7 +61,7 @@ export interface IRequestListReceiverRequest extends IBaseServiceRequest {
 }
 
 export interface IRequestListReceiverResponse extends IBaseServiceResponse {
-  request: Array<IReceiverRequest>;
+  requests: Array<IReceiverRequest>;
 }
 
 export interface IRequestListCorporateRequest extends IBaseServiceRequest {
@@ -69,7 +69,7 @@ export interface IRequestListCorporateRequest extends IBaseServiceRequest {
 }
 
 export interface IRequestListCorporateResponse extends IBaseServiceResponse {
-  request: Array<ICorporateRequest>;
+  requests: Array<ICorporateRequest>;
 }
 
 export interface IRequestListCandidateRequest extends IBaseServiceRequest {
@@ -77,13 +77,13 @@ export interface IRequestListCandidateRequest extends IBaseServiceRequest {
 }
 
 export interface IRequestListCandidateResponse extends IBaseServiceResponse {
-  request: Array<ICandidateRequest>;
+  requests: Array<ICandidateRequest>;
 }
 
 export interface IRequestAgreeRequest extends IBaseServiceRequest {
   candidateId: number;
   requestId: number;
-  agree: Array<IAgree>;
+  agrees: Array<IAgree>;
   agreeDescription: string;
 }
 

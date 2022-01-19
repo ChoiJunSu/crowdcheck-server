@@ -299,7 +299,7 @@ class AuthService {
     phone,
     email,
     password,
-    career,
+    careers,
   }: IAuthRegisterPersonalRequest): Promise<IAuthRegisterPersonalResponse> => {
     const response: IAuthRegisterPersonalResponse = {
       ok: false,
@@ -322,7 +322,7 @@ class AuthService {
         return response;
       }
       // create career
-      for (const { corporateName, department, startAt, endAt } of career) {
+      for (const { corporateName, department, startAt, endAt } of careers) {
         // find or create corporate
         const corporateFindOrCreateResult = await CorporateModel.findOrCreate({
           where: {

@@ -24,6 +24,7 @@ class CareerModel
   declare readonly updatedAt: Date;
 
   declare readonly CandidateAgree?: CandidateAgreeModel;
+  declare readonly Corporate?: CorporateModel;
 
   declare static associations: {};
 }

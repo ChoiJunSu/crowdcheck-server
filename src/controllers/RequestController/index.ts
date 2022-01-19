@@ -25,14 +25,14 @@ RequestController.post(
   '/register',
   AuthMiddleware.isCorporate,
   async (req: IRequest, res: IResponse, next: INextFunction) => {
-    const { name, phone, career, question, deadline } = req.body;
+    const { name, phone, careers, question, deadline } = req.body;
 
     return res.send(
       await RequestService.register({
         userId: req.user!.id,
         name,
         phone,
-        career,
+        careers,
         question,
         deadline,
       } as IRequestRegisterRequest)
@@ -113,12 +113,12 @@ RequestController.post(
   '/agree',
   AuthMiddleware.isCandidate,
   async (req: IRequest, res: IResponse, next: INextFunction) => {
-    const { requestId, agree, agreeDescription } = req.body;
+    const { requestId, agrees, agreeDescription } = req.body;
 
     return await RequestService.agree({
       candidateId: req.user!.id,
       requestId: parseInt(requestId),
-      agree,
+      agrees,
       agreeDescription,
     } as IRequestAgreeRequest);
   }

@@ -55,7 +55,7 @@ export interface IAuthRegisterPersonalRequest extends IBaseServiceRequest {
   phone: string;
   email: string;
   password: string;
-  career: Array<ICareer>;
+  careers: Array<ICareer>;
 }
 
 export interface IAuthRegisterPersonalResponse extends IBaseServiceResponse {}

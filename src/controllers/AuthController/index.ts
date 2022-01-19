@@ -79,7 +79,7 @@ AuthController.get(
 AuthController.post(
   '/register/personal',
   async (req: IRequest, res: IResponse, next: INextFunction) => {
-    const { name, phone, email, password, career } = req.body;
+    const { name, phone, email, password, careers } = req.body;
 
     return res.send(
       await AuthService.registerPersonal({
@@ -87,7 +87,7 @@ AuthController.post(
         phone,
         email,
         password,
-        career,
+        careers,
       } as IAuthRegisterPersonalRequest)
     );
   }

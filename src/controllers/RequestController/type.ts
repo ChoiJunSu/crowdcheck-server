@@ -12,7 +12,7 @@ export interface ICorporateRequest {
   id: number;
   candidateName: string;
   status: TRequestStatus;
-  receiver: Array<IReceiver>;
+  receivers: Array<IReceiver>;
 }
 
 export interface ICandidateRequest {

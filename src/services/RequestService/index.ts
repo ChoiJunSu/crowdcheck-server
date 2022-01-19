@@ -33,14 +33,13 @@ import ReceiverModel from '@models/ReceiverModel';
 import { MAX_TIMESTAMP } from '@constants/date';
 import UserModel from '@models/UserModel';
 import { ICorporateRequest } from '@controllers/RequestController/type';
-import { IReceiverAttributes } from '@models/ReceiverModel/type';
 
 class RequestService {
   static register = async ({
     userId,
     name,
     phone,
-    career,
+    careers,
     question,
     deadline,
   }: IRequestRegisterRequest): Promise<IRequestRegisterResponse> => {
@@ -85,7 +84,7 @@ class RequestService {
         return response;
       }
       // create candidate agree
-      for (const { corporateName, department, startAt, endAt } of career) {
+      for (const { corporateName, department, startAt, endAt } of careers) {
         // find or create corporate
         const corporateFindOrCreateResult = await CorporateModel.findOrCreate({
           where: { name: corporateName },
@@ -135,15 +134,11 @@ class RequestService {
     try {
       // verify userId with receiver
       const receiverFindOneResult = await ReceiverModel.findOne({
-        attributes: ['userId'],
-        where: { requestId },
+        attributes: ['id'],
+        where: { requestId, userId },
       });
       if (!receiverFindOneResult) {
         response.error = '사용자 검색 오류입니다.';
-        return response;
-      }
-      if (receiverFindOneResult.userId !== userId) {
-        response.error = '잘못된 접근입니다.';
         return response;
       }
       // find request, corporate, candidate
@@ -191,7 +186,7 @@ class RequestService {
       error: '',
       candidateName: '',
       question: '',
-      answer: [],
+      answers: [],
     };
 
     try {
@@ -240,7 +235,7 @@ class RequestService {
           where: { id: corporateId },
         });
         if (!corporateFindOneResult) continue;
-        response.answer.push({
+        response.answers.push({
           id,
           corporateName: corporateFindOneResult.name,
           answer,
@@ -266,7 +261,7 @@ class RequestService {
       ok: false,
       error: '',
       corporateName: '',
-      career: [],
+      careers: [],
     };
     try {
       // find corporate name
@@ -302,7 +297,7 @@ class RequestService {
           where: { id: corporateId },
         });
         if (!corporateFindOneResult) continue;
-        response.career.push({
+        response.careers.push({
           corporateId: corporateFindOneResult.id,
           corporateName: corporateFindOneResult.name,
           department,
@@ -326,7 +321,7 @@ class RequestService {
     const response: IRequestListReceiverResponse = {
       ok: false,
       error: '',
-      request: [],
+      requests: [],
     };
 
     try {
@@ -359,7 +354,7 @@ class RequestService {
           !requestFindOneResult.Corporate
         )
           continue;
-        response.request.push({
+        response.requests.push({
           id: requestFindOneResult.id,
           corporateName: requestFindOneResult.Corporate.name,
           candidateName: requestFindOneResult.Candidate.name,
@@ -381,7 +376,7 @@ class RequestService {
     const response: IRequestListCorporateResponse = {
       ok: false,
       error: '',
-      request: [],
+      requests: [],
     };
 
     try {
@@ -416,7 +411,7 @@ class RequestService {
           id,
           status,
           candidateName: Candidate.name,
-          receiver: [],
+          receivers: [],
         };
         const receiverFindAllResult = await ReceiverModel.findAll({
           attributes: ['id', 'status'],
@@ -427,9 +422,9 @@ class RequestService {
           return response;
         }
         for (const { id, status } of receiverFindAllResult) {
-          request.receiver.push({ id, status });
+          request.receivers.push({ id, status });
         }
-        response.request.push(request);
+        response.requests.push(request);
       }
       response.ok = true;
     } catch (e) {
@@ -446,7 +441,7 @@ class RequestService {
     const response: IRequestListCandidateResponse = {
       ok: false,
       error: '',
-      request: [],
+      requests: [],
     };
 
     try {
@@ -474,7 +469,7 @@ class RequestService {
       }
       for (const { id, status, Corporate } of requestFindAllResult) {
         if (!Corporate) continue;
-        response.request.push({
+        response.requests.push({
           id,
           corporateName: Corporate.name,
           status,
@@ -492,7 +487,7 @@ class RequestService {
   static agree = async ({
     candidateId,
     requestId,
-    agree,
+    agrees,
     agreeDescription,
   }: IRequestAgreeRequest): Promise<IRequestAgreeResponse> => {
     const response: IRequestAgreeResponse = {
@@ -522,7 +517,7 @@ class RequestService {
         response.error = '의뢰 상태 오류입니다.';
         return response;
       }
-      for (const { corporateId, agreed } of agree) {
+      for (const { corporateId, agreed } of agrees) {
         // update candidateAgree
         if (!agreed) continue;
         const candidateAgreeUpdateResult = await CandidateAgreeModel.update(
