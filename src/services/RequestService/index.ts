@@ -33,6 +33,7 @@ import ReceiverModel from '@models/ReceiverModel';
 import { MAX_TIMESTAMP } from '@constants/date';
 import UserModel from '@models/UserModel';
 import { ICorporateRequest } from '@controllers/RequestController/type';
+import { IReceiverAttributes } from '@models/ReceiverModel/type';
 
 class RequestService {
   static register = async ({
@@ -548,10 +549,10 @@ class RequestService {
               where: {
                 [Op.or]: [
                   Sequelize.literal(
-                    'Career.startAt BETWEEN CandidateAgrees.startAt AND CandidateAgrees.endAt'
+                    'Careers.startAt BETWEEN CandidateAgrees.startAt AND CandidateAgrees.endAt'
                   ),
                   Sequelize.literal(
-                    'CandidateAgrees.startAt BETWEEN Career.startAt AND Career.endAt'
+                    'CandidateAgrees.startAt BETWEEN Careers.startAt AND Careers.endAt'
                   ),
                 ],
               },
@@ -625,20 +626,13 @@ class RequestService {
         response.error = '의뢰 검색 오류입니다.';
         return response;
       }
-      let receiver;
-      for (const Receiver of requestFindOneResult.Receivers) {
-        if (Receiver.id === userId) {
-          receiver = Receiver;
-          break;
-        }
-      }
-      if (!receiver) {
+      if (!requestFindOneResult.Receivers[0]) {
         response.error = '평가자 오류입니다.';
         return response;
       }
       if (
         requestFindOneResult.status !== 'agreed' ||
-        requestFindOneResult.Receiver.status !== 'arrived'
+        requestFindOneResult.Receivers[0].status !== 'arrived'
       ) {
         response.error = '의뢰 상태 오류입니다.';
         return response;
@@ -653,7 +647,7 @@ class RequestService {
           verifiedAt: new Date(),
           status: 'verified',
         },
-        { where: { id: requestFindOneResult.Receiver.id } }
+        { where: { id: requestFindOneResult.Receivers[0].id } }
       );
       if (!receiverUpdateResult) {
         response.error = '의뢰 상태 업데이트 오류입니다.';
@@ -685,18 +679,21 @@ class RequestService {
         where: { id: requestId },
         include: {
           model: ReceiverModel,
-          as: 'Receiver',
           attributes: ['id', 'status'],
           where: { userId },
         },
       });
-      if (!requestFindOneResult || !requestFindOneResult.Receiver) {
+      if (!requestFindOneResult || !requestFindOneResult.Receivers) {
         response.error = '의뢰 검색 오류입니다.';
+        return response;
+      }
+      if (!requestFindOneResult.Receivers[0]) {
+        response.error = '평가자 오류입니다.';
         return response;
       }
       if (
         requestFindOneResult.status !== 'agreed' ||
-        requestFindOneResult.Receiver.status !== 'verified'
+        requestFindOneResult.Receivers[0].status !== 'verified'
       ) {
         response.error = '의뢰 상태 오류입니다.';
         return response;
@@ -708,7 +705,7 @@ class RequestService {
           status: 'answered',
           answeredAt: new Date(),
         },
-        { where: { id: requestFindOneResult.Receiver.id } }
+        { where: { id: requestFindOneResult.Receivers[0].id } }
       );
       if (!receiverUpdateResult) {
         response.error = '의뢰 상태 업데이트 오류입니다.';
@@ -739,19 +736,22 @@ class RequestService {
         where: { id: requestId },
         include: {
           model: ReceiverModel,
-          as: 'Receiver',
           attributes: ['id', 'status'],
           where: { userId },
         },
       });
-      if (!requestFindOneResult || !requestFindOneResult.Receiver) {
+      if (!requestFindOneResult || !requestFindOneResult.Receivers) {
         response.error = '의뢰 검색 오류입니다.';
+        return response;
+      }
+      if (!requestFindOneResult.Receivers[0]) {
+        response.error = '평가자 오류입니다.';
         return response;
       }
       if (
         requestFindOneResult.status !== 'agreed' ||
-        (requestFindOneResult.Receiver.status !== 'arrived' &&
-          requestFindOneResult.Receiver.status !== 'verified')
+        (requestFindOneResult.Receivers[0].status !== 'arrived' &&
+          requestFindOneResult.Receivers[0].status !== 'verified')
       ) {
         console.log(requestFindOneResult);
         response.error = '의뢰 상태 오류입니다.';
@@ -763,7 +763,7 @@ class RequestService {
           rejectedAt: new Date(),
           status: 'rejected',
         },
-        { where: { id: requestFindOneResult.Receiver.id } }
+        { where: { id: requestFindOneResult.Receivers[0].id } }
       );
       if (!receiverUpdateResult) {
         response.error = '의뢰 상태 업데이트 오류입니다.';
