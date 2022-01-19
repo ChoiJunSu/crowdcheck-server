@@ -6,6 +6,7 @@ import {
 import sequelize from '@models/BaseModel';
 import RequestModel from '@models/RequestModel';
 import UserModel from '@models/UserModel';
+import CandidateAgreeModel from '@models/CandidateAgreeModel';
 
 class CandidateModel
   extends Model<ICandidateAttributes, ICandidateCreationAttributes>
@@ -20,6 +21,8 @@ class CandidateModel
 
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
+
+  declare readonly CandidateAgrees?: Array<CandidateAgreeModel>;
 
   declare static associations: {};
 }

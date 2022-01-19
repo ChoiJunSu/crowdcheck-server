@@ -99,7 +99,6 @@ ReceiverModel.init(
 );
 
 RequestModel.hasMany(ReceiverModel, {
-  as: 'Receiver',
   foreignKey: 'requestId',
   onDelete: 'CASCADE',
   onUpdate: 'CASCADE',
@@ -109,7 +108,6 @@ ReceiverModel.belongsTo(RequestModel, {
 });
 
 UserModel.hasMany(ReceiverModel, {
-  as: 'Receiver',
   foreignKey: 'userId',
   onDelete: 'CASCADE',
   onUpdate: 'CASCADE',
@@ -119,7 +117,6 @@ ReceiverModel.belongsTo(UserModel, {
 });
 
 CorporateModel.hasMany(ReceiverModel, {
-  as: 'Receiver',
   foreignKey: 'corporateId',
   onDelete: 'RESTRICT',
   onUpdate: 'CASCADE',

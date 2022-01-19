@@ -5,6 +5,10 @@ import {
 } from '@models/CorporateModel/type';
 import sequelize from '@models/BaseModel';
 import CareerModel from '@models/CareerModel';
+import CandidateAgreeModel from '@models/CandidateAgreeModel';
+import ReceiverModel from '@models/ReceiverModel';
+import RequestModel from '@models/RequestModel';
+import UserModel from '@models/UserModel';
 
 class CorporateModel
   extends Model<ICorporateAttributes, ICorporateCreationAttributes>
@@ -16,7 +20,11 @@ class CorporateModel
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 
-  declare readonly Career?: CareerModel;
+  declare readonly Careers?: Array<CareerModel>;
+  declare readonly CandidateAgrees?: Array<CandidateAgreeModel>;
+  declare readonly Receivers?: Array<ReceiverModel>;
+  declare readonly Request?: RequestModel;
+  declare readonly User?: UserModel;
 
   declare static associations: {};
 }

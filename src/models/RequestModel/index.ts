@@ -8,6 +8,7 @@ import sequelize from '@models/BaseModel';
 import CorporateModel from '@models/CorporateModel';
 import CandidateModel from '@models/CandidateModel';
 import ReceiverModel from '@models/ReceiverModel';
+import CandidateAgreeModel from '@models/CandidateAgreeModel';
 
 class RequestModel
   extends Model<IRequestAttributes, IRequestCreationAttributes>
@@ -28,7 +29,8 @@ class RequestModel
 
   declare readonly Corporate?: CorporateModel;
   declare readonly Candidate?: CandidateModel;
-  declare readonly Receiver?: ReceiverModel;
+  declare readonly CandidateAgrees?: Array<CandidateAgreeModel>;
+  declare readonly Receivers?: Array<ReceiverModel>;
 
   declare static associations: {};
 }

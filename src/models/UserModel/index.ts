@@ -7,6 +7,9 @@ import {
 import sequelize from '@models/BaseModel';
 import CorporateModel from '@models/CorporateModel';
 import { TOauthProvider } from '@controllers/AuthController/type';
+import CareerModel from '@models/CareerModel';
+import CandidateModel from '@models/CandidateModel';
+import ReceiverModel from '@models/ReceiverModel';
 
 class UserModel
   extends Model<IUserAttributes, IUserCreationAttributes>
@@ -24,6 +27,10 @@ class UserModel
 
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
+
+  declare readonly Candidate?: CandidateModel;
+  declare readonly Careers?: Array<CareerModel>;
+  declare readonly Receivers?: Array<ReceiverModel>;
 
   declare static associations: {};
 }

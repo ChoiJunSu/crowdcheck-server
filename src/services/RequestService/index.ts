@@ -539,7 +539,6 @@ class RequestService {
           include: [
             {
               model: CandidateAgreeModel,
-              as: 'CandidateAgree',
               attributes: [],
               where: { requestId, corporateId },
             },
@@ -549,10 +548,10 @@ class RequestService {
               where: {
                 [Op.or]: [
                   Sequelize.literal(
-                    'Career.startAt BETWEEN CandidateAgree.startAt AND CandidateAgree.endAt'
+                    'Career.startAt BETWEEN CandidateAgrees.startAt AND CandidateAgrees.endAt'
                   ),
                   Sequelize.literal(
-                    'CandidateAgree.startAt BETWEEN Career.startAt AND Career.endAt'
+                    'CandidateAgrees.startAt BETWEEN Career.startAt AND Career.endAt'
                   ),
                 ],
               },
@@ -561,12 +560,16 @@ class RequestService {
         });
         // create receiver
         if (!corporateFindAllResult) continue;
-        for (const { Career } of corporateFindAllResult) {
-          const receiverCreateResult = await ReceiverModel.create({
-            userId: Career!.userId,
-            corporateId,
-            requestId,
-          });
+        for (const { Careers } of corporateFindAllResult) {
+          if (!Careers) continue;
+          for (const Career of Careers) {
+            if (!Career) continue;
+            const receiverCreateResult = await ReceiverModel.create({
+              userId: Career.userId,
+              corporateId,
+              requestId,
+            });
+          }
         }
       }
       // update request
@@ -605,7 +608,8 @@ class RequestService {
         include: [
           {
             model: ReceiverModel,
-            attributes: ['id', 'userId', 'status'],
+            attributes: ['id', 'status'],
+            where: { userId },
           },
           {
             model: CandidateModel,
@@ -615,13 +619,20 @@ class RequestService {
       });
       if (
         !requestFindOneResult ||
-        !requestFindOneResult.Receiver ||
+        !requestFindOneResult.Receivers ||
         !requestFindOneResult.Candidate
       ) {
         response.error = '의뢰 검색 오류입니다.';
         return response;
       }
-      if (requestFindOneResult.Receiver.userId !== userId) {
+      let receiver;
+      for (const Receiver of requestFindOneResult.Receivers) {
+        if (Receiver.id === userId) {
+          receiver = Receiver;
+          break;
+        }
+      }
+      if (!receiver) {
         response.error = '평가자 오류입니다.';
         return response;
       }
@@ -674,15 +685,13 @@ class RequestService {
         where: { id: requestId },
         include: {
           model: ReceiverModel,
-          attributes: ['id', 'userId', 'status'],
+          as: 'Receiver',
+          attributes: ['id', 'status'],
+          where: { userId },
         },
       });
       if (!requestFindOneResult || !requestFindOneResult.Receiver) {
         response.error = '의뢰 검색 오류입니다.';
-        return response;
-      }
-      if (requestFindOneResult.Receiver.userId !== userId) {
-        response.error = '평가자 오류입니다.';
         return response;
       }
       if (
@@ -730,15 +739,13 @@ class RequestService {
         where: { id: requestId },
         include: {
           model: ReceiverModel,
-          attributes: ['id', 'userId', 'status'],
+          as: 'Receiver',
+          attributes: ['id', 'status'],
+          where: { userId },
         },
       });
       if (!requestFindOneResult || !requestFindOneResult.Receiver) {
         response.error = '의뢰 검색 오류입니다.';
-        return response;
-      }
-      if (requestFindOneResult.Receiver.userId !== userId) {
-        response.error = '평가자 오류입니다.';
         return response;
       }
       if (
@@ -746,6 +753,7 @@ class RequestService {
         (requestFindOneResult.Receiver.status !== 'arrived' &&
           requestFindOneResult.Receiver.status !== 'verified')
       ) {
+        console.log(requestFindOneResult);
         response.error = '의뢰 상태 오류입니다.';
         return response;
       }

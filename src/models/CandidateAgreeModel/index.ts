@@ -74,7 +74,6 @@ CandidateAgreeModel.init(
 );
 
 RequestModel.hasMany(CandidateAgreeModel, {
-  as: 'CandidateAgree',
   foreignKey: 'requestId',
   onDelete: 'CASCADE',
   onUpdate: 'CASCADE',
@@ -84,7 +83,6 @@ CandidateAgreeModel.belongsTo(RequestModel, {
 });
 
 CorporateModel.hasMany(CandidateAgreeModel, {
-  as: 'CandidateAgree',
   foreignKey: 'corporateId',
   onDelete: 'RESTRICT',
   onUpdate: 'CASCADE',
@@ -94,7 +92,6 @@ CandidateAgreeModel.belongsTo(CorporateModel, {
 });
 
 CandidateModel.hasMany(CandidateAgreeModel, {
-  as: 'CandidateAgree',
   foreignKey: 'candidateId',
   onDelete: 'CASCADE',
   onUpdate: 'CASCADE',

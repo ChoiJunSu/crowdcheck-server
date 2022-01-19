@@ -71,7 +71,7 @@ CareerModel.init(
   }
 );
 
-UserModel.hasOne(CareerModel, {
+UserModel.hasMany(CareerModel, {
   foreignKey: 'userId',
   onDelete: 'CASCADE',
   onUpdate: 'CASCADE',
@@ -80,7 +80,7 @@ CareerModel.belongsTo(UserModel, {
   foreignKey: 'userId',
 });
 
-CorporateModel.hasOne(CareerModel, {
+CorporateModel.hasMany(CareerModel, {
   foreignKey: 'corporateId',
   onDelete: 'RESTRICT',
   onUpdate: 'CASCADE',
