@@ -15,6 +15,7 @@ import CorporateController from '@controllers/CorporateController';
 import RequestController from '@controllers/RequestController';
 import { WEB_URL } from '@constants/url';
 import { MAX_TIMESTAMP } from '@constants/date';
+import UserController from '@controllers/UserController';
 
 const app = express();
 const port = 4000;
@@ -89,6 +90,7 @@ app.use(express.json());
 app.use('/auth', AuthController);
 app.use('/corporate', CorporateController);
 app.use('/request', RequestController);
+app.use('/user', UserController);
 
 // error handling
 app.use((req: Request, res: Response, next: NextFunction) => {

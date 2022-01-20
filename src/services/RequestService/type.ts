@@ -17,7 +17,7 @@ export interface IRequestRegisterRequest extends IBaseServiceRequest {
   phone: string;
   careers: Array<ICareer>;
   question: string;
-  deadline?: Date | null;
+  deadline: Date | null;
 }
 
 export interface IRequestRegisterResponse extends IBaseServiceResponse {

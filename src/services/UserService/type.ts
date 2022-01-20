@@ -13,3 +13,12 @@ export interface IUserGetPersonalResponse extends IBaseServiceResponse {
   user: IUser | null;
   careers: Array<ICareer>;
 }
+
+export interface IUserEditPersonalRequest extends IBaseServiceRequest {
+  userId: number;
+  name: string;
+  password: string | null;
+  careers: Array<ICareer>;
+}
+
+export interface IUserEditPersonalResponse extends IBaseServiceResponse {}
