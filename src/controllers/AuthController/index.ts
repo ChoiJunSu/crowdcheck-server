@@ -7,6 +7,7 @@ import {
   IAuthLoginRequest,
   IAuthRegisterPersonalRequest,
   IAuthLoginCandidateRequest,
+  IAuthRegisterOauthRequest,
 } from '@services/AuthService/type';
 import AuthMiddleware from '@middlewares/AuthMiddleware';
 import {
@@ -90,6 +91,22 @@ AuthController.post(
         password,
         careers,
       } as IAuthRegisterPersonalRequest)
+    );
+  }
+);
+
+AuthController.post(
+  '/register/oauth',
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    const { name, phone, careers, registerToken } = req.body;
+
+    return res.send(
+      await AuthService.registerOauth({
+        name,
+        phone,
+        careers,
+        registerToken,
+      } as IAuthRegisterOauthRequest)
     );
   }
 );

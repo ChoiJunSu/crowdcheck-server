@@ -1,4 +1,4 @@
-import { decode, sign } from 'jsonwebtoken';
+import { decode, sign, verify } from 'jsonwebtoken';
 import {
   IAuthTokenPayload,
   IAuthRegisterCorporateRequest,
@@ -13,6 +13,9 @@ import {
   IAuthRegisterPersonalResponse,
   IAuthLoginCandidateRequest,
   IAuthLoginCandidateResponse,
+  IAuthRegisterOauthRequest,
+  IAuthRegisterOauthResponse,
+  IRegisterTokenPayload,
 } from '@services/AuthService/type';
 import { JWT_EXPIRES_IN, JWT_ISSUER, JWT_SECRET } from '@constants/jwt';
 import { URLSearchParams } from 'url';
@@ -24,6 +27,7 @@ import CareerModel from '@models/CareerModel';
 import CandidateModel from '@models/CandidateModel';
 import { MAX_TIMESTAMP } from '@constants/date';
 import CorporateVerifyModel from '@models/CorporateVerifyModel';
+import OauthService from '@services/OauthService';
 
 class AuthService {
   static login = async ({
@@ -97,111 +101,34 @@ class AuthService {
       ok: false,
       error: '',
       authToken: '',
+      registerToken: '',
     };
-    let email;
+
     try {
       // get email by oauth code
-      switch (provider) {
-        case 'kakao': {
-          const params = new URLSearchParams({
-            grant_type: 'authorization_code',
-            client_id: '752369a3217c1905b6ce8a71a15eaf8c',
-            redirect_uri: redirectUri,
-            code,
-            client_secret: 'LMYsThJdZqYizOZTPrdTcCLr6UnIqUAT',
-          });
-          // get access token by oauth code
-          const {
-            data: { access_token },
-          } = await axios.post(
-            'https://kauth.kakao.com/oauth/token',
-            params.toString(),
-            {
-              headers: {
-                'Content-Type':
-                  'application/x-www-form-urlencoded;charset=utf-8',
-              },
-            }
-          );
-          if (!access_token) {
-            response.error = `카카오로부터 정보를 불러오지 못했습니다.`;
-            return response;
-          }
-          // get kakao account by oauth access token
-          const {
-            data: { kakao_account },
-          } = await axios.get('https://kapi.kakao.com/v2/user/me', {
-            headers: {
-              Authorization: `Bearer ${access_token}`,
-              'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
-            },
-          });
-          if (!kakao_account || !kakao_account.has_email) {
-            response.error = `카카오로부터 정보를 불러오지 못했습니다.`;
-            return response;
-          }
-          email = kakao_account.email;
-          break;
-        }
-
-        case 'google': {
-          const params = new URLSearchParams({
-            grant_type: 'authorization_code',
-            client_id:
-              '646489201957-l6859a2jp95c6fles5lcos3tmnlm8eab.apps.googleusercontent.com',
-            redirect_uri: redirectUri,
-            code,
-            client_secret: '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',
-          });
-          // get access token by oauth code
-          const {
-            data: { access_token },
-          } = await axios.post(
-            'https://oauth2.googleapis.com/token',
-            params.toString(),
-            {
-              headers: {
-                'Content-Type':
-                  'application/x-www-form-urlencoded;charset=utf-8',
-              },
-            }
-          );
-          if (!access_token) {
-            response.error = `구글로부터 정보를 불러오지 못했습니다.`;
-            return response;
-          }
-          // get google data by oauth access token
-          const { data } = await axios.get(
-            'https://www.googleapis.com/oauth2/v2/userinfo',
-            {
-              headers: {
-                Authorization: `Bearer ${access_token}`,
-                'Content-Type':
-                  'application/x-www-form-urlencoded;charset=utf-8',
-              },
-            }
-          );
-          if (!data) {
-            response.error = `구글로부터 정보를 불러오지 못했습니다.`;
-            return response;
-          }
-          email = data.email;
-          break;
-        }
-
-        default: {
-          break;
-        }
+      const getEmailByOauthCodeResponse =
+        await OauthService.getEmailByOauthCode({ provider, code, redirectUri });
+      if (!getEmailByOauthCodeResponse.ok) {
+        response.error = getEmailByOauthCodeResponse.error;
+        return response;
       }
       // find user by email
       const userFindOneResult = await UserModel.findOne({
-        attributes: ['id', 'name'],
+        attributes: ['id', 'name', 'oauthProvider'],
         where: {
-          email,
+          email: getEmailByOauthCodeResponse.email,
           type: 'personal',
         },
       });
       if (!userFindOneResult) {
+        response.registerToken = sign(
+          {
+            provider,
+            email: getEmailByOauthCodeResponse.email,
+          } as IRegisterTokenPayload,
+          JWT_SECRET,
+          { issuer: JWT_ISSUER, expiresIn: JWT_EXPIRES_IN }
+        );
         response.error = '회원가입이 필요합니다.';
         return response;
       }
@@ -316,6 +243,7 @@ class AuthService {
       ok: false,
       error: '',
     };
+
     try {
       // hash password
       const salt = await genSalt(10);
@@ -364,6 +292,72 @@ class AuthService {
     } catch (e) {
       console.error(e);
       response.error = '개인회원 가입에 실패했습니다.';
+    }
+
+    return response;
+  };
+
+  static registerOauth = async ({
+    name,
+    phone,
+    careers,
+    registerToken,
+  }: IAuthRegisterOauthRequest): Promise<IAuthRegisterOauthResponse> => {
+    const response: IAuthRegisterOauthResponse = {
+      ok: false,
+      error: '',
+    };
+
+    try {
+      // verify registerToken
+      const { provider, email } = (await verify(
+        registerToken,
+        JWT_SECRET
+      )) as IRegisterTokenPayload;
+      // create user
+      const userCreateResult = await UserModel.create({
+        name,
+        phone,
+        email,
+        type: 'personal',
+        oauthProvider: provider,
+      });
+      if (!userCreateResult) {
+        response.error = '회원 생성 오류입니다.';
+        return response;
+      }
+      // create career
+      for (const { corporateName, department, startAt, endAt } of careers) {
+        // find or create corporate
+        const corporateFindOrCreateResult = await CorporateModel.findOrCreate({
+          where: {
+            name: corporateName,
+          },
+          defaults: {
+            name: corporateName,
+          },
+        });
+        if (!corporateFindOrCreateResult) {
+          response.error = '경력 오류입니다.';
+          return response;
+        }
+        // create career
+        const careerCreateResult = await CareerModel.create({
+          userId: userCreateResult.id,
+          corporateId: corporateFindOrCreateResult[0].id,
+          department,
+          startAt,
+          endAt: endAt || new Date(MAX_TIMESTAMP),
+        });
+        if (!careerCreateResult) {
+          response.error = '경력 생성 오류입니다.';
+          return response;
+        }
+      }
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = 'Oauth 회원가입에 실패했습니다.';
     }
 
     return response;

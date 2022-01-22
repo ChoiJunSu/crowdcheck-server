@@ -18,13 +18,12 @@ export const upload = multer({
   storage: multerS3({
     s3,
     bucket: AWS_S3_BUCKET,
-    key: (req, file, cb) => {
+    key: (req, file, cb) =>
       cb(
         null,
         `${file.fieldname}/${randomBytes(20).toString(
           'hex'
         )}${file.originalname.substring(file.originalname.lastIndexOf('.'))}`
-      );
-    },
+      ),
   }),
 });
