@@ -3,7 +3,8 @@ import { Optional } from 'sequelize';
 export interface ICorporateVerifyAttributes {
   id?: number;
   userId: number;
-  registration: string;
+  registrationBucket: string;
+  registrationKey: string;
   verifiedAt?: Date | null;
 }
 

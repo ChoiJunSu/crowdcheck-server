@@ -13,7 +13,6 @@ export interface IUserAttributes {
   oauthProvider?: TOauthProvider | null;
   corporateId?: number | null;
   credit?: number;
-  verifiedAt?: Date | null;
 }
 
 export interface IUserCreationAttributes

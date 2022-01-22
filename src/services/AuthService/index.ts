@@ -39,21 +39,28 @@ class AuthService {
     try {
       // find corporate by email
       const userFindOneResult = await UserModel.findOne({
-        attributes: ['id', 'name', 'hashed', 'verifiedAt'],
+        attributes: ['id', 'name', 'hashed'],
         where: {
           email,
           type,
+        },
+        include: {
+          model: CorporateVerifyModel,
+          attributes: ['verifiedAt'],
         },
       });
       if (!userFindOneResult) {
         response.error = '해당 이메일로 등록된 회원이 없습니다.';
         return response;
       }
-      const { id, name, hashed, verifiedAt } = userFindOneResult;
+      const { id, name, hashed, CorporateVerify } = userFindOneResult;
       if (!hashed) {
         response.error = '다른 방식으로 로그인 해주세요.';
         return response;
-      } else if (type === 'corporate' && !verifiedAt) {
+      } else if (
+        type === 'corporate' &&
+        (!CorporateVerify || !CorporateVerify.verifiedAt)
+      ) {
         response.error = '사업자등록증 확인 중입니다. 조금만 기다려주세요.';
         return response;
       }
@@ -403,7 +410,8 @@ class AuthService {
       // create corporateVerify
       const corporateVerifyCreateResult = await CorporateVerifyModel.create({
         userId: userCreateResult.id,
-        registration: registration.path,
+        registrationBucket: registration.bucket,
+        registrationKey: registration.key,
       });
       if (!corporateVerifyCreateResult) {
         response.error = '인증 생성 오류입니다.';

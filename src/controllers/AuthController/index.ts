@@ -14,10 +14,9 @@ import {
   IRequest,
   IResponse,
 } from '@controllers/BaseController/type';
-import multer from 'multer';
+import { upload } from '@utils/multer';
 
 const AuthController = AsyncRouter();
-const upload = multer({ dest: `${__dirname}/upload/` });
 
 AuthController.post(
   '/login',

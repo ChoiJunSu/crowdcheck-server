@@ -13,7 +13,8 @@ class CorporateVerifyModel
 {
   declare id: number;
   declare userId: number;
-  declare registration: string;
+  declare registrationBucket: string;
+  declare registrationKey: string;
   declare verifiedAt: Date | null;
 
   declare readonly createdAt: Date;
@@ -35,7 +36,11 @@ CorporateVerifyModel.init(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    registration: {
+    registrationBucket: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    registrationKey: {
       type: DataTypes.STRING,
       allowNull: false,
     },

@@ -62,7 +62,7 @@ export interface IAuthRegisterPersonalResponse extends IBaseServiceResponse {}
 
 export interface IAuthRegisterCorporateRequest extends IBaseServiceRequest {
   name: string;
-  registration: Express.Multer.File;
+  registration: Express.MulterS3.File;
   phone: string;
   email: string;
   password: string;
