@@ -24,6 +24,7 @@ class UserModel
   declare oauthProvider: TOauthProvider | null;
   declare corporateId: number | null;
   declare credit: number;
+  declare verifiedAt: Date | null;
 
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
@@ -73,6 +74,10 @@ UserModel.init(
     credit: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
+    },
+    verifiedAt: {
+      type: DataTypes.DATE,
+      defaultValue: null,
     },
   },
   {

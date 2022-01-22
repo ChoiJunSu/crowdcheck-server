@@ -14,8 +14,10 @@ import {
   IRequest,
   IResponse,
 } from '@controllers/BaseController/type';
+import multer from 'multer';
 
 const AuthController = AsyncRouter();
+const upload = multer({ dest: `${__dirname}/upload/` });
 
 AuthController.post(
   '/login',
@@ -95,12 +97,16 @@ AuthController.post(
 
 AuthController.post(
   '/register/corporate',
+  upload.single('registration'),
   async (req: IRequest, res: IResponse, next: INextFunction) => {
     const { name, phone, email, password } = req.body;
+    if (!req.file)
+      return res.send({ ok: false, error: '사업자등록증을 업로드해주세요.' });
 
     return res.send(
       await AuthService.registerCorporate({
         name,
+        registration: req.file,
         phone,
         email,
         password,

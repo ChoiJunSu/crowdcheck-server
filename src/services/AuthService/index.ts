@@ -23,6 +23,7 @@ import CorporateModel from '@models/CorporateModel';
 import CareerModel from '@models/CareerModel';
 import CandidateModel from '@models/CandidateModel';
 import { MAX_TIMESTAMP } from '@constants/date';
+import CorporateVerifyModel from '@models/CorporateVerifyModel';
 
 class AuthService {
   static login = async ({
@@ -38,7 +39,7 @@ class AuthService {
     try {
       // find corporate by email
       const userFindOneResult = await UserModel.findOne({
-        attributes: ['id', 'name', 'hashed'],
+        attributes: ['id', 'name', 'hashed', 'verifiedAt'],
         where: {
           email,
           type,
@@ -48,9 +49,12 @@ class AuthService {
         response.error = '해당 이메일로 등록된 회원이 없습니다.';
         return response;
       }
-      const { id, name, hashed } = userFindOneResult;
+      const { id, name, hashed, verifiedAt } = userFindOneResult;
       if (!hashed) {
         response.error = '다른 방식으로 로그인 해주세요.';
+        return response;
+      } else if (type === 'corporate' && !verifiedAt) {
+        response.error = '사업자등록증 확인 중입니다. 조금만 기다려주세요.';
         return response;
       }
       // compare password with hashed
@@ -360,6 +364,7 @@ class AuthService {
 
   static registerCorporate = async ({
     name,
+    registration,
     phone,
     email,
     password,
@@ -368,6 +373,7 @@ class AuthService {
       ok: false,
       error: '',
     };
+
     try {
       // hash password
       const salt = await genSalt(10);
@@ -392,6 +398,15 @@ class AuthService {
       });
       if (!userCreateResult) {
         response.error = '회원 생성 오류입니다.';
+        return response;
+      }
+      // create corporateVerify
+      const corporateVerifyCreateResult = await CorporateVerifyModel.create({
+        userId: userCreateResult.id,
+        registration: registration.path,
+      });
+      if (!corporateVerifyCreateResult) {
+        response.error = '인증 생성 오류입니다.';
         return response;
       }
       response.ok = true;

@@ -9,6 +9,7 @@ import {
   IRequest,
   IResponse,
 } from '@controllers/BaseController/type';
+import multer from 'multer';
 
 const CorporateController = AsyncRouter();
 
