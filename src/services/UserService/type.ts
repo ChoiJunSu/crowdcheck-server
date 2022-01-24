@@ -14,11 +14,25 @@ export interface IUserGetPersonalResponse extends IBaseServiceResponse {
   careers: Array<ICareer>;
 }
 
+export interface IUserGetCorporateRequest extends IBaseServiceRequest {
+  userId: number;
+}
+
+export interface IUserGetCorporateResponse extends IBaseServiceResponse {
+  user: IUser | null;
+}
+
 export interface IUserEditPersonalRequest extends IBaseServiceRequest {
   userId: number;
-  name: string;
   password: string | null;
   careers: Array<ICareer>;
 }
 
 export interface IUserEditPersonalResponse extends IBaseServiceResponse {}
+
+export interface IUserEditCorporateRequest extends IBaseServiceResponse {
+  userId: number;
+  password: string | null;
+}
+
+export interface IUserEditCorporateResponse extends IBaseServiceResponse {}

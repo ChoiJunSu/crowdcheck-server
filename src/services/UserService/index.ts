@@ -1,7 +1,11 @@
 import UserModel from '@models/UserModel';
 import {
+  IUserEditCorporateRequest,
+  IUserEditCorporateResponse,
   IUserEditPersonalRequest,
   IUserEditPersonalResponse,
+  IUserGetCorporateRequest,
+  IUserGetCorporateResponse,
   IUserGetPersonalRequest,
   IUserGetPersonalResponse,
 } from '@services/UserService/type';
@@ -75,9 +79,42 @@ class UserService {
     return response;
   };
 
+  static getCorporate = async ({
+    userId,
+  }: IUserGetCorporateRequest): Promise<IUserGetCorporateResponse> => {
+    const response: IUserGetCorporateResponse = {
+      ok: false,
+      error: '',
+      user: null,
+    };
+
+    try {
+      // find user
+      const userFindOneResult = await UserModel.findOne({
+        attributes: ['email', 'name', 'phone'],
+        where: { id: userId },
+      });
+      if (!userFindOneResult) {
+        response.error = '사용자 검색 오류입니다.';
+        return response;
+      }
+      // generate response
+      response.user = {
+        email: userFindOneResult.email,
+        name: userFindOneResult.name,
+        phone: userFindOneResult.phone,
+      };
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '사용자 정보 불러오기에 실패했습니다.';
+    }
+
+    return response;
+  };
+
   static editPersonal = async ({
     userId,
-    name,
     password,
     careers,
   }: IUserEditPersonalRequest): Promise<IUserEditPersonalResponse> => {
@@ -100,17 +137,6 @@ class UserService {
         response.error = '사용자 검색 오류입니다.';
         return response;
       }
-      // update user name
-      if (userFindOneResult.name !== name) {
-        const userNameUpdateResult = await UserModel.update(
-          { name },
-          { where: { id: userId } }
-        );
-        if (!userNameUpdateResult) {
-          response.error = '사용자 이름 업데이트 오류입니다.';
-          return response;
-        }
-      }
       // update user password
       if (password) {
         // hash password
@@ -120,7 +146,7 @@ class UserService {
           { hashed },
           { where: { id: userId } }
         );
-        if (userPasswordUpdateResult) {
+        if (!userPasswordUpdateResult) {
           response.error = '사용자 비밀번호 업데이트 오류입니다.';
           return response;
         }
@@ -167,6 +193,48 @@ class UserService {
             response.error = '경력 삭제 오류입니다.';
             return response;
           }
+        }
+      }
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '사용자 정보 수정에 실패했습니다.';
+    }
+
+    return response;
+  };
+
+  static editCorporate = async ({
+    userId,
+    password,
+  }: IUserEditCorporateRequest): Promise<IUserEditCorporateResponse> => {
+    const response: IUserEditCorporateResponse = {
+      ok: false,
+      error: '',
+    };
+
+    try {
+      // find user
+      const userFindOneResult = await UserModel.findOne({
+        attributes: ['id'],
+        where: { id: userId },
+      });
+      if (!userFindOneResult) {
+        response.error = '사용자 검색 오류입니다.';
+        return response;
+      }
+      // update user password
+      if (password) {
+        // hash password
+        const salt = await genSalt(10);
+        const hashed = await hash(password, salt);
+        const userPasswordUpdateResult = await UserModel.update(
+          { hashed },
+          { where: { id: userId } }
+        );
+        if (!userPasswordUpdateResult) {
+          response.error = '사용자 비밀번호 업데이트 오류입니다.';
+          return response;
         }
       }
       response.ok = true;

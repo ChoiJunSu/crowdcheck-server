@@ -6,7 +6,9 @@ import {
 } from '@controllers/BaseController/type';
 import UserService from '@services/UserService';
 import {
+  IUserEditCorporateRequest,
   IUserEditPersonalRequest,
+  IUserGetCorporateRequest,
   IUserGetPersonalRequest,
 } from '@services/UserService/type';
 import AuthMiddleware from '@middlewares/AuthMiddleware';
@@ -25,19 +27,45 @@ UserController.get(
   }
 );
 
+UserController.get(
+  '/get/corporate',
+  AuthMiddleware.isCorporate,
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    return res.send(
+      await UserService.getCorporate({
+        userId: req.user!.id,
+      } as IUserGetCorporateRequest)
+    );
+  }
+);
+
 UserController.post(
   '/edit/personal',
   AuthMiddleware.isPersonal,
   async (req: IRequest, res: IResponse, next: INextFunction) => {
-    const { name, password, careers } = req.body;
+    const { password, careers } = req.body;
 
     return res.send(
       await UserService.editPersonal({
         userId: req.user!.id,
-        name,
         password,
         careers,
       } as IUserEditPersonalRequest)
+    );
+  }
+);
+
+UserController.post(
+  '/edit/corporate',
+  AuthMiddleware.isCorporate,
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    const { password } = req.body;
+
+    return res.send(
+      await UserService.editCorporate({
+        userId: req.user!.id,
+        password,
+      } as IUserEditCorporateRequest)
     );
   }
 );
