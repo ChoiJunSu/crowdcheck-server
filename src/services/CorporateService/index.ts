@@ -16,6 +16,12 @@ class CorporateService {
       error: '',
       corporates: [],
     };
+
+    if (word.length < 2) {
+      response.error = '두 글자 이상 입력해주세요.';
+      return response;
+    }
+
     try {
       const corporateFindAllResult = await CorporateModel.findAll({
         attributes: ['id', 'name'],
@@ -45,6 +51,7 @@ class CorporateService {
       ok: false,
       error: '',
     };
+
     try {
       const corporateCreateResult = CorporateModel.create({ name });
       if (!corporateCreateResult) {
