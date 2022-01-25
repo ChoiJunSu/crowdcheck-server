@@ -13,9 +13,3 @@ export interface ICorporateSearchResponse extends IBaseServiceResponse {
     name: string;
   }>;
 }
-
-export interface ICorporateAddRequest extends IBaseServiceRequest {
-  name: string;
-}
-
-export interface ICorporateAddResponse extends IBaseServiceResponse {}

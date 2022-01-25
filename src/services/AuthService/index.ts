@@ -16,6 +16,10 @@ import {
   IAuthRegisterOauthRequest,
   IAuthRegisterOauthResponse,
   IRegisterTokenPayload,
+  IAuthPhoneSendRequest,
+  IAuthPhoneSendResponse,
+  IAuthPhoneVerifyRequest,
+  IAuthPhoneVerifyResponse,
 } from '@services/AuthService/type';
 import { JWT_EXPIRES_IN, JWT_ISSUER, JWT_SECRET } from '@constants/jwt';
 import { URLSearchParams } from 'url';
@@ -28,6 +32,8 @@ import CandidateModel from '@models/CandidateModel';
 import { MAX_TIMESTAMP } from '@constants/date';
 import CorporateVerifyModel from '@models/CorporateVerifyModel';
 import OauthService from '@services/OauthService';
+import PhoneVerifyModel from '@models/PhoneVerifyModel';
+import phoneVerifyModel from '@models/PhoneVerifyModel';
 
 class AuthService {
   static login = async ({
@@ -245,6 +251,20 @@ class AuthService {
     };
 
     try {
+      // verify phone
+      const phoneVerifyFindOneResult = await phoneVerifyModel.findOne({
+        attributes: ['verifiedAt'],
+        where: { phone },
+        order: [['createdAt', 'DESC']],
+      });
+      if (!phoneVerifyFindOneResult) {
+        response.error = '전화번호 인증 정보 검색 오류입니다.';
+        return response;
+      }
+      if (!phoneVerifyFindOneResult.verifiedAt) {
+        response.error = '전화번호 인증 기록이 없습니다.';
+        return response;
+      }
       // hash password
       const salt = await genSalt(10);
       const hashed = await hash(password, salt);
@@ -326,6 +346,20 @@ class AuthService {
         response.error = '회원 생성 오류입니다.';
         return response;
       }
+      // verify phone
+      const phoneVerifyFindOneResult = await phoneVerifyModel.findOne({
+        attributes: ['verifiedAt'],
+        where: { phone },
+        order: [['createdAt', 'DESC']],
+      });
+      if (!phoneVerifyFindOneResult) {
+        response.error = '전화번호 인증 정보 검색 오류입니다.';
+        return response;
+      }
+      if (!phoneVerifyFindOneResult.verifiedAt) {
+        response.error = '전화번호 인증 기록이 없습니다.';
+        return response;
+      }
       // create career
       for (const { corporateName, department, startAt, endAt } of careers) {
         // find or create corporate
@@ -365,7 +399,7 @@ class AuthService {
 
   static registerCorporate = async ({
     name,
-    registration,
+    certificate,
     phone,
     email,
     password,
@@ -404,8 +438,8 @@ class AuthService {
       // create corporateVerify
       const corporateVerifyCreateResult = await CorporateVerifyModel.create({
         userId: userCreateResult.id,
-        registrationBucket: registration.bucket,
-        registrationKey: registration.key,
+        certificateBucket: certificate.bucket,
+        certificateKey: certificate.key,
       });
       if (!corporateVerifyCreateResult) {
         response.error = '인증 생성 오류입니다.';
@@ -415,6 +449,80 @@ class AuthService {
     } catch (e) {
       console.error(e);
       response.error = '기업회원 가입에 실패했습니다.';
+    }
+
+    return response;
+  };
+
+  static phoneSend = async ({
+    phone,
+  }: IAuthPhoneSendRequest): Promise<IAuthPhoneSendResponse> => {
+    const response: IAuthPhoneSendResponse = {
+      ok: false,
+      error: '',
+    };
+
+    try {
+      // generate 6-digit code
+      const code = Math.floor(100000 + Math.random() * 900000);
+      // create phoneVerify
+      const phoneVerifyCreateResult = await PhoneVerifyModel.create({
+        phone,
+        code,
+      });
+      if (!phoneVerifyCreateResult) {
+        response.error = '인증번호 생성 오류입니다.';
+        return response;
+      }
+      // send code
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '인증번호 발송에 실패했습니다.';
+    }
+
+    return response;
+  };
+
+  static phoneVerify = async ({
+    phone,
+    code,
+  }: IAuthPhoneVerifyRequest): Promise<IAuthPhoneVerifyResponse> => {
+    const response: IAuthPhoneVerifyResponse = {
+      ok: false,
+      error: '',
+    };
+
+    try {
+      // verify code
+      const phoneVerifyFindOneResult = await phoneVerifyModel.findOne({
+        attributes: ['code'],
+        where: { phone },
+        order: [['createdAt', 'DESC']],
+      });
+      if (!phoneVerifyFindOneResult) {
+        response.error = '인증번호 검색 오류입니다.';
+        return response;
+      }
+      if (phoneVerifyFindOneResult.code !== code) {
+        response.error = '인증번호가 올바르지 않습니다.';
+        return response;
+      }
+      // update phoneVerify
+      const phoneVerifyUpdateResult = await phoneVerifyModel.update(
+        {
+          verifiedAt: new Date(),
+        },
+        { where: { phone, code } }
+      );
+      if (!phoneVerifyUpdateResult) {
+        response.error = '인증 정보 업데이트 오류입니다.';
+        return response;
+      }
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '전화번호 인증에 실패했습니다.';
     }
 
     return response;

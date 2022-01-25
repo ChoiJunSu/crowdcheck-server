@@ -1,7 +1,5 @@
 import CorporateModel from '@models/CorporateModel';
 import {
-  ICorporateAddRequest,
-  ICorporateAddResponse,
   ICorporateSearchRequest,
   ICorporateSearchResponse,
 } from '@services/CorporateService/type';
@@ -39,28 +37,6 @@ class CorporateService {
     } catch (e) {
       console.error(e);
       response.error = '기업 검색에 실패했습니다.';
-    }
-
-    return response;
-  };
-
-  static add = async ({
-    name,
-  }: ICorporateAddRequest): Promise<ICorporateAddResponse> => {
-    const response: ICorporateAddResponse = {
-      ok: false,
-      error: '',
-    };
-
-    try {
-      const corporateCreateResult = CorporateModel.create({ name });
-      if (!corporateCreateResult) {
-        response.error = '기업 추가 오류입니다.';
-      }
-      response.ok = true;
-    } catch (e) {
-      console.error(e);
-      response.error = '기업 추가에 실패했습니다.';
     }
 
     return response;

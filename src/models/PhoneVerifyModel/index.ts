@@ -1,31 +1,31 @@
 import { Model, DataTypes } from 'sequelize';
-import {
-  ICorporateVerifyAttributes,
-  ICorporateVerifyCreationAttributes,
-} from '@models/CorporateVerifyModel/type';
 import sequelize from '@models/BaseModel';
+import {
+  IPhoneVerifyVerifyAttributes,
+  IPhoneVerifyVerifyCreationAttributes,
+} from '@models/PhoneVerifyModel/type';
 import UserModel from '@models/UserModel';
-import CorporateModel from '@models/CorporateModel';
 
-class CorporateVerifyModel
-  extends Model<ICorporateVerifyAttributes, ICorporateVerifyCreationAttributes>
-  implements ICorporateVerifyAttributes
+class PhoneVerifyVerifyModel
+  extends Model<
+    IPhoneVerifyVerifyAttributes,
+    IPhoneVerifyVerifyCreationAttributes
+  >
+  implements IPhoneVerifyVerifyAttributes
 {
   declare id: number;
-  declare userId: number;
-  declare certificateBucket: string;
-  declare certificateKey: string;
+  declare userId: number | null;
+  declare phone: string;
+  declare code: number;
   declare verifiedAt: Date | null;
 
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 
-  declare readonly Corporate?: CorporateModel;
-
   declare static associations: {};
 }
 
-CorporateVerifyModel.init(
+PhoneVerifyVerifyModel.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -34,14 +34,14 @@ CorporateVerifyModel.init(
     },
     userId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      defaultValue: null,
     },
-    certificateBucket: {
+    phone: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    certificateKey: {
-      type: DataTypes.STRING,
+    code: {
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     verifiedAt: {
@@ -52,21 +52,21 @@ CorporateVerifyModel.init(
   {
     sequelize,
     underscored: false,
-    modelName: 'CorporateVerify',
-    tableName: 'corporateVerify',
+    modelName: 'PhoneVerifyVerify',
+    tableName: 'phoneVerify',
     paranoid: false,
     charset: 'utf8mb4',
     collate: 'utf8mb4_general_ci',
   }
 );
 
-UserModel.hasOne(CorporateVerifyModel, {
+UserModel.hasOne(PhoneVerifyVerifyModel, {
   foreignKey: 'userId',
   onDelete: 'CASCADE',
   onUpdate: 'CASCADE',
 });
-CorporateVerifyModel.belongsTo(UserModel, {
+PhoneVerifyVerifyModel.belongsTo(UserModel, {
   foreignKey: 'userId',
 });
 
-export default CorporateVerifyModel;
+export default PhoneVerifyVerifyModel;

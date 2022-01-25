@@ -6,4 +6,5 @@ export interface ICareer {
   department: string | null;
   startAt: Date;
   endAt: Date | null;
+  certificate?: Express.MulterS3.File;
 }

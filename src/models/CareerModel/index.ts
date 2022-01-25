@@ -7,6 +7,7 @@ import sequelize from '@models/BaseModel';
 import UserModel from '@models/UserModel';
 import CorporateModel from '@models/CorporateModel';
 import CandidateAgreeModel from '@models/CandidateAgreeModel';
+import CareerVerifyModel from '@models/CareerVerifyModel';
 
 class CareerModel
   extends Model<ICareerAttributes, ICareerCreationAttributes>
@@ -25,6 +26,7 @@ class CareerModel
 
   declare readonly CandidateAgree?: CandidateAgreeModel;
   declare readonly Corporate?: CorporateModel;
+  declare readonly CareerVerify?: CareerVerifyModel;
 
   declare static associations: {};
 }

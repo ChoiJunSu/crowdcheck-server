@@ -80,8 +80,11 @@ AuthController.get(
 
 AuthController.post(
   '/register/personal',
+  upload.array('certificates'),
   async (req: IRequest, res: IResponse, next: INextFunction) => {
     const { name, phone, email, password, careers } = req.body;
+    console.log(req.file);
+    console.log(req.files);
 
     return res.send(
       await AuthService.registerPersonal({
@@ -113,7 +116,7 @@ AuthController.post(
 
 AuthController.post(
   '/register/corporate',
-  upload.single('registration'),
+  upload.single('certificate'),
   async (req: IRequest, res: IResponse, next: INextFunction) => {
     const { name, phone, email, password } = req.body;
     if (!req.file)
@@ -122,7 +125,7 @@ AuthController.post(
     return res.send(
       await AuthService.registerCorporate({
         name,
-        registration: req.file,
+        certificate: req.file,
         phone,
         email,
         password,

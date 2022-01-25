@@ -1,18 +1,17 @@
 import { Model, DataTypes } from 'sequelize';
-import {
-  ICorporateVerifyAttributes,
-  ICorporateVerifyCreationAttributes,
-} from '@models/CorporateVerifyModel/type';
 import sequelize from '@models/BaseModel';
-import UserModel from '@models/UserModel';
-import CorporateModel from '@models/CorporateModel';
+import CareerModel from '@models/CareerModel';
+import {
+  ICareerVerifyAttributes,
+  ICareerVerifyCreationAttributes,
+} from '@models/CareerVerifyModel/type';
 
-class CorporateVerifyModel
-  extends Model<ICorporateVerifyAttributes, ICorporateVerifyCreationAttributes>
-  implements ICorporateVerifyAttributes
+class CareerVerifyModel
+  extends Model<ICareerVerifyAttributes, ICareerVerifyCreationAttributes>
+  implements ICareerVerifyAttributes
 {
   declare id: number;
-  declare userId: number;
+  declare careerId: number;
   declare certificateBucket: string;
   declare certificateKey: string;
   declare verifiedAt: Date | null;
@@ -20,19 +19,17 @@ class CorporateVerifyModel
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 
-  declare readonly Corporate?: CorporateModel;
-
   declare static associations: {};
 }
 
-CorporateVerifyModel.init(
+CareerVerifyModel.init(
   {
     id: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },
-    userId: {
+    careerId: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
@@ -60,13 +57,13 @@ CorporateVerifyModel.init(
   }
 );
 
-UserModel.hasOne(CorporateVerifyModel, {
-  foreignKey: 'userId',
+CareerModel.hasOne(CareerVerifyModel, {
+  foreignKey: 'careerId',
   onDelete: 'CASCADE',
   onUpdate: 'CASCADE',
 });
-CorporateVerifyModel.belongsTo(UserModel, {
-  foreignKey: 'userId',
+CareerVerifyModel.belongsTo(CareerModel, {
+  foreignKey: 'careerId',
 });
 
-export default CorporateVerifyModel;
+export default CareerVerifyModel;
