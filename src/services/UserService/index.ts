@@ -15,9 +15,9 @@ import { genSalt, hash } from 'bcrypt';
 import { MAX_TIMESTAMP } from '@constants/date';
 
 class UserService {
-  static getPersonal = async ({
+  static async getPersonal({
     userId,
-  }: IUserGetPersonalRequest): Promise<IUserGetPersonalResponse> => {
+  }: IUserGetPersonalRequest): Promise<IUserGetPersonalResponse> {
     const response: IUserGetPersonalResponse = {
       ok: false,
       error: '',
@@ -77,11 +77,11 @@ class UserService {
     }
 
     return response;
-  };
+  }
 
-  static getCorporate = async ({
+  static async getCorporate({
     userId,
-  }: IUserGetCorporateRequest): Promise<IUserGetCorporateResponse> => {
+  }: IUserGetCorporateRequest): Promise<IUserGetCorporateResponse> {
     const response: IUserGetCorporateResponse = {
       ok: false,
       error: '',
@@ -111,13 +111,13 @@ class UserService {
     }
 
     return response;
-  };
+  }
 
-  static editPersonal = async ({
+  static async editPersonal({
     userId,
     password,
     careers,
-  }: IUserEditPersonalRequest): Promise<IUserEditPersonalResponse> => {
+  }: IUserEditPersonalRequest): Promise<IUserEditPersonalResponse> {
     const response: IUserEditPersonalResponse = {
       ok: false,
       error: '',
@@ -202,12 +202,12 @@ class UserService {
     }
 
     return response;
-  };
+  }
 
-  static editCorporate = async ({
+  static async editCorporate({
     userId,
     password,
-  }: IUserEditCorporateRequest): Promise<IUserEditCorporateResponse> => {
+  }: IUserEditCorporateRequest): Promise<IUserEditCorporateResponse> {
     const response: IUserEditCorporateResponse = {
       ok: false,
       error: '',
@@ -244,7 +244,7 @@ class UserService {
     }
 
     return response;
-  };
+  }
 }
 
 export default UserService;

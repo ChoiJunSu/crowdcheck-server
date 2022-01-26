@@ -8,6 +8,8 @@ import {
   IAuthRegisterPersonalRequest,
   IAuthLoginCandidateRequest,
   IAuthRegisterOauthRequest,
+  IAuthPhoneSendRequest,
+  IAuthPhoneVerifyRequest,
 } from '@services/AuthService/type';
 import AuthMiddleware from '@middlewares/AuthMiddleware';
 import {
@@ -130,6 +132,31 @@ AuthController.post(
         email,
         password,
       } as IAuthRegisterCorporateRequest)
+    );
+  }
+);
+
+AuthController.post(
+  '/phone/send',
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    const { phone } = req.body;
+
+    return res.send(
+      await AuthService.phoneSend({ phone } as IAuthPhoneSendRequest)
+    );
+  }
+);
+
+AuthController.post(
+  '/phone/verify',
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    const { phone, code } = req.body;
+
+    return res.send(
+      await AuthService.phoneVerify({
+        phone,
+        code: parseInt(code),
+      } as IAuthPhoneVerifyRequest)
     );
   }
 );

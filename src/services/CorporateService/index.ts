@@ -6,9 +6,9 @@ import {
 import { Op } from 'sequelize';
 
 class CorporateService {
-  static search = async ({
+  static async search({
     word,
-  }: ICorporateSearchRequest): Promise<ICorporateSearchResponse> => {
+  }: ICorporateSearchRequest): Promise<ICorporateSearchResponse> {
     const response: ICorporateSearchResponse = {
       ok: false,
       error: '',
@@ -40,7 +40,7 @@ class CorporateService {
     }
 
     return response;
-  };
+  }
 }
 
 export default CorporateService;

@@ -22,8 +22,6 @@ import {
   IAuthPhoneVerifyResponse,
 } from '@services/AuthService/type';
 import { JWT_EXPIRES_IN, JWT_ISSUER, JWT_SECRET } from '@constants/jwt';
-import { URLSearchParams } from 'url';
-import axios from 'axios';
 import { compare, genSalt, hash } from 'bcrypt';
 import UserModel from '@models/UserModel';
 import CorporateModel from '@models/CorporateModel';
@@ -34,13 +32,14 @@ import CorporateVerifyModel from '@models/CorporateVerifyModel';
 import OauthService from '@services/OauthService';
 import PhoneVerifyModel from '@models/PhoneVerifyModel';
 import phoneVerifyModel from '@models/PhoneVerifyModel';
+import { Op, Sequelize } from 'sequelize';
 
 class AuthService {
-  static login = async ({
+  static async login({
     email,
     password,
     type,
-  }: IAuthLoginRequest): Promise<IAuthLoginResponse> => {
+  }: IAuthLoginRequest): Promise<IAuthLoginResponse> {
     const response: IAuthLoginResponse = {
       ok: false,
       error: '',
@@ -96,13 +95,13 @@ class AuthService {
     }
 
     return response;
-  };
+  }
 
-  static loginOauth = async ({
+  static async loginOauth({
     provider,
     code,
     redirectUri,
-  }: IAuthLoginOauthRequest): Promise<IAuthLoginOauthResponse> => {
+  }: IAuthLoginOauthRequest): Promise<IAuthLoginOauthResponse> {
     const response: IAuthLoginOauthResponse = {
       ok: false,
       error: '',
@@ -160,13 +159,13 @@ class AuthService {
     }
 
     return response;
-  };
+  }
 
-  static loginCandidate = async ({
+  static async loginCandidate({
     name,
     phone,
     code,
-  }: IAuthLoginCandidateRequest): Promise<IAuthLoginCandidateResponse> => {
+  }: IAuthLoginCandidateRequest): Promise<IAuthLoginCandidateResponse> {
     const response: IAuthLoginCandidateResponse = {
       ok: false,
       error: '',
@@ -207,11 +206,11 @@ class AuthService {
     }
 
     return response;
-  };
+  }
 
-  static tokenRenew = async ({
+  static async tokenRenew({
     authorization,
-  }: IAuthTokenRenewRequest): Promise<IAuthTokenRenewResponse> => {
+  }: IAuthTokenRenewRequest): Promise<IAuthTokenRenewResponse> {
     const response: IAuthTokenRenewResponse = {
       ok: false,
       error: '',
@@ -236,15 +235,15 @@ class AuthService {
     }
 
     return response;
-  };
+  }
 
-  static registerPersonal = async ({
+  static async registerPersonal({
     name,
     phone,
     email,
     password,
     careers,
-  }: IAuthRegisterPersonalRequest): Promise<IAuthRegisterPersonalResponse> => {
+  }: IAuthRegisterPersonalRequest): Promise<IAuthRegisterPersonalResponse> {
     const response: IAuthRegisterPersonalResponse = {
       ok: false,
       error: '',
@@ -315,14 +314,14 @@ class AuthService {
     }
 
     return response;
-  };
+  }
 
-  static registerOauth = async ({
+  static async registerOauth({
     name,
     phone,
     careers,
     registerToken,
-  }: IAuthRegisterOauthRequest): Promise<IAuthRegisterOauthResponse> => {
+  }: IAuthRegisterOauthRequest): Promise<IAuthRegisterOauthResponse> {
     const response: IAuthRegisterOauthResponse = {
       ok: false,
       error: '',
@@ -395,21 +394,35 @@ class AuthService {
     }
 
     return response;
-  };
+  }
 
-  static registerCorporate = async ({
+  static async registerCorporate({
     name,
     certificate,
     phone,
     email,
     password,
-  }: IAuthRegisterCorporateRequest): Promise<IAuthRegisterCorporateResponse> => {
+  }: IAuthRegisterCorporateRequest): Promise<IAuthRegisterCorporateResponse> {
     const response: IAuthRegisterCorporateResponse = {
       ok: false,
       error: '',
     };
 
     try {
+      // verify phone
+      const phoneVerifyFindOneResult = await phoneVerifyModel.findOne({
+        attributes: ['verifiedAt'],
+        where: { phone },
+        order: [['createdAt', 'DESC']],
+      });
+      if (!phoneVerifyFindOneResult) {
+        response.error = '전화번호 인증 정보 검색 오류입니다.';
+        return response;
+      }
+      if (!phoneVerifyFindOneResult.verifiedAt) {
+        response.error = '전화번호 인증 기록이 없습니다.';
+        return response;
+      }
       // hash password
       const salt = await genSalt(10);
       const hashed = await hash(password, salt);
@@ -452,17 +465,32 @@ class AuthService {
     }
 
     return response;
-  };
+  }
 
-  static phoneSend = async ({
+  static async phoneSend({
     phone,
-  }: IAuthPhoneSendRequest): Promise<IAuthPhoneSendResponse> => {
+  }: IAuthPhoneSendRequest): Promise<IAuthPhoneSendResponse> {
     const response: IAuthPhoneSendResponse = {
       ok: false,
       error: '',
     };
 
     try {
+      // check if too many
+      const phoneVerifyCountResult = await phoneVerifyModel.count({
+        where: {
+          [Op.or]: [
+            Sequelize.literal(
+              'TIMESTAMPDIFF(MINUTE, PhoneVerify.createdAt, NOW()) < 5'
+            ),
+          ],
+        },
+      });
+      if (phoneVerifyCountResult && phoneVerifyCountResult > 3) {
+        response.error =
+          '인증번호 발송 횟수가 너무 많습니다. 5분 후에 다시 시도해주세요.';
+        return response;
+      }
       // generate 6-digit code
       const code = Math.floor(100000 + Math.random() * 900000);
       // create phoneVerify
@@ -482,12 +510,12 @@ class AuthService {
     }
 
     return response;
-  };
+  }
 
-  static phoneVerify = async ({
+  static async phoneVerify({
     phone,
     code,
-  }: IAuthPhoneVerifyRequest): Promise<IAuthPhoneVerifyResponse> => {
+  }: IAuthPhoneVerifyRequest): Promise<IAuthPhoneVerifyResponse> {
     const response: IAuthPhoneVerifyResponse = {
       ok: false,
       error: '',
@@ -496,15 +524,20 @@ class AuthService {
     try {
       // verify code
       const phoneVerifyFindOneResult = await phoneVerifyModel.findOne({
-        attributes: ['code'],
+        attributes: ['code', 'createdAt'],
         where: { phone },
         order: [['createdAt', 'DESC']],
       });
       if (!phoneVerifyFindOneResult) {
         response.error = '인증번호 검색 오류입니다.';
         return response;
-      }
-      if (phoneVerifyFindOneResult.code !== code) {
+      } else if (
+        new Date().getTime() - phoneVerifyFindOneResult.createdAt.getTime() >
+        5 * 60 * 1000
+      ) {
+        response.error = '유효시간이 경과되었습니다.';
+        return response;
+      } else if (phoneVerifyFindOneResult.code !== code) {
         response.error = '인증번호가 올바르지 않습니다.';
         return response;
       }
@@ -526,7 +559,7 @@ class AuthService {
     }
 
     return response;
-  };
+  }
 }
 
 export default AuthService;

@@ -14,7 +14,6 @@ class PhoneVerifyVerifyModel
   implements IPhoneVerifyVerifyAttributes
 {
   declare id: number;
-  declare userId: number | null;
   declare phone: string;
   declare code: number;
   declare verifiedAt: Date | null;
@@ -32,10 +31,6 @@ PhoneVerifyVerifyModel.init(
       autoIncrement: true,
       primaryKey: true,
     },
-    userId: {
-      type: DataTypes.INTEGER,
-      defaultValue: null,
-    },
     phone: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -52,7 +47,7 @@ PhoneVerifyVerifyModel.init(
   {
     sequelize,
     underscored: false,
-    modelName: 'PhoneVerifyVerify',
+    modelName: 'PhoneVerify',
     tableName: 'phoneVerify',
     paranoid: false,
     charset: 'utf8mb4',

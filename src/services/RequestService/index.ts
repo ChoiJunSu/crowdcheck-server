@@ -35,14 +35,14 @@ import UserModel from '@models/UserModel';
 import { ICorporateRequest } from '@controllers/RequestController/type';
 
 class RequestService {
-  static register = async ({
+  static async register({
     userId,
     name,
     phone,
     careers,
     question,
     deadline,
-  }: IRequestRegisterRequest): Promise<IRequestRegisterResponse> => {
+  }: IRequestRegisterRequest): Promise<IRequestRegisterResponse> {
     const response: IRequestRegisterResponse = {
       ok: false,
       error: '',
@@ -117,12 +117,12 @@ class RequestService {
     }
 
     return response;
-  };
+  }
 
-  static getReceiver = async ({
+  static async getReceiver({
     requestId,
     userId,
-  }: IRequestGetReceiverRequest): Promise<IRequestGetReceiverResponse> => {
+  }: IRequestGetReceiverRequest): Promise<IRequestGetReceiverResponse> {
     const response: IRequestGetReceiverResponse = {
       ok: false,
       error: '',
@@ -175,12 +175,12 @@ class RequestService {
     }
 
     return response;
-  };
+  }
 
-  static getCorporate = async ({
+  static async getCorporate({
     requestId,
     userId,
-  }: IRequestGetCorporateRequest): Promise<IRequestGetCorporateResponse> => {
+  }: IRequestGetCorporateRequest): Promise<IRequestGetCorporateResponse> {
     const response: IRequestGetCorporateResponse = {
       ok: false,
       error: '',
@@ -251,12 +251,12 @@ class RequestService {
     }
 
     return response;
-  };
+  }
 
-  static getCandidate = async ({
+  static async getCandidate({
     requestId,
     candidateId,
-  }: IRequestGetCandidateRequest): Promise<IRequestGetCandidateResponse> => {
+  }: IRequestGetCandidateRequest): Promise<IRequestGetCandidateResponse> {
     const response: IRequestGetCandidateResponse = {
       ok: false,
       error: '',
@@ -313,11 +313,11 @@ class RequestService {
     }
 
     return response;
-  };
+  }
 
-  static listReceiver = async ({
+  static async listReceiver({
     userId,
-  }: IRequestListReceiverRequest): Promise<IRequestListReceiverResponse> => {
+  }: IRequestListReceiverRequest): Promise<IRequestListReceiverResponse> {
     const response: IRequestListReceiverResponse = {
       ok: false,
       error: '',
@@ -368,11 +368,11 @@ class RequestService {
     }
 
     return response;
-  };
+  }
 
-  static listCorporate = async ({
+  static async listCorporate({
     userId,
-  }: IRequestListCorporateRequest): Promise<IRequestListCorporateResponse> => {
+  }: IRequestListCorporateRequest): Promise<IRequestListCorporateResponse> {
     const response: IRequestListCorporateResponse = {
       ok: false,
       error: '',
@@ -433,11 +433,11 @@ class RequestService {
     }
 
     return response;
-  };
+  }
 
-  static listCandidate = async ({
+  static async listCandidate({
     candidateId,
-  }: IRequestListCandidateRequest): Promise<IRequestListCandidateResponse> => {
+  }: IRequestListCandidateRequest): Promise<IRequestListCandidateResponse> {
     const response: IRequestListCandidateResponse = {
       ok: false,
       error: '',
@@ -482,14 +482,14 @@ class RequestService {
     }
 
     return response;
-  };
+  }
 
-  static agree = async ({
+  static async agree({
     candidateId,
     requestId,
     agrees,
     agreeDescription,
-  }: IRequestAgreeRequest): Promise<IRequestAgreeResponse> => {
+  }: IRequestAgreeRequest): Promise<IRequestAgreeResponse> {
     const response: IRequestAgreeResponse = {
       ok: false,
       error: '',
@@ -584,13 +584,13 @@ class RequestService {
     }
 
     return response;
-  };
+  }
 
-  static verify = async ({
+  static async verify({
     requestId,
     userId,
     candidatePhone,
-  }: IRequestVerifyRequest): Promise<IRequestVerifyResponse> => {
+  }: IRequestVerifyRequest): Promise<IRequestVerifyResponse> {
     const response: IRequestVerifyResponse = {
       ok: false,
       error: '',
@@ -655,13 +655,13 @@ class RequestService {
     }
 
     return response;
-  };
+  }
 
-  static answer = async ({
+  static async answer({
     requestId,
     userId,
     answer,
-  }: IRequestAnswerRequest): Promise<IRequestAnswerResponse> => {
+  }: IRequestAnswerRequest): Promise<IRequestAnswerResponse> {
     const response: IRequestAnswerResponse = {
       ok: false,
       error: '',
@@ -713,12 +713,12 @@ class RequestService {
     }
 
     return response;
-  };
+  }
 
-  static reject = async ({
+  static async reject({
     requestId,
     userId,
-  }: IRequestRejectRequest): Promise<IRequestRejectResponse> => {
+  }: IRequestRejectRequest): Promise<IRequestRejectResponse> {
     const response: IRequestRejectResponse = {
       ok: false,
       error: '',
@@ -771,7 +771,7 @@ class RequestService {
     }
 
     return response;
-  };
+  }
 }
 
 export default RequestService;

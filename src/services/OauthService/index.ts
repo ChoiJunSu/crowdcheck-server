@@ -12,11 +12,11 @@ import {
 } from '@constants/secret';
 
 class OauthService {
-  static getEmailByOauthCode = async ({
+  static async getEmailByOauthCode({
     provider,
     code,
     redirectUri,
-  }: IGetEmailByOauthCodeRequest): Promise<IGetEmailByOauthCodeResponse> => {
+  }: IGetEmailByOauthCodeRequest): Promise<IGetEmailByOauthCodeResponse> {
     const response: IGetEmailByOauthCodeResponse = {
       ok: false,
       error: '',
@@ -123,7 +123,7 @@ class OauthService {
     }
 
     return response;
-  };
+  }
 }
 
 export default OauthService;
