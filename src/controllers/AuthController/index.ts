@@ -85,8 +85,6 @@ AuthController.post(
   upload.array('certificates'),
   async (req: IRequest, res: IResponse, next: INextFunction) => {
     const { name, phone, email, password, careers } = req.body;
-    console.log(req.file);
-    console.log(req.files);
 
     return res.send(
       await AuthService.registerPersonal({

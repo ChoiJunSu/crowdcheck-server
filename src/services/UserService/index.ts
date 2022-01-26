@@ -1,5 +1,7 @@
 import UserModel from '@models/UserModel';
 import {
+  IUserCareerVerifyRequest,
+  IUserCareerVerifyResponse,
   IUserEditCorporateRequest,
   IUserEditCorporateResponse,
   IUserEditPersonalRequest,
@@ -13,6 +15,9 @@ import CareerModel from '@models/CareerModel';
 import CorporateModel from '@models/CorporateModel';
 import { genSalt, hash } from 'bcrypt';
 import { MAX_TIMESTAMP } from '@constants/date';
+import CareerVerifyModel from '@models/CareerVerifyModel';
+import careerModel from '@models/CareerModel';
+import RequestService from '@services/RequestService';
 
 class UserService {
   static async getPersonal({
@@ -37,7 +42,14 @@ class UserService {
       }
       // find careers
       const careerFindAllResult = await CareerModel.findAll({
-        attributes: ['corporateId', 'department', 'startAt', 'endAt'],
+        attributes: [
+          'id',
+          'corporateId',
+          'department',
+          'startAt',
+          'endAt',
+          'status',
+        ],
         where: { userId },
         include: {
           model: CorporateModel,
@@ -55,19 +67,23 @@ class UserService {
         phone: userFindOneResult.phone,
       };
       for (const {
+        id,
         corporateId,
         department,
         startAt,
         endAt,
+        status,
         Corporate,
       } of careerFindAllResult) {
         if (!Corporate) continue;
         response.careers.push({
+          id,
           corporateId,
           corporateName: Corporate.name,
           department,
           startAt,
           endAt: endAt > new Date() ? null : endAt,
+          status,
         });
       }
       response.ok = true;
@@ -195,6 +211,10 @@ class UserService {
           }
         }
       }
+      // update receiver
+      const updateReceiverResponse = await RequestService.updateReceiver({
+        userId,
+      });
       response.ok = true;
     } catch (e) {
       console.error(e);
@@ -241,6 +261,63 @@ class UserService {
     } catch (e) {
       console.error(e);
       response.error = '사용자 정보 수정에 실패했습니다.';
+    }
+
+    return response;
+  }
+
+  static async careerVerify({
+    userId,
+    careerId,
+    certificate,
+  }: IUserCareerVerifyRequest): Promise<IUserCareerVerifyResponse> {
+    const response: IUserCareerVerifyResponse = {
+      ok: false,
+      error: '',
+    };
+
+    try {
+      // verify userId with careerId
+      const careerFindOneResult = await CareerModel.findOne({
+        attributes: ['userId', 'status'],
+        where: { id: careerId },
+      });
+      if (!careerFindOneResult) {
+        response.error = '경력 검색 오류입니다.';
+        return response;
+      } else if (careerFindOneResult.status !== 'registered') {
+        response.error = '잘못된 접근입니다.';
+        return response;
+      } else if (careerFindOneResult.userId !== userId) {
+        response.error = '경력 정보가 일치하지 않습니다.';
+        return response;
+      }
+      // create careerVerify
+      const careerVerifyCreateResult = await CareerVerifyModel.create({
+        careerId,
+        certificateBucket: certificate.bucket,
+        certificateKey: certificate.key,
+      });
+      if (!careerVerifyCreateResult) {
+        response.error = '경력 인증 생성 오류입니다.';
+        return response;
+      }
+      // update career status
+      const careerUpdateResult = await careerModel.update(
+        {
+          status: 'reviewed',
+          reviewedAt: new Date(),
+        },
+        { where: { id: careerId } }
+      );
+      if (!careerUpdateResult) {
+        response.error = '경력 정보 업데이트 오류입니다.';
+        return response;
+      }
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '경력 인증에 실패했습니다.';
     }
 
     return response;

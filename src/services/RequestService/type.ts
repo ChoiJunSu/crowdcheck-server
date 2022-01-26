@@ -111,3 +111,9 @@ export interface IRequestRejectRequest extends IBaseServiceRequest {
 }
 
 export interface IRequestRejectResponse extends IBaseServiceResponse {}
+
+export interface IRequestUpdateReceiverRequest extends IBaseServiceRequest {
+  userId: number;
+}
+
+export interface IRequestUpdateReceiverResponse extends IBaseServiceResponse {}

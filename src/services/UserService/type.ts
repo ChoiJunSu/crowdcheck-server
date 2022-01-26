@@ -36,3 +36,11 @@ export interface IUserEditCorporateRequest extends IBaseServiceResponse {
 }
 
 export interface IUserEditCorporateResponse extends IBaseServiceResponse {}
+
+export interface IUserCareerVerifyRequest extends IBaseServiceRequest {
+  userId: number;
+  careerId: number;
+  certificate: Express.MulterS3.File;
+}
+
+export interface IUserCareerVerifyResponse extends IBaseServiceResponse {}

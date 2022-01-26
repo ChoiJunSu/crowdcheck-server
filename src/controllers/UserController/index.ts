@@ -6,12 +6,14 @@ import {
 } from '@controllers/BaseController/type';
 import UserService from '@services/UserService';
 import {
+  IUserCareerVerifyRequest,
   IUserEditCorporateRequest,
   IUserEditPersonalRequest,
   IUserGetCorporateRequest,
   IUserGetPersonalRequest,
 } from '@services/UserService/type';
 import AuthMiddleware from '@middlewares/AuthMiddleware';
+import { upload } from '@utils/multer';
 
 const UserController = AsyncRouter();
 
@@ -66,6 +68,25 @@ UserController.post(
         userId: req.user!.id,
         password,
       } as IUserEditCorporateRequest)
+    );
+  }
+);
+
+UserController.post(
+  '/career/verify',
+  AuthMiddleware.isPersonal,
+  upload.single('certificate'),
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    const { careerId } = req.body;
+    if (!req.file)
+      return res.send({ ok: false, error: '증빙자료를 업로드 해주세요.' });
+
+    return res.send(
+      await UserService.careerVerify({
+        userId: req.user!.id,
+        careerId,
+        certificate: req.file,
+      } as IUserCareerVerifyRequest)
     );
   }
 );

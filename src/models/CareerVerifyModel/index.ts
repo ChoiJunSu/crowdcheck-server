@@ -49,8 +49,8 @@ CareerVerifyModel.init(
   {
     sequelize,
     underscored: false,
-    modelName: 'CorporateVerify',
-    tableName: 'corporateVerify',
+    modelName: 'CareerVerify',
+    tableName: 'careerVerify',
     paranoid: false,
     charset: 'utf8mb4',
     collate: 'utf8mb4_general_ci',

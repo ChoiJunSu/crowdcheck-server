@@ -33,6 +33,7 @@ import OauthService from '@services/OauthService';
 import PhoneVerifyModel from '@models/PhoneVerifyModel';
 import phoneVerifyModel from '@models/PhoneVerifyModel';
 import { Op, Sequelize } from 'sequelize';
+import RequestService from '@services/RequestService';
 
 class AuthService {
   static async login({
@@ -307,6 +308,10 @@ class AuthService {
           return response;
         }
       }
+      // update receiver
+      const updateReceiverResponse = await RequestService.updateReceiver({
+        userId: userCreateResult.id,
+      });
       response.ok = true;
     } catch (e) {
       console.error(e);
@@ -387,6 +392,10 @@ class AuthService {
           return response;
         }
       }
+      // update receiver
+      const updateReceiverResponse = await RequestService.updateReceiver({
+        userId: userCreateResult.id,
+      });
       response.ok = true;
     } catch (e) {
       console.error(e);

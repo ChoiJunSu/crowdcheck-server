@@ -21,6 +21,8 @@ import {
   IRequestGetCorporateResponse,
   IRequestRejectRequest,
   IRequestRejectResponse,
+  IRequestUpdateReceiverRequest,
+  IRequestUpdateReceiverResponse,
 } from '@services/RequestService/type';
 import RequestModel from '@models/RequestModel';
 import CorporateModel from '@models/CorporateModel';
@@ -33,6 +35,8 @@ import ReceiverModel from '@models/ReceiverModel';
 import { MAX_TIMESTAMP } from '@constants/date';
 import UserModel from '@models/UserModel';
 import { ICorporateRequest } from '@controllers/RequestController/type';
+import careerVerifyModel from '@models/CareerVerifyModel';
+import careerModel from '@models/CareerModel';
 
 class RequestService {
   static async register({
@@ -279,7 +283,7 @@ class RequestService {
       }
       // verify requestId with candidateId and find candidateAgree
       const candidateAgreeFindAllResult = await CandidateAgreeModel.findAll({
-        attributes: ['corporateId', 'department', 'startAt', 'endAt'],
+        attributes: ['id', 'corporateId', 'department', 'startAt', 'endAt'],
         where: { requestId, candidateId },
       });
       if (!candidateAgreeFindAllResult) {
@@ -287,6 +291,7 @@ class RequestService {
         return response;
       }
       for (const {
+        id,
         corporateId,
         department,
         startAt,
@@ -298,6 +303,7 @@ class RequestService {
         });
         if (!corporateFindOneResult) continue;
         response.careers.push({
+          id,
           corporateId: corporateFindOneResult.id,
           corporateName: corporateFindOneResult.name,
           department,
@@ -565,6 +571,7 @@ class RequestService {
               corporateId,
               requestId,
             });
+            // send alarm
           }
         }
       }
@@ -604,7 +611,7 @@ class RequestService {
         include: [
           {
             model: ReceiverModel,
-            attributes: ['id', 'status'],
+            attributes: ['id', 'status', 'corporateId'],
             where: { userId },
           },
           {
@@ -620,20 +627,32 @@ class RequestService {
       ) {
         response.error = '의뢰 검색 오류입니다.';
         return response;
-      }
-      if (!requestFindOneResult.Receivers[0]) {
+      } else if (!requestFindOneResult.Receivers[0]) {
         response.error = '평가자 오류입니다.';
         return response;
-      }
-      if (
+      } else if (
         requestFindOneResult.status !== 'agreed' ||
         requestFindOneResult.Receivers[0].status !== 'arrived'
       ) {
         response.error = '의뢰 상태 오류입니다.';
         return response;
-      }
-      if (requestFindOneResult.Candidate.phone !== candidatePhone) {
+      } else if (requestFindOneResult.Candidate.phone !== candidatePhone) {
         response.error = '지원자 정보가 올바르지 않습니다.';
+        return response;
+      }
+      // verify career status
+      const careerFindOneResult = await careerModel.findOne({
+        attributes: ['status'],
+        where: {
+          userId,
+          corporateId: requestFindOneResult.Receivers[0].corporateId,
+        },
+      });
+      if (!careerFindOneResult) {
+        response.error = '경력 검색 오류입니다.';
+        return response;
+      } else if (careerFindOneResult.status !== 'verified') {
+        response.error = '경력 인증이 필요합니다.';
         return response;
       }
       // update receiver status and verifiedAt
@@ -748,7 +767,6 @@ class RequestService {
         (requestFindOneResult.Receivers[0].status !== 'arrived' &&
           requestFindOneResult.Receivers[0].status !== 'verified')
       ) {
-        console.log(requestFindOneResult);
         response.error = '의뢰 상태 오류입니다.';
         return response;
       }
@@ -768,6 +786,60 @@ class RequestService {
     } catch (e) {
       console.error(e);
       response.error = '의뢰 거절에 실패했습니다.';
+    }
+
+    return response;
+  }
+
+  static async updateReceiver({
+    userId,
+  }: IRequestUpdateReceiverRequest): Promise<IRequestUpdateReceiverResponse> {
+    const response: IRequestUpdateReceiverResponse = {
+      ok: false,
+      error: '',
+    };
+
+    try {
+      // find careers
+      const careerFindAllResult = await CareerModel.findAll({
+        attributes: ['corporateId'],
+        where: { userId },
+      });
+      if (!careerFindAllResult) {
+        response.error = '경력 검색 오류입니다.';
+        return response;
+      }
+      for (const { corporateId } of careerFindAllResult) {
+        // find requests
+        const requestFindAllResult = await RequestModel.findAll({
+          attributes: ['id'],
+          where: { status: { [Op.not]: 'closed' } },
+          include: {
+            model: CandidateAgreeModel,
+            attributes: ['id'],
+            where: { corporateId, agreedAt: { [Op.not]: null } },
+          },
+        });
+        if (!requestFindAllResult) continue;
+        for (const { id } of requestFindAllResult) {
+          // find or create receiver
+          const receiverFindOrCreateResult = await ReceiverModel.findOrCreate({
+            attributes: ['id'],
+            where: { requestId: id, userId },
+            defaults: {
+              requestId: id,
+              corporateId,
+              userId,
+            },
+          });
+          if (!receiverFindOrCreateResult || !receiverFindOrCreateResult[1])
+            continue;
+          // send alarm
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      response.error = '의뢰 목록 업데이트에 실패했습니다.';
     }
 
     return response;
