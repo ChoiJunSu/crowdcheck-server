@@ -34,6 +34,7 @@ import PhoneVerifyModel from '@models/PhoneVerifyModel';
 import phoneVerifyModel from '@models/PhoneVerifyModel';
 import { Op, Sequelize } from 'sequelize';
 import RequestService from '@services/RequestService';
+import { sendMessage } from '@utils/twilio';
 
 class AuthService {
   static async login({
@@ -174,6 +175,19 @@ class AuthService {
     };
 
     try {
+      // verify phone
+      const phoneVerifyFindOneResult = await phoneVerifyModel.findOne({
+        attributes: ['verifiedAt'],
+        where: { phone },
+        order: [['createdAt', 'DESC']],
+      });
+      if (!phoneVerifyFindOneResult) {
+        response.error = '전화번호 인증 정보 검색 오류입니다.';
+        return response;
+      } else if (!phoneVerifyFindOneResult.verifiedAt) {
+        response.error = '전화번호 인증 기록이 없습니다.';
+        return response;
+      }
       // find candidate
       const candidateFindOneResult = await CandidateModel.findOne({
         attributes: ['id', 'requestId'],
@@ -512,6 +526,14 @@ class AuthService {
         return response;
       }
       // send code
+      const sendMessageResponse = await sendMessage({
+        body: `크라우드체크 - 인증번호는 ${code} 입니다.`,
+        to: phone,
+      });
+      if (!sendMessageResponse.ok) {
+        response.error = sendMessageResponse.error;
+        return response;
+      }
       response.ok = true;
     } catch (e) {
       console.error(e);

@@ -39,6 +39,13 @@ import UserModel from '@models/UserModel';
 import { ICorporateRequest } from '@controllers/RequestController/type';
 import careerVerifyModel from '@models/CareerVerifyModel';
 import careerModel from '@models/CareerModel';
+import twilio from 'twilio';
+import {
+  TWILIO_ACCOUNT_SID,
+  TWILIO_AUTH_TOKEN,
+  TWILIO_PHONE_NUMBER,
+} from '@constants/secret';
+import { sendMessage } from '@utils/twilio';
 
 class RequestService {
   static async register({
@@ -643,7 +650,18 @@ class RequestService {
               corporateId,
               requestId,
             });
+            if (!receiverCreateResult) continue;
+            // find user
+            const userFindOneResult = await UserModel.findOne({
+              attributes: ['phone'],
+              where: { id: Career.userId },
+            });
+            if (!userFindOneResult) continue;
             // send alarm
+            const sendMessageResponse = await sendMessage({
+              body: '크라우드체크 - 새로운 의뢰가 도착했습니다.',
+              to: userFindOneResult.phone,
+            });
           }
         }
       }
@@ -906,7 +924,17 @@ class RequestService {
           });
           if (!receiverFindOrCreateResult || !receiverFindOrCreateResult[1])
             continue;
+          // find user
+          const userFindOneResult = await UserModel.findOne({
+            attributes: ['phone'],
+            where: { id: userId },
+          });
+          if (!userFindOneResult) continue;
           // send alarm
+          const sendMessageResponse = await sendMessage({
+            body: '크라우드체크 - 새로운 의뢰가 도착했습니다.',
+            to: userFindOneResult.phone,
+          });
         }
       }
     } catch (e) {
