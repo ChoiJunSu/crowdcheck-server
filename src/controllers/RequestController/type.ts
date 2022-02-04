@@ -23,6 +23,7 @@ export interface ICandidateRequest {
 
 export interface IAgree {
   corporateId: number;
+  corporateName: string;
   agreed: boolean;
 }
 

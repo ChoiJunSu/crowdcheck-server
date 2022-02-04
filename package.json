@@ -1,7 +1,7 @@
 {
   "name": "crowdcheck-server",
   "version": "1.0.0",
-  "description": "",
+  "agreeDescription": "",
   "scripts": {
     "dev": "nodemon"
   },

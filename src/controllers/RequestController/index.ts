@@ -4,6 +4,7 @@ import {
   IRequestAgreeRequest,
   IRequestAnswerRequest,
   IRequestGetCandidateRequest,
+  IRequestGetCorporateAgreeRequest,
   IRequestGetCorporateRequest,
   IRequestGetReceiverRequest,
   IRequestListCandidateRequest,
@@ -63,6 +64,19 @@ RequestController.get(
       requestId: parseInt(requestId as string),
       userId: req.user!.id,
     } as IRequestGetCorporateRequest);
+  }
+);
+
+RequestController.get(
+  '/get/corporate/agree',
+  AuthMiddleware.isCorporate,
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    const { requestId } = req.query;
+
+    return await RequestService.getCorporateAgree({
+      requestId: parseInt(requestId as string),
+      userId: req.user!.id,
+    } as IRequestGetCorporateAgreeRequest);
   }
 );
 

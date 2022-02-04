@@ -23,6 +23,8 @@ import {
   IRequestRejectResponse,
   IRequestUpdateReceiverRequest,
   IRequestUpdateReceiverResponse,
+  IRequestGetCorporateAgreeRequest,
+  IRequestGetCorporateAgreeResponse,
 } from '@services/RequestService/type';
 import RequestModel from '@models/RequestModel';
 import CorporateModel from '@models/CorporateModel';
@@ -257,6 +259,76 @@ class RequestService {
     return response;
   }
 
+  static async getCorporateAgree({
+    requestId,
+    userId,
+  }: IRequestGetCorporateAgreeRequest): Promise<IRequestGetCorporateAgreeResponse> {
+    const response: IRequestGetCorporateAgreeResponse = {
+      ok: false,
+      error: '',
+      candidateName: '',
+      agrees: [],
+      agreeDescription: null,
+    };
+
+    try {
+      // find corporate id
+      const userFindOneResult = await UserModel.findOne({
+        attributes: ['corporateId'],
+        where: { id: userId },
+      });
+      if (!userFindOneResult) {
+        response.error = '사용자 검색 오류입니다.';
+        return response;
+      }
+      // find request
+      const requestFindOneResult = await RequestModel.findOne({
+        attributes: ['agreeDescription'],
+        where: { id: requestId, corporateId: userFindOneResult.corporateId },
+        include: [
+          {
+            model: CandidateModel,
+            attributes: ['name'],
+          },
+          {
+            model: CandidateAgreeModel,
+            attributes: ['corporateId', 'agreedAt'],
+          },
+        ],
+      });
+      if (!requestFindOneResult || !requestFindOneResult) {
+        response.error = '의뢰 검색 오류입니다.';
+        return response;
+      }
+      const { Candidate, CandidateAgrees } = requestFindOneResult;
+      if (!Candidate || !CandidateAgrees) {
+        response.error = '지원자 검색 오류입니다.';
+        return response;
+      }
+      for (const { corporateId, agreedAt } of CandidateAgrees) {
+        // find corporate name
+        const corporateFindOneResult = await CorporateModel.findOne({
+          attributes: ['name'],
+          where: { id: corporateId },
+        });
+        if (!corporateFindOneResult) continue;
+        response.agrees.push({
+          corporateId,
+          corporateName: corporateFindOneResult.name,
+          agreed: agreedAt !== null,
+        });
+      }
+      response.agreeDescription = requestFindOneResult.agreeDescription;
+      response.candidateName = Candidate.name;
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '의뢰 동의 현황을 불러오는데 실패했습니다.';
+    }
+
+    return response;
+  }
+
   static async getCandidate({
     requestId,
     candidateId,
@@ -308,7 +380,7 @@ class RequestService {
           corporateName: corporateFindOneResult.name,
           department,
           startAt,
-          endAt,
+          endAt: endAt > new Date() ? null : endAt,
         });
       }
       response.corporateName = requestFindOneResult.Corporate.name;

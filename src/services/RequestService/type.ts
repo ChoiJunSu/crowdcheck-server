@@ -46,6 +46,18 @@ export interface IRequestGetCorporateResponse extends IBaseServiceResponse {
   answers: Array<IAnswer>;
 }
 
+export interface IRequestGetCorporateAgreeRequest extends IBaseServiceRequest {
+  requestId: number;
+  userId: number;
+}
+
+export interface IRequestGetCorporateAgreeResponse
+  extends IBaseServiceResponse {
+  candidateName: string;
+  agrees: Array<IAgree>;
+  agreeDescription: string | null;
+}
+
 export interface IRequestGetCandidateRequest extends IBaseServiceRequest {
   requestId: number;
   candidateId: number;
