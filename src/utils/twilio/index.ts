@@ -19,7 +19,7 @@ export const sendMessage = async ({
 
   try {
     const messageCreateResult = await messageClient.messages.create({
-      body,
+      body: `[크라우드체크] ${body}`,
       from: TWILIO_PHONE_NUMBER,
       to: `+82${parseInt(to, 10)}`,
     });

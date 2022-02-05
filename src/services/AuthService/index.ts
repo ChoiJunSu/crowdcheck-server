@@ -517,7 +517,7 @@ class AuthService {
       }
       // send code
       const sendMessageResponse = await sendMessage({
-        body: `크라우드체크 - 인증번호는 ${code} 입니다.`,
+        body: `인증번호는 ${code} 입니다.`,
         to: phone,
       });
       if (!sendMessageResponse.ok) {

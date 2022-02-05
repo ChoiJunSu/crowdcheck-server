@@ -39,6 +39,7 @@ import UserModel from '@models/UserModel';
 import { ICorporateRequest } from '@controllers/RequestController/type';
 import careerModel from '@models/CareerModel';
 import { sendMessage } from '@utils/twilio';
+import { WEB_URL } from '@constants/url';
 
 class RequestService {
   static async register({
@@ -58,7 +59,7 @@ class RequestService {
     try {
       // find corporate id
       const userFindOneResult = await UserModel.findOne({
-        attributes: ['corporateId'],
+        attributes: ['name', 'corporateId'],
         where: { id: userId },
       });
       if (!userFindOneResult || !userFindOneResult.corporateId) {
@@ -113,6 +114,15 @@ class RequestService {
           response.error = '지원자 동의 생성 오류입니다.';
           return response;
         }
+      }
+      // send agree link to candidate
+      const sendMessageResponse = await sendMessage({
+        body: `${userFindOneResult.name}에서 평판 조회 동의를 요청했습니다. 다음 링크로 접속하여 로그인 후 동의해주세요. ${WEB_URL}/auth/login/candidate?code=${code}`,
+        to: phone,
+      });
+      if (!sendMessageResponse.ok) {
+        response.error = sendMessageResponse.error;
+        return response;
       }
       response.code = code;
       response.ok = true;
@@ -652,7 +662,7 @@ class RequestService {
             if (!userFindOneResult) continue;
             // send alarm
             const sendMessageResponse = await sendMessage({
-              body: '크라우드체크 - 새로운 의뢰가 도착했습니다.',
+              body: '새로운 의뢰가 도착했습니다.',
               to: userFindOneResult.phone,
             });
           }
@@ -772,7 +782,7 @@ class RequestService {
     try {
       // verify user, request and receiver status
       const requestFindOneResult = await RequestModel.findOne({
-        attributes: ['status'],
+        attributes: ['status', 'corporateId'],
         where: { id: requestId },
         include: {
           model: ReceiverModel,
@@ -808,6 +818,20 @@ class RequestService {
         response.error = '의뢰 상태 업데이트 오류입니다.';
         return response;
       }
+      // find corporate phone
+      const userFineOneResult = await UserModel.findOne({
+        attributes: ['phone'],
+        where: { id: requestFindOneResult.corporateId },
+      });
+      if (!userFineOneResult) {
+        response.error = '기업 검색 오류입니다.';
+        return response;
+      }
+      // send alarm
+      const sendMessageResponse = await sendMessage({
+        body: '새로운 답변이 등록되었습니다.',
+        to: userFineOneResult.phone,
+      });
       response.ok = true;
     } catch (e) {
       console.error(e);
@@ -925,7 +949,7 @@ class RequestService {
           if (!userFindOneResult) continue;
           // send alarm
           const sendMessageResponse = await sendMessage({
-            body: '크라우드체크 - 새로운 의뢰가 도착했습니다.',
+            body: '새로운 의뢰가 도착했습니다.',
             to: userFindOneResult.phone,
           });
         }
