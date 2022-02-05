@@ -1,5 +1,3 @@
-import { TCareerStatus } from '@models/CareerModel/type';
-
 export type TOauthProvider = 'google' | 'kakao';
 
 export interface ICareer {
@@ -9,5 +7,5 @@ export interface ICareer {
   department: string | null;
   startAt: Date;
   endAt: Date | null;
-  status?: TCareerStatus;
+  verifiedAt?: Date | null;
 }

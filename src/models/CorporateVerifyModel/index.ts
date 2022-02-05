@@ -15,7 +15,7 @@ class CorporateVerifyModel
   declare userId: number;
   declare certificateBucket: string;
   declare certificateKey: string;
-  declare verifiedAt: Date | null;
+  declare reviewedAt: Date | null;
 
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
@@ -44,7 +44,7 @@ CorporateVerifyModel.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    verifiedAt: {
+    reviewedAt: {
       type: DataTypes.DATE,
       defaultValue: null,
     },

@@ -5,7 +5,7 @@ export interface ICorporateVerifyAttributes {
   userId: number;
   certificateBucket: string;
   certificateKey: string;
-  verifiedAt?: Date | null;
+  reviewedAt?: Date | null;
 }
 
 export interface ICorporateVerifyCreationAttributes

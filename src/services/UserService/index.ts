@@ -48,7 +48,7 @@ class UserService {
           'department',
           'startAt',
           'endAt',
-          'status',
+          'verifiedAt',
         ],
         where: { userId },
         include: {
@@ -72,7 +72,7 @@ class UserService {
         department,
         startAt,
         endAt,
-        status,
+        verifiedAt,
         Corporate,
       } of careerFindAllResult) {
         if (!Corporate) continue;
@@ -83,7 +83,7 @@ class UserService {
           department,
           startAt,
           endAt: endAt > new Date() ? null : endAt,
-          status,
+          verifiedAt,
         });
       }
       response.ok = true;
@@ -279,14 +279,11 @@ class UserService {
     try {
       // verify userId with careerId
       const careerFindOneResult = await CareerModel.findOne({
-        attributes: ['userId', 'status'],
+        attributes: ['userId'],
         where: { id: careerId },
       });
       if (!careerFindOneResult) {
         response.error = '경력 검색 오류입니다.';
-        return response;
-      } else if (careerFindOneResult.status !== 'registered') {
-        response.error = '잘못된 접근입니다.';
         return response;
       } else if (careerFindOneResult.userId !== userId) {
         response.error = '경력 정보가 일치하지 않습니다.';
@@ -300,18 +297,6 @@ class UserService {
       });
       if (!careerVerifyCreateResult) {
         response.error = '경력 인증 생성 오류입니다.';
-        return response;
-      }
-      // update career status
-      const careerUpdateResult = await careerModel.update(
-        {
-          status: 'reviewed',
-          reviewedAt: new Date(),
-        },
-        { where: { id: careerId } }
-      );
-      if (!careerUpdateResult) {
-        response.error = '경력 정보 업데이트 오류입니다.';
         return response;
       }
       response.ok = true;

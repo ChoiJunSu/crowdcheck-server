@@ -1,8 +1,7 @@
-import { Model, DataTypes, Sequelize } from 'sequelize';
+import { Model, DataTypes } from 'sequelize';
 import {
   ICareerAttributes,
   ICareerCreationAttributes,
-  TCareerStatus,
 } from '@models/CareerModel/type';
 import sequelize from '@models/BaseModel';
 import UserModel from '@models/UserModel';
@@ -20,9 +19,6 @@ class CareerModel
   declare department: string | null;
   declare startAt: Date;
   declare endAt: Date;
-  declare status: TCareerStatus;
-  declare registeredAt: Date;
-  declare reviewedAt: Date | null;
   declare verifiedAt: Date | null;
 
   declare readonly createdAt: Date;
@@ -61,20 +57,6 @@ CareerModel.init(
     endAt: {
       type: DataTypes.DATE,
       allowNull: false,
-    },
-    status: {
-      type: DataTypes.ENUM('registered', 'reviewed', 'verified'),
-      defaultValue: 'registered',
-      allowNull: false,
-    },
-    registeredAt: {
-      type: DataTypes.DATE,
-      defaultValue: Sequelize.fn('now'),
-      allowNull: false,
-    },
-    reviewedAt: {
-      type: DataTypes.DATE,
-      defaultValue: null,
     },
     verifiedAt: {
       type: DataTypes.DATE,

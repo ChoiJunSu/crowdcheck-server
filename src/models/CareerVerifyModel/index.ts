@@ -14,7 +14,7 @@ class CareerVerifyModel
   declare careerId: number;
   declare certificateBucket: string;
   declare certificateKey: string;
-  declare verifiedAt: Date | null;
+  declare reviewedAt: Date | null;
 
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
@@ -41,7 +41,7 @@ CareerVerifyModel.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    verifiedAt: {
+    reviewedAt: {
       type: DataTypes.DATE,
       defaultValue: null,
     },

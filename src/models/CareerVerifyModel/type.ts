@@ -5,7 +5,7 @@ export interface ICareerVerifyAttributes {
   careerId: number;
   certificateBucket: string;
   certificateKey: string;
-  verifiedAt?: Date | null;
+  reviewedAt?: Date | null;
 }
 
 export interface ICareerVerifyCreationAttributes

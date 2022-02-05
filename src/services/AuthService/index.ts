@@ -55,24 +55,14 @@ class AuthService {
           email,
           type,
         },
-        include: {
-          model: CorporateVerifyModel,
-          attributes: ['verifiedAt'],
-        },
       });
       if (!userFindOneResult) {
         response.error = '해당 이메일로 등록된 회원이 없습니다.';
         return response;
       }
-      const { id, name, hashed, CorporateVerify } = userFindOneResult;
+      const { id, name, hashed } = userFindOneResult;
       if (!hashed) {
         response.error = '다른 방식으로 로그인 해주세요.';
-        return response;
-      } else if (
-        type === 'corporate' &&
-        (!CorporateVerify || !CorporateVerify.verifiedAt)
-      ) {
-        response.error = '사업자등록증 확인 중입니다. 조금만 기다려주세요.';
         return response;
       }
       // compare password with hashed

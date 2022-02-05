@@ -37,14 +37,7 @@ import ReceiverModel from '@models/ReceiverModel';
 import { MAX_TIMESTAMP } from '@constants/date';
 import UserModel from '@models/UserModel';
 import { ICorporateRequest } from '@controllers/RequestController/type';
-import careerVerifyModel from '@models/CareerVerifyModel';
 import careerModel from '@models/CareerModel';
-import twilio from 'twilio';
-import {
-  TWILIO_ACCOUNT_SID,
-  TWILIO_AUTH_TOKEN,
-  TWILIO_PHONE_NUMBER,
-} from '@constants/secret';
 import { sendMessage } from '@utils/twilio';
 
 class RequestService {
@@ -732,7 +725,7 @@ class RequestService {
       }
       // verify career status
       const careerFindOneResult = await careerModel.findOne({
-        attributes: ['status'],
+        attributes: ['verifiedAt'],
         where: {
           userId,
           corporateId: requestFindOneResult.Receivers[0].corporateId,
@@ -741,7 +734,7 @@ class RequestService {
       if (!careerFindOneResult) {
         response.error = '경력 검색 오류입니다.';
         return response;
-      } else if (careerFindOneResult.status !== 'verified') {
+      } else if (careerFindOneResult.verifiedAt) {
         response.error = '경력 인증이 필요합니다.';
         return response;
       }
