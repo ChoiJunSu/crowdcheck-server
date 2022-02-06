@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "agreeDescription": "",
   "scripts": {
-    "dev": "nodemon"
+    "dev": "nodemon",
+    "start": "npm i && nodemon"
   },
   "author": "CrowdCheck Inc.",
   "license": "ISC",

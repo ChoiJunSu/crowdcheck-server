@@ -1,5 +1,6 @@
+export const DB_HOST = 'crowdcheck-db-dev.cp2uupxinzdw.ap-northeast-2.rds.amazonaws.com'
 export const DB_USERNAME = 'root';
-export const DB_PASSWORD = 'password';
+export const DB_PASSWORD = 'JOBAQjsaFL7r5HmtONTM';
 export const DB_DATABASE = 'crowdcheck';
 
 export const KAKAO_CLIENT_ID = '752369a3217c1905b6ce8a71a15eaf8c';
