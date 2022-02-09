@@ -22,7 +22,7 @@ const port = 4000;
 
 // CORS
 const corsHandler = cors({ origin: WEB_URL });
-app.options('*', corsHandler);
+app.options('*', cors());
 app.use(corsHandler);
 
 // database
