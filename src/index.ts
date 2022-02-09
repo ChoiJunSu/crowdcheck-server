@@ -22,6 +22,7 @@ const port = 4000;
 
 // CORS
 app.use(cors({ origin: WEB_URL }));
+app.options('*', cors({ origin: WEB_URL }))
 
 // database
 sequelize
