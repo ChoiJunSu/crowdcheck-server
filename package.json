@@ -4,8 +4,8 @@
   "agreeDescription": "",
   "scripts": {
     "dev": "nodemon",
-    "build": "tsc -p",
-    "start": "npm i && npm run build && ts-node -r tsconfig-paths/register"
+    "build": "tsc -p .",
+    "start": "npm i && npm run build && ts-node -r tsconfig-paths/register ./dist/index.js"
   },
   "author": "CrowdCheck Inc.",
   "license": "ISC",

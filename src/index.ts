@@ -21,8 +21,9 @@ const app = express();
 const port = 4000;
 
 // CORS
-app.options('*', cors({ origin: WEB_URL }))
-app.use(cors({ origin: WEB_URL }));
+const corsHandler = cors({ origin: WEB_URL });
+app.options('*', corsHandler);
+app.use(corsHandler);
 
 // database
 sequelize
