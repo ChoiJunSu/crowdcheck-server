@@ -4,12 +4,15 @@ import multerS3 from 'multer-s3';
 import { randomBytes } from 'crypto';
 
 export const MulterSingleton = (() => {
-  const client = new aws.S3({
-    region: 'ap-northeast-2',
-    credentials: new aws.SharedIniFileCredentials({
-      profile: 'crowdcheck',
-    }),
-  });
+  const client =
+    process.env.NODE_ENV === 'development'
+      ? new aws.S3({
+          region: 'ap-northeast-2',
+          credentials: new aws.SharedIniFileCredentials({
+            profile: 'crowdcheck',
+          }),
+        })
+      : new aws.S3({ region: 'ap-northeast-2' });
 
   return {
     upload: multer({

@@ -2,12 +2,16 @@ import aws, { AWSError } from 'aws-sdk';
 import { GetSecretValueResponse } from 'aws-sdk/clients/secretsmanager';
 
 export const SecretsManagerSingleton = (function () {
-  const client = new aws.SecretsManager({
-    region: 'ap-northeast-2',
-    credentials: new aws.SharedIniFileCredentials({
-      profile: 'crowdcheck',
-    }),
-  });
+  const client =
+    process.env.NODE_ENV === 'development'
+      ? new aws.SecretsManager({
+          region: 'ap-northeast-2',
+          credentials: new aws.SharedIniFileCredentials({
+            profile: 'crowdcheck',
+          }),
+        })
+      : new aws.SecretsManager({ region: 'ap-northeast-2' });
+
   let secrets: { [key: string]: string } = {};
 
   const callback = (err: AWSError, data: GetSecretValueResponse) => {
