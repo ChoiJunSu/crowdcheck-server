@@ -1,5 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
+import path from 'path';
 import cors from 'cors';
 import createError from 'http-errors';
 import AuthController from '@controllers/AuthController';
@@ -14,7 +15,9 @@ const app = express();
 const port = 4000;
 
 // env
-dotenv.config({ path: `./configs/${process.env.NODE_ENV}` });
+dotenv.config({
+  path: path.join(__dirname, '../', `.env.${process.env.NODE_ENV}`),
+});
 
 // CORS
 const corsHandler = cors({ origin: process.env.WEB_URL });
@@ -24,9 +27,7 @@ app.use(corsHandler);
 // secrete manager
 SecretsManagerSingleton.prepare([
   'common/server',
-  `${
-    process.env.NODE_ENV === 'local' ? 'development' : process.env.NODE_ENV
-  }/db`,
+  `${process.env.NODE_ENV}/db`,
 ]).then(() => {
   // database
   SequelizeSingleton.prepare();

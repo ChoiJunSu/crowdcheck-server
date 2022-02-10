@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "agreeDescription": "",
   "scripts": {
-    "build": "tsc -p .",
-    "start": "cross-env NODE_ENV=development npm i && npm run build && ts-node -r tsconfig-paths/register ./dist/index.js",
-    "start:local": "cross-env NODE_ENV=local nodemon"
+    "dev": "cross-env NODE_ENV=development nodemon",
+    "build": "npm i && cross-env NODE_ENV=production tsc -p .",
+    "start": "npm run build && cross-env NODE_ENV=production ts-node -r tsconfig-paths/register ./dist/index.js"
   },
   "author": "CrowdCheck Inc.",
   "license": "ISC",
