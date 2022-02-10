@@ -17,7 +17,7 @@ import {
   IRequest,
   IResponse,
 } from '@controllers/BaseController/type';
-import { upload } from '@utils/multer';
+import { MulterSingleton } from '@utils/multer';
 
 const AuthController = AsyncRouter();
 
@@ -82,7 +82,7 @@ AuthController.get(
 
 AuthController.post(
   '/register/personal',
-  upload.array('certificates'),
+  MulterSingleton.upload.array('certificates'),
   async (req: IRequest, res: IResponse, next: INextFunction) => {
     const { name, phone, email, password, careers } = req.body;
 
@@ -116,7 +116,7 @@ AuthController.post(
 
 AuthController.post(
   '/register/corporate',
-  upload.single('certificate'),
+  MulterSingleton.upload.single('certificate'),
   async (req: IRequest, res: IResponse, next: INextFunction) => {
     const { name, phone, email, password } = req.body;
     if (!req.file)

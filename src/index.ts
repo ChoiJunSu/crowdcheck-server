@@ -1,89 +1,39 @@
 import express, { Request, Response, NextFunction } from 'express';
+import dotenv from 'dotenv';
 import cors from 'cors';
 import createError from 'http-errors';
-import { Error } from 'sequelize';
-import sequelize from '@models/BaseModel';
 import AuthController from '@controllers/AuthController';
-import CorporateModel from '@models/CorporateModel';
-import RequestModel from '@models/RequestModel';
-import UserModel from '@models/UserModel';
-import ReceiverModel from '@models/ReceiverModel';
-import CareerModel from '@models/CareerModel';
-import CandidateModel from '@models/CandidateModel';
-import CandidateAgreeModel from '@models/CandidateAgreeModel';
 import CorporateController from '@controllers/CorporateController';
 import RequestController from '@controllers/RequestController';
-import { WEB_URL } from '@constants/url';
-import { MAX_TIMESTAMP } from '@constants/date';
 import UserController from '@controllers/UserController';
+import { SecretsManagerSingleton } from '@utils/secretesManager';
+import { TwilioSingleton } from '@utils/twilio';
+import { SequelizeSingleton } from '@utils/sequelize';
 
 const app = express();
 const port = 4000;
 
+// env
+dotenv.config({ path: `./configs/${process.env.NODE_ENV}` });
+
 // CORS
-const corsHandler = cors({ origin: WEB_URL });
+const corsHandler = cors({ origin: process.env.WEB_URL });
 app.options('*', corsHandler);
 app.use(corsHandler);
 
-// database
-sequelize
-  .authenticate()
-  .then(() => {
-    console.log('database connected');
-  })
-  .catch((e: Error) => {
-    console.error(e);
-  });
-sequelize
-  .sync({
-    force: false,
-  })
-  .then(() => {
-    console.log('database synchronized');
-    (async () => {
-      await CorporateModel.create({ name: 'crowdcheck' });
-      await UserModel.create({
-        email: 'dev.crowdcheck@gmail.com',
-        name: '크라우드체크',
-        phone: '010020',
-        type: 'corporate',
-        corporateId: 1,
-      });
-      await RequestModel.create({
-        corporateId: 1,
-        question: 'dfad',
-        deadline: new Date(MAX_TIMESTAMP),
-      });
-      await ReceiverModel.create({
-        requestId: 1,
-        userId: 1,
-        corporateId: 1,
-        answer: 'dasf',
-      });
-      await CareerModel.create({
-        userId: 1,
-        corporateId: 1,
-        startAt: new Date(),
-        endAt: new Date(MAX_TIMESTAMP),
-      });
-      await CandidateModel.create({
-        requestId: 1,
-        name: '최준수',
-        phone: '102',
-        code: 'asdfgqwert',
-      });
-      await CandidateAgreeModel.create({
-        requestId: 1,
-        corporateId: 1,
-        candidateId: 1,
-        startAt: new Date(),
-        endAt: new Date(MAX_TIMESTAMP),
-      });
-    })();
-  })
-  .catch((e: Error) => {
-    console.error(e);
-  });
+// secrete manager
+SecretsManagerSingleton.prepare([
+  'common/server',
+  `${
+    process.env.NODE_ENV === 'local' ? 'development' : process.env.NODE_ENV
+  }/db`,
+]).then(() => {
+  // database
+  SequelizeSingleton.prepare();
+
+  // twilio
+  TwilioSingleton.prepare();
+});
 
 // body parser
 app.use(express.json());

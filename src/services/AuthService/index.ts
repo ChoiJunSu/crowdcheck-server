@@ -1,4 +1,3 @@
-import { decode, sign, verify } from 'jsonwebtoken';
 import {
   IAuthTokenPayload,
   IAuthRegisterCorporateRequest,
@@ -21,7 +20,6 @@ import {
   IAuthPhoneVerifyRequest,
   IAuthPhoneVerifyResponse,
 } from '@services/AuthService/type';
-import { JWT_EXPIRES_IN, JWT_ISSUER, JWT_SECRET } from '@constants/jwt';
 import { compare, genSalt, hash } from 'bcrypt';
 import UserModel from '@models/UserModel';
 import CorporateModel from '@models/CorporateModel';
@@ -34,7 +32,8 @@ import PhoneVerifyModel from '@models/PhoneVerifyModel';
 import phoneVerifyModel from '@models/PhoneVerifyModel';
 import { Op, Sequelize } from 'sequelize';
 import RequestService from '@services/RequestService';
-import { sendMessage } from '@utils/twilio';
+import { TwilioSingleton } from '@utils/twilio';
+import { JwtSingleton } from '@utils/jwt';
 
 class AuthService {
   static async login({
@@ -72,14 +71,11 @@ class AuthService {
         return response;
       }
       // sign authToken with name, email
-      response.authToken = sign(
-        { id, name, type } as IAuthTokenPayload,
-        JWT_SECRET,
-        {
-          expiresIn: JWT_EXPIRES_IN,
-          issuer: JWT_ISSUER,
-        }
-      );
+      response.authToken = JwtSingleton.sign({
+        id,
+        name,
+        type,
+      } as IAuthTokenPayload);
       response.ok = true;
     } catch (e) {
       console.error(e);
@@ -118,14 +114,10 @@ class AuthService {
         },
       });
       if (!userFindOneResult) {
-        response.registerToken = sign(
-          {
-            provider,
-            email: getEmailByOauthCodeResponse.email,
-          } as IRegisterTokenPayload,
-          JWT_SECRET,
-          { issuer: JWT_ISSUER, expiresIn: JWT_EXPIRES_IN }
-        );
+        response.registerToken = JwtSingleton.sign({
+          provider,
+          email: getEmailByOauthCodeResponse.email,
+        } as IRegisterTokenPayload);
         response.error = '회원가입이 필요합니다.';
         return response;
       }
@@ -136,14 +128,11 @@ class AuthService {
         return response;
       }
       // sign authToken with email
-      response.authToken = sign(
-        { id, name, type: 'personal' } as IAuthTokenPayload,
-        JWT_SECRET,
-        {
-          expiresIn: JWT_EXPIRES_IN,
-          issuer: JWT_ISSUER,
-        }
-      );
+      response.authToken = JwtSingleton.sign({
+        id,
+        name,
+        type: 'personal',
+      } as IAuthTokenPayload);
       response.ok = true;
     } catch (e) {
       console.error(e);
@@ -192,18 +181,11 @@ class AuthService {
         return response;
       }
       // sign authToken with email
-      response.authToken = sign(
-        {
-          id: candidateFindOneResult.id,
-          name,
-          type: 'candidate',
-        } as IAuthTokenPayload,
-        JWT_SECRET,
-        {
-          expiresIn: JWT_EXPIRES_IN,
-          issuer: JWT_ISSUER,
-        }
-      );
+      response.authToken = JwtSingleton.sign({
+        id: candidateFindOneResult.id,
+        name,
+        type: 'candidate',
+      } as IAuthTokenPayload);
       response.ok = true;
     } catch (e) {
       console.error(e);
@@ -224,16 +206,15 @@ class AuthService {
     try {
       // extract and decode authToken from authorization header
       const authToken = authorization.split(' ')[1];
-      const { id, name, type } = (await decode(authToken)) as IAuthTokenPayload;
+      const { id, name, type } = JwtSingleton.decode(
+        authToken
+      ) as IAuthTokenPayload;
       // sign authToken with email
-      response.authToken = sign(
-        { id, name, type } as IAuthTokenPayload,
-        JWT_SECRET,
-        {
-          expiresIn: JWT_EXPIRES_IN,
-          issuer: JWT_ISSUER,
-        }
-      );
+      response.authToken = JwtSingleton.sign({
+        id,
+        name,
+        type,
+      } as IAuthTokenPayload);
       response.ok = true;
     } catch (e) {
       response.error = '토큰 재발급에 실패했습니다.';
@@ -338,10 +319,9 @@ class AuthService {
 
     try {
       // verify registerToken
-      const { provider, email } = (await verify(
-        registerToken,
-        JWT_SECRET
-      )) as IRegisterTokenPayload;
+      const { provider, email } = JwtSingleton.verify(
+        registerToken
+      ) as IRegisterTokenPayload;
       // create user
       const userCreateResult = await UserModel.create({
         name,
@@ -516,7 +496,7 @@ class AuthService {
         return response;
       }
       // send code
-      const sendMessageResponse = await sendMessage({
+      const sendMessageResponse = await TwilioSingleton.sendMessage({
         body: `인증번호는 ${code} 입니다.`,
         to: phone,
       });

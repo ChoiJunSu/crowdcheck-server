@@ -38,8 +38,7 @@ import { MAX_TIMESTAMP } from '@constants/date';
 import UserModel from '@models/UserModel';
 import { ICorporateRequest } from '@controllers/RequestController/type';
 import careerModel from '@models/CareerModel';
-import { sendMessage } from '@utils/twilio';
-import { WEB_URL } from '@constants/url';
+import { TwilioSingleton } from '@utils/twilio';
 
 class RequestService {
   static async register({
@@ -116,8 +115,8 @@ class RequestService {
         }
       }
       // send agree link to candidate
-      const sendMessageResponse = await sendMessage({
-        body: `${userFindOneResult.name}에서 평판 조회 동의를 요청했습니다. 다음 링크로 접속하여 로그인 후 동의해주세요. ${WEB_URL}/auth/login/candidate?code=${code}`,
+      const sendMessageResponse = await TwilioSingleton.sendMessage({
+        body: `${userFindOneResult.name}에서 평판 조회 동의를 요청했습니다. 다음 링크로 접속하여 로그인 후 동의해주세요. ${process.env.WEB_URL}/auth/login/candidate?code=${code}`,
         to: phone,
       });
       if (!sendMessageResponse.ok) {
@@ -661,7 +660,7 @@ class RequestService {
             });
             if (!userFindOneResult) continue;
             // send alarm
-            const sendMessageResponse = await sendMessage({
+            const sendMessageResponse = await TwilioSingleton.sendMessage({
               body: '새로운 의뢰가 도착했습니다.',
               to: userFindOneResult.phone,
             });
@@ -828,7 +827,7 @@ class RequestService {
         return response;
       }
       // send alarm
-      const sendMessageResponse = await sendMessage({
+      const sendMessageResponse = await TwilioSingleton.sendMessage({
         body: '새로운 답변이 등록되었습니다.',
         to: userFineOneResult.phone,
       });
@@ -948,7 +947,7 @@ class RequestService {
           });
           if (!userFindOneResult) continue;
           // send alarm
-          const sendMessageResponse = await sendMessage({
+          const sendMessageResponse = await TwilioSingleton.sendMessage({
             body: '새로운 의뢰가 도착했습니다.',
             to: userFindOneResult.phone,
           });

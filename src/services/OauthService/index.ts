@@ -4,12 +4,7 @@ import {
 } from '@services/OauthService/type';
 import { URLSearchParams } from 'url';
 import axios from 'axios';
-import {
-  GOOGLE_CLIENT_ID,
-  GOOGLE_CLIENT_SECRET,
-  KAKAO_CLIENT_ID,
-  KAKAO_CLIENT_SECRET,
-} from '@constants/secret';
+import { SecretsManagerSingleton } from '@utils/secretesManager';
 
 class OauthService {
   static async getEmailByOauthCode({
@@ -29,10 +24,12 @@ class OauthService {
         case 'kakao': {
           const params = new URLSearchParams({
             grant_type: 'authorization_code',
-            client_id: KAKAO_CLIENT_ID,
+            client_id: SecretsManagerSingleton.getSecrete('KAKAO_CLIENT_ID'),
             redirect_uri: redirectUri,
             code,
-            client_secret: KAKAO_CLIENT_SECRET,
+            client_secret: SecretsManagerSingleton.getSecrete(
+              'KAKAO_CLIENT_SECRET'
+            ),
           });
           // get access token by oauth code
           const {
@@ -71,10 +68,12 @@ class OauthService {
         case 'google': {
           const params = new URLSearchParams({
             grant_type: 'authorization_code',
-            client_id: GOOGLE_CLIENT_ID,
+            client_id: SecretsManagerSingleton.getSecrete('GOOGLE_CLIENT_ID'),
             redirect_uri: redirectUri,
             code,
-            client_secret: GOOGLE_CLIENT_SECRET,
+            client_secret: SecretsManagerSingleton.getSecrete(
+              'GOOGLE_CLIENT_SECRET'
+            ),
           });
           // get access token by oauth code
           const {

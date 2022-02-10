@@ -1,10 +1,9 @@
-import { Model, DataTypes } from 'sequelize';
+import { Model, DataTypes, Sequelize } from 'sequelize';
 import {
   IUserAttributes,
   IUserCreationAttributes,
   TUserType,
 } from '@models/UserModel/type';
-import sequelize from '@models/BaseModel';
 import CorporateModel from '@models/CorporateModel';
 import { TOauthProvider } from '@controllers/AuthController/type';
 import CareerModel from '@models/CareerModel';
@@ -37,64 +36,66 @@ class UserModel
   declare static associations: {};
 }
 
-UserModel.init(
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true,
+export const initUserModel = (sequelize: Sequelize) => {
+  UserModel.init(
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+      },
+      hashed: {
+        type: DataTypes.STRING,
+      },
+      name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      phone: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      type: {
+        type: DataTypes.ENUM('personal', 'corporate'),
+        allowNull: false,
+      },
+      oauthProvider: {
+        type: DataTypes.ENUM('google', 'kakao'),
+        defaultValue: null,
+      },
+      corporateId: {
+        type: DataTypes.INTEGER,
+        unique: true,
+      },
+      credit: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+      },
     },
-    email: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
-    hashed: {
-      type: DataTypes.STRING,
-    },
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    phone: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    type: {
-      type: DataTypes.ENUM('personal', 'corporate'),
-      allowNull: false,
-    },
-    oauthProvider: {
-      type: DataTypes.ENUM('google', 'kakao'),
-      defaultValue: null,
-    },
-    corporateId: {
-      type: DataTypes.INTEGER,
-      unique: true,
-    },
-    credit: {
-      type: DataTypes.INTEGER,
-      defaultValue: 0,
-    },
-  },
-  {
-    sequelize,
-    underscored: false,
-    modelName: 'User',
-    tableName: 'user',
-    paranoid: false,
-    charset: 'utf8mb4',
-    collate: 'utf8mb4_general_ci',
-  }
-);
+    {
+      sequelize,
+      underscored: false,
+      modelName: 'User',
+      tableName: 'user',
+      paranoid: false,
+      charset: 'utf8mb4',
+      collate: 'utf8mb4_general_ci',
+    }
+  );
 
-CorporateModel.hasOne(UserModel, {
-  foreignKey: 'corporateId',
-  onDelete: 'RESTRICT',
-  onUpdate: 'CASCADE',
-});
-UserModel.belongsTo(CorporateModel, {
-  foreignKey: 'corporateId',
-});
+  CorporateModel.hasOne(UserModel, {
+    foreignKey: 'corporateId',
+    onDelete: 'RESTRICT',
+    onUpdate: 'CASCADE',
+  });
+  UserModel.belongsTo(CorporateModel, {
+    foreignKey: 'corporateId',
+  });
+};
 
 export default UserModel;

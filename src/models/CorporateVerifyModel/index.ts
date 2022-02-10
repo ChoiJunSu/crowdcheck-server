@@ -1,9 +1,8 @@
-import { Model, DataTypes } from 'sequelize';
+import { Model, DataTypes, Sequelize } from 'sequelize';
 import {
   ICorporateVerifyAttributes,
   ICorporateVerifyCreationAttributes,
 } from '@models/CorporateVerifyModel/type';
-import sequelize from '@models/BaseModel';
 import UserModel from '@models/UserModel';
 import CorporateModel from '@models/CorporateModel';
 
@@ -25,48 +24,50 @@ class CorporateVerifyModel
   declare static associations: {};
 }
 
-CorporateVerifyModel.init(
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true,
+export const initCorporateVerifyModel = (sequelize: Sequelize) => {
+  CorporateVerifyModel.init(
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      certificateBucket: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      certificateKey: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      reviewedAt: {
+        type: DataTypes.DATE,
+        defaultValue: null,
+      },
     },
-    userId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    certificateBucket: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    certificateKey: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    reviewedAt: {
-      type: DataTypes.DATE,
-      defaultValue: null,
-    },
-  },
-  {
-    sequelize,
-    underscored: false,
-    modelName: 'CorporateVerify',
-    tableName: 'corporateVerify',
-    paranoid: false,
-    charset: 'utf8mb4',
-    collate: 'utf8mb4_general_ci',
-  }
-);
+    {
+      sequelize,
+      underscored: false,
+      modelName: 'CorporateVerify',
+      tableName: 'corporateVerify',
+      paranoid: false,
+      charset: 'utf8mb4',
+      collate: 'utf8mb4_general_ci',
+    }
+  );
 
-UserModel.hasOne(CorporateVerifyModel, {
-  foreignKey: 'userId',
-  onDelete: 'CASCADE',
-  onUpdate: 'CASCADE',
-});
-CorporateVerifyModel.belongsTo(UserModel, {
-  foreignKey: 'userId',
-});
+  UserModel.hasOne(CorporateVerifyModel, {
+    foreignKey: 'userId',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  });
+  CorporateVerifyModel.belongsTo(UserModel, {
+    foreignKey: 'userId',
+  });
+};
 
 export default CorporateVerifyModel;

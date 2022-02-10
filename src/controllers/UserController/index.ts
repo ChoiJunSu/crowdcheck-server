@@ -13,7 +13,7 @@ import {
   IUserGetPersonalRequest,
 } from '@services/UserService/type';
 import AuthMiddleware from '@middlewares/AuthMiddleware';
-import { upload } from '@utils/multer';
+import { MulterSingleton } from '@utils/multer';
 
 const UserController = AsyncRouter();
 
@@ -75,7 +75,7 @@ UserController.post(
 UserController.post(
   '/career/verify',
   AuthMiddleware.isPersonal,
-  upload.single('certificate'),
+  MulterSingleton.upload.single('certificate'),
   async (req: IRequest, res: IResponse, next: INextFunction) => {
     const { careerId } = req.body;
     if (!req.file)

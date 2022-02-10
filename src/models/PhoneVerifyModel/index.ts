@@ -1,5 +1,4 @@
-import { Model, DataTypes } from 'sequelize';
-import sequelize from '@models/BaseModel';
+import { Model, DataTypes, Sequelize } from 'sequelize';
 import {
   IPhoneVerifyVerifyAttributes,
   IPhoneVerifyVerifyCreationAttributes,
@@ -24,44 +23,46 @@ class PhoneVerifyVerifyModel
   declare static associations: {};
 }
 
-PhoneVerifyVerifyModel.init(
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true,
+export const initPhoneVerifyModel = (sequelize: Sequelize) => {
+  PhoneVerifyVerifyModel.init(
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      phone: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      code: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      verifiedAt: {
+        type: DataTypes.DATE,
+        defaultValue: null,
+      },
     },
-    phone: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    code: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    verifiedAt: {
-      type: DataTypes.DATE,
-      defaultValue: null,
-    },
-  },
-  {
-    sequelize,
-    underscored: false,
-    modelName: 'PhoneVerify',
-    tableName: 'phoneVerify',
-    paranoid: false,
-    charset: 'utf8mb4',
-    collate: 'utf8mb4_general_ci',
-  }
-);
+    {
+      sequelize,
+      underscored: false,
+      modelName: 'PhoneVerify',
+      tableName: 'phoneVerify',
+      paranoid: false,
+      charset: 'utf8mb4',
+      collate: 'utf8mb4_general_ci',
+    }
+  );
 
-UserModel.hasOne(PhoneVerifyVerifyModel, {
-  foreignKey: 'userId',
-  onDelete: 'CASCADE',
-  onUpdate: 'CASCADE',
-});
-PhoneVerifyVerifyModel.belongsTo(UserModel, {
-  foreignKey: 'userId',
-});
+  UserModel.hasOne(PhoneVerifyVerifyModel, {
+    foreignKey: 'userId',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  });
+  PhoneVerifyVerifyModel.belongsTo(UserModel, {
+    foreignKey: 'userId',
+  });
+};
 
 export default PhoneVerifyVerifyModel;

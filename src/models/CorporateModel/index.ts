@@ -1,9 +1,8 @@
-import { Model, DataTypes } from 'sequelize';
+import { Model, DataTypes, Sequelize } from 'sequelize';
 import {
   ICorporateAttributes,
   ICorporateCreationAttributes,
 } from '@models/CorporateModel/type';
-import sequelize from '@models/BaseModel';
 import CareerModel from '@models/CareerModel';
 import CandidateAgreeModel from '@models/CandidateAgreeModel';
 import ReceiverModel from '@models/ReceiverModel';
@@ -29,28 +28,30 @@ class CorporateModel
   declare static associations: {};
 }
 
-CorporateModel.init(
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true,
+export const initCorporateModel = (sequelize: Sequelize) => {
+  CorporateModel.init(
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+      },
     },
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
-  },
-  {
-    sequelize,
-    underscored: false,
-    modelName: 'Corporate',
-    tableName: 'corporate',
-    paranoid: false,
-    charset: 'utf8mb4',
-    collate: 'utf8mb4_general_ci',
-  }
-);
+    {
+      sequelize,
+      underscored: false,
+      modelName: 'Corporate',
+      tableName: 'corporate',
+      paranoid: false,
+      charset: 'utf8mb4',
+      collate: 'utf8mb4_general_ci',
+    }
+  );
+};
 
 export default CorporateModel;

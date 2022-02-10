@@ -1,11 +1,10 @@
-import { verify } from 'jsonwebtoken';
-import { JWT_SECRET } from '@constants/jwt';
 import { IAuthTokenPayload } from '@services/AuthService/type';
 import {
   INextFunction,
   IRequest,
   IResponse,
 } from '@controllers/BaseController/type';
+import { JwtSingleton } from '@utils/jwt';
 
 class AuthMiddleware {
   static isLoggedIn = async (
@@ -21,10 +20,9 @@ class AuthMiddleware {
     if (!authorization) return res.status(401).send(response);
     const authToken = authorization.split(' ')[1];
     try {
-      const { name, id, type, exp } = (await verify(
-        authToken,
-        JWT_SECRET
-      )) as IAuthTokenPayload;
+      const { name, id, type, exp } = JwtSingleton.verify(
+        authToken
+      ) as IAuthTokenPayload;
       if (!exp || Date.now() > exp * 1000)
         return res.status(401).send(response);
       req.user = { name, id, type };
@@ -49,10 +47,9 @@ class AuthMiddleware {
     if (!authorization) return res.status(401).send(response);
     const authToken = authorization.split(' ')[1];
     try {
-      const { name, id, type, exp } = (await verify(
-        authToken,
-        JWT_SECRET
-      )) as IAuthTokenPayload;
+      const { name, id, type, exp } = JwtSingleton.verify(
+        authToken
+      ) as IAuthTokenPayload;
       if (!exp || Date.now() > exp * 1000)
         return res.status(401).send(response);
       if (type !== 'personal') {
@@ -81,10 +78,9 @@ class AuthMiddleware {
     if (!authorization) return res.status(401).send(response);
     const authToken = authorization.split(' ')[1];
     try {
-      const { name, id, type, exp } = (await verify(
-        authToken,
-        JWT_SECRET
-      )) as IAuthTokenPayload;
+      const { name, id, type, exp } = JwtSingleton.verify(
+        authToken
+      ) as IAuthTokenPayload;
       if (!exp || Date.now() > exp * 1000)
         return res.status(401).send(response);
       if (type !== 'corporate') {
@@ -113,10 +109,9 @@ class AuthMiddleware {
     if (!authorization) return res.status(401).send(response);
     const authToken = authorization.split(' ')[1];
     try {
-      const { name, id, type, exp } = (await verify(
-        authToken,
-        JWT_SECRET
-      )) as IAuthTokenPayload;
+      const { name, id, type, exp } = JwtSingleton.verify(
+        authToken
+      ) as IAuthTokenPayload;
       if (!exp || Date.now() > exp * 1000)
         return res.status(401).send(response);
       if (type !== 'candidate') {
