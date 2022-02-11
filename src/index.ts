@@ -39,6 +39,11 @@ SecretsManagerSingleton.prepare([
 // body parser
 app.use(express.json());
 
+// elastic beanstalk health check
+app.get('/', (req: Request, res: Response, next: NextFunction) => {
+  res.status(200).send()
+})
+
 // controllers
 app.use('/auth', AuthController);
 app.use('/corporate', CorporateController);
