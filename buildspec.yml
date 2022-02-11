@@ -9,6 +9,7 @@ phases:
 artifacts:
   type: zip
   files:
+    - .npmrc
     - package.json
     - package-lock.json
     - 'dist/**/*'
