@@ -12,4 +12,6 @@ artifacts:
     - .npmrc
     - tsconfig.paths.json
     - tsconfig-paths-bootstrap.js
+    - package.json
+    - package-lock.json
     - 'dist/**/*'
