@@ -10,6 +10,7 @@ artifacts:
   type: zip
   files:
     - .npmrc
+    - .env.production
     - tsconfig.paths.json
     - tsconfig-paths-bootstrap.js
     - package.json
