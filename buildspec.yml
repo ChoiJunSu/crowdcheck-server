@@ -10,7 +10,7 @@ artifacts:
   type: zip
   files:
     - .npmrc
-    - tsconfig.json
+    - tsconfig.paths.json
     - package.json
     - package-lock.json
     - 'dist/**/*'
