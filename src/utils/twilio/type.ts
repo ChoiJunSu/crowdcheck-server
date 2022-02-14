@@ -1,9 +1,9 @@
-export interface ISendMessageRequest {
+export interface ITwilioSendMessageRequest {
   body: string;
   to: string;
 }
 
-export interface ISendMessageResponse {
+export interface ITwilioSendMessageResponse {
   ok: boolean;
   error: string;
 }

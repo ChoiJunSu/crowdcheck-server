@@ -10,6 +10,7 @@ import UserController from '@controllers/UserController';
 import { SecretsManagerSingleton } from '@utils/secretesManager';
 import { TwilioSingleton } from '@utils/twilio';
 import { SequelizeSingleton } from '@utils/sequelize';
+import { SensSingleton } from '@utils/sens';
 
 const app = express();
 const port = 4000;
@@ -34,6 +35,9 @@ SecretsManagerSingleton.prepare([
 
   // twilio
   TwilioSingleton.prepare();
+
+  // sens
+  SensSingleton.prepare();
 });
 
 // body parser
@@ -41,8 +45,8 @@ app.use(express.json());
 
 // elastic beanstalk health check
 app.get('/', (req: Request, res: Response, next: NextFunction) => {
-  res.status(200).send()
-})
+  res.status(200).send();
+});
 
 // controllers
 app.use('/auth', AuthController);

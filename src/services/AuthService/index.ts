@@ -34,6 +34,7 @@ import { Op, Sequelize } from 'sequelize';
 import RequestService from '@services/RequestService';
 import { TwilioSingleton } from '@utils/twilio';
 import { JwtSingleton } from '@utils/jwt';
+import { SensSingleton } from '@utils/sens';
 
 class AuthService {
   static async login({
@@ -495,15 +496,31 @@ class AuthService {
         response.error = '인증번호 생성 오류입니다.';
         return response;
       }
+
       // send code
-      const sendMessageResponse = await TwilioSingleton.sendMessage({
-        body: `인증번호는 ${code} 입니다.`,
-        to: phone,
+      const sensSendMessageResponse = await SensSingleton.sendMessage({
+        templateCode: 'verifyCode',
+        messages: [
+          {
+            to: phone,
+            content: `인증번호는 ${code} 입니다.`,
+          },
+        ],
       });
-      if (!sendMessageResponse.ok) {
-        response.error = sendMessageResponse.error;
+      if (!sensSendMessageResponse.ok) {
+        // // failover
+        // const twilioSendMessageResponse = await TwilioSingleton.sendMessage({
+        //   body: `인증번호는 ${code} 입니다.`,
+        //   to: phone,
+        // });
+        // if (!twilioSendMessageResponse.ok) {
+        //   response.error = twilioSendMessageResponse.error;
+        //   return response;
+        // }
+        response.error = sensSendMessageResponse.error;
         return response;
       }
+
       response.ok = true;
     } catch (e) {
       console.error(e);

@@ -1,5 +1,8 @@
 import twilio from 'twilio';
-import { ISendMessageRequest, ISendMessageResponse } from '@utils/twilio/type';
+import {
+  ITwilioSendMessageRequest,
+  ITwilioSendMessageResponse,
+} from '@utils/twilio/type';
 import { SecretsManagerSingleton } from '@utils/secretesManager';
 
 export const TwilioSingleton = (() => {
@@ -7,7 +10,6 @@ export const TwilioSingleton = (() => {
 
   return {
     prepare: () => {
-      console.log(SecretsManagerSingleton.getSecrete('TWILIO_ACCOUNT_SID'));
       client = twilio(
         SecretsManagerSingleton.getSecrete('TWILIO_ACCOUNT_SID'),
         SecretsManagerSingleton.getSecrete('TWILIO_AUTH_TOKEN')
@@ -16,8 +18,8 @@ export const TwilioSingleton = (() => {
     sendMessage: async ({
       body,
       to,
-    }: ISendMessageRequest): Promise<ISendMessageResponse> => {
-      const response: ISendMessageResponse = {
+    }: ITwilioSendMessageRequest): Promise<ITwilioSendMessageResponse> => {
+      const response: ITwilioSendMessageResponse = {
         ok: false,
         error: '',
       };
