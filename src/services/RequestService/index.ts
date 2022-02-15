@@ -39,6 +39,7 @@ import UserModel from '@models/UserModel';
 import { ICorporateRequest } from '@controllers/RequestController/type';
 import careerModel from '@models/CareerModel';
 import { TwilioSingleton } from '@utils/twilio';
+import { SensSingleton } from '@utils/sens';
 
 class RequestService {
   static async register({
@@ -115,9 +116,14 @@ class RequestService {
         }
       }
       // send agree link to candidate
-      const sendMessageResponse = await TwilioSingleton.sendMessage({
-        body: `${userFindOneResult.name}에서 평판 조회 동의를 요청했습니다. 다음 링크로 접속하여 로그인 후 동의해주세요. ${process.env.WEB_URL}/auth/login/candidate?code=${code}`,
-        to: phone,
+      const sendMessageResponse = await SensSingleton.sendMessage({
+        templateCode: 'agree',
+        messages: [
+          {
+            to: phone,
+            content: `${userFindOneResult.name}에서 평판 조회 동의를 요청했습니다. 다음 링크로 접속하여 로그인 후 동의해주세요. ${process.env.WEB_URL}/auth/login/candidate?code=${code}`,
+          },
+        ],
       });
       if (!sendMessageResponse.ok) {
         response.error = sendMessageResponse.error;
@@ -660,9 +666,14 @@ class RequestService {
             });
             if (!userFindOneResult) continue;
             // send alarm
-            const sendMessageResponse = await TwilioSingleton.sendMessage({
-              body: '새로운 의뢰가 도착했습니다.',
-              to: userFindOneResult.phone,
+            const sendMessageResponse = await SensSingleton.sendMessage({
+              templateCode: 'receive',
+              messages: [
+                {
+                  to: userFindOneResult.phone,
+                  content: `새로운 의뢰가 도착했습니다. 다음 링크로 접속하여 확인해보세요. ${process.env.WEB_URL}`,
+                },
+              ],
             });
           }
         }
@@ -818,18 +829,23 @@ class RequestService {
         return response;
       }
       // find corporate phone
-      const userFineOneResult = await UserModel.findOne({
+      const userFindOneResult = await UserModel.findOne({
         attributes: ['phone'],
         where: { id: requestFindOneResult.corporateId },
       });
-      if (!userFineOneResult) {
+      if (!userFindOneResult) {
         response.error = '기업 검색 오류입니다.';
         return response;
       }
       // send alarm
-      const sendMessageResponse = await TwilioSingleton.sendMessage({
-        body: '새로운 답변이 등록되었습니다.',
-        to: userFineOneResult.phone,
+      const sendMessageResponse = await SensSingleton.sendMessage({
+        templateCode: 'answer',
+        messages: [
+          {
+            to: userFindOneResult.phone,
+            content: `새로운 답변이 등록되었습니다. 다음 링크로 접속하여 확인해보세요. ${process.env.WEB_URL}\n\n해당 답변 알림 메시지는 회원님의 알림 신청에 의해 발송됩니다.`,
+          },
+        ],
       });
       response.ok = true;
     } catch (e) {
@@ -947,9 +963,14 @@ class RequestService {
           });
           if (!userFindOneResult) continue;
           // send alarm
-          const sendMessageResponse = await TwilioSingleton.sendMessage({
-            body: '새로운 의뢰가 도착했습니다.',
-            to: userFindOneResult.phone,
+          const sendMessageResponse = await SensSingleton.sendMessage({
+            templateCode: 'receive',
+            messages: [
+              {
+                to: userFindOneResult.phone,
+                content: `새로운 의뢰가 도착했습니다. 다음 링크로 접속하여 확인해보세요. ${process.env.WEB_URL}`,
+              },
+            ],
           });
         }
       }

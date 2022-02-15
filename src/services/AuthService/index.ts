@@ -498,7 +498,7 @@ class AuthService {
       }
 
       // send code
-      const sensSendMessageResponse = await SensSingleton.sendMessage({
+      const sendMessageResponse = await SensSingleton.sendMessage({
         templateCode: 'verifyCode',
         messages: [
           {
@@ -507,17 +507,8 @@ class AuthService {
           },
         ],
       });
-      if (!sensSendMessageResponse.ok) {
-        // // failover
-        // const twilioSendMessageResponse = await TwilioSingleton.sendMessage({
-        //   body: `인증번호는 ${code} 입니다.`,
-        //   to: phone,
-        // });
-        // if (!twilioSendMessageResponse.ok) {
-        //   response.error = twilioSendMessageResponse.error;
-        //   return response;
-        // }
-        response.error = sensSendMessageResponse.error;
+      if (!sendMessageResponse.ok) {
+        response.error = sendMessageResponse.error;
         return response;
       }
 
