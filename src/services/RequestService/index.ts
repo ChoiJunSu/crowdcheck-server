@@ -121,7 +121,7 @@ class RequestService {
         messages: [
           {
             to: phone,
-            content: `${userFindOneResult.name}에서 평판 조회 동의를 요청했습니다. 다음 링크로 접속하여 로그인 후 동의해주세요. ${process.env.WEB_URL}/auth/login/candidate?code=${code}`,
+            content: `${userFindOneResult.name}에서 평판 조회 동의를 요청하였습니다. 다음 링크로 접속하여 로그인 후 동의를 완료해주세요. ${process.env.WEB_URL}/auth/login/candidate?code=${code}`,
           },
         ],
       });
@@ -671,7 +671,7 @@ class RequestService {
               messages: [
                 {
                   to: userFindOneResult.phone,
-                  content: `새로운 의뢰가 도착했습니다. 다음 링크로 접속하여 확인해보세요. ${process.env.WEB_URL}`,
+                  content: `새로운 의뢰가 도착하였습니다. 다음 링크로 접속하여 확인해보세요. ${process.env.WEB_URL}`,
                 },
               ],
             });
