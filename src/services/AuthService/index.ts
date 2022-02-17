@@ -146,7 +146,6 @@ class AuthService {
   static async loginCandidate({
     name,
     phone,
-    code,
   }: IAuthLoginCandidateRequest): Promise<IAuthLoginCandidateResponse> {
     const response: IAuthLoginCandidateResponse = {
       ok: false,
@@ -174,7 +173,6 @@ class AuthService {
         where: {
           name,
           phone,
-          code,
         },
       });
       if (!candidateFindOneResult) {

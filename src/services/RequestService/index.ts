@@ -53,7 +53,6 @@ class RequestService {
     const response: IRequestRegisterResponse = {
       ok: false,
       error: '',
-      code: '',
     };
 
     try {
@@ -76,15 +75,11 @@ class RequestService {
         response.error = '의뢰 생성 오류입니다.';
         return response;
       }
-      // generate code
-      const randomByteResult = await randomBytes(10);
-      const code = randomByteResult.toString('hex');
       // create candidate
       const createCandidateResult = await CandidateModel.create({
         requestId: createRequestResult.id,
         name,
         phone,
-        code,
       });
       if (!createCandidateResult) {
         response.error = '지원자 생성 오류입니다.';
@@ -121,7 +116,7 @@ class RequestService {
         messages: [
           {
             to: phone,
-            content: `${userFindOneResult.name}에서 평판 조회 동의를 요청하였습니다. 다음 링크로 접속하여 로그인 후 동의를 완료해주세요. ${process.env.WEB_URL}/auth/login/candidate?code=${code}`,
+            content: `${userFindOneResult.name}에서 평판 조회 동의를 요청하였습니다. 다음 링크로 접속하여 로그인 후 동의를 완료해주세요. ${process.env.WEB_URL}/auth/login/candidate`,
           },
         ],
       });
@@ -129,7 +124,6 @@ class RequestService {
         response.error = sendMessageResponse.error;
         return response;
       }
-      response.code = code;
       response.ok = true;
     } catch (e) {
       console.error(e);

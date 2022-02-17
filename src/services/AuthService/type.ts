@@ -41,7 +41,6 @@ export interface IAuthLoginOauthResponse extends IBaseServiceResponse {
 export interface IAuthLoginCandidateRequest extends IBaseServiceRequest {
   name: string;
   phone: string;
-  code: string;
 }
 
 export interface IAuthLoginCandidateResponse extends IBaseServiceResponse {

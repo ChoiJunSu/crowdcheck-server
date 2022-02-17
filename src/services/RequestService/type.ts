@@ -20,9 +20,7 @@ export interface IRequestRegisterRequest extends IBaseServiceRequest {
   deadline: Date | null;
 }
 
-export interface IRequestRegisterResponse extends IBaseServiceResponse {
-  code: string;
-}
+export interface IRequestRegisterResponse extends IBaseServiceResponse {}
 
 export interface IRequestGetReceiverRequest extends IBaseServiceRequest {
   requestId: number;
