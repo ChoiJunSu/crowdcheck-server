@@ -112,11 +112,11 @@ class RequestService {
       }
       // send agree link to candidate
       const sendMessageResponse = await SensSingleton.sendMessage({
-        templateCode: 'agree',
+        templateCode: 'agree2',
         messages: [
           {
             to: phone,
-            content: `${userFindOneResult.name}에서 평판 조회 동의를 요청하였습니다. 다음 링크로 접속하여 로그인 후 동의를 완료해주세요. ${process.env.WEB_URL}/auth/login/candidate`,
+            content: `새로운 평판 조회 동의 요청이 도착하였습니다.\n\n(해당 답변 알림 메시지는 회원 님의 알림 신청에 의해 발송됩니다.)`,
           },
         ],
       });
@@ -661,11 +661,11 @@ class RequestService {
             if (!userFindOneResult) continue;
             // send alarm
             const sendMessageResponse = await SensSingleton.sendMessage({
-              templateCode: 'receive',
+              templateCode: 'receive2',
               messages: [
                 {
                   to: userFindOneResult.phone,
-                  content: `새로운 의뢰가 도착하였습니다. 다음 링크로 접속하여 확인해보세요. ${process.env.WEB_URL}`,
+                  content: `새로운 의뢰가 도착하였습니다.\n\n(해당 의뢰 알림 메시지는 회원 님의 알림 신청에 의해 발송됩니다.)`,
                 },
               ],
             });
@@ -833,11 +833,11 @@ class RequestService {
       }
       // send alarm
       const sendMessageResponse = await SensSingleton.sendMessage({
-        templateCode: 'answer',
+        templateCode: 'answer2',
         messages: [
           {
             to: userFindOneResult.phone,
-            content: `새로운 답변이 등록되었습니다. 다음 링크로 접속하여 확인해보세요. ${process.env.WEB_URL}\n\n해당 답변 알림 메시지는 회원님의 알림 신청에 의해 발송됩니다.`,
+            content: `새로운 답변이 등록되었습니다.\n\n(해당 답변 알림 메시지는 회원 님의 알림 신청에 의해 발송됩니다.)`,
           },
         ],
       });
@@ -958,11 +958,11 @@ class RequestService {
           if (!userFindOneResult) continue;
           // send alarm
           const sendMessageResponse = await SensSingleton.sendMessage({
-            templateCode: 'receive',
+            templateCode: 'receive2',
             messages: [
               {
                 to: userFindOneResult.phone,
-                content: `새로운 의뢰가 도착했습니다. 다음 링크로 접속하여 확인해보세요. ${process.env.WEB_URL}`,
+                content: `새로운 의뢰가 도착하였습니다.\n\n(해당 의뢰 알림 메시지는 회원 님의 알림 신청에 의해 발송됩니다.)`,
               },
             ],
           });
