@@ -117,6 +117,14 @@ class RequestService {
           {
             to: phone,
             content: `평판 조회 동의 요청이 도착하였습니다. 아래 버튼으로 접속하여 로그인 후 동의를 완료해주세요.`,
+            buttons: [
+              {
+                type: 'WL',
+                name: '동의하러 가기',
+                linkMobile: 'https://crowdcheck.io/auth/login/candidate',
+                linkPc: 'https://crowdcheck.io/auth/login/candidate',
+              },
+            ],
           },
         ],
       });
@@ -666,6 +674,14 @@ class RequestService {
                 {
                   to: userFindOneResult.phone,
                   content: `새로운 의뢰가 도착하였습니다.\n\n(해당 의뢰 알림 메시지는 회원 님의 알림 신청에 의해 발송됩니다.)`,
+                  buttons: [
+                    {
+                      type: 'WL',
+                      name: '답변하러 가기',
+                      linkMobile: 'https://crowdcheck.io',
+                      linkPc: 'https://crowdcheck.io',
+                    },
+                  ],
                 },
               ],
             });
@@ -838,6 +854,14 @@ class RequestService {
           {
             to: userFindOneResult.phone,
             content: `새로운 답변이 등록되었습니다.\n\n(해당 답변 알림 메시지는 회원 님의 알림 신청에 의해 발송됩니다.)`,
+            buttons: [
+              {
+                type: 'WL',
+                name: '확인하러 가기',
+                linkMobile: 'https://crowdcheck.io',
+                linkPc: 'https://crowdcheck.io',
+              },
+            ],
           },
         ],
       });
@@ -963,6 +987,14 @@ class RequestService {
               {
                 to: userFindOneResult.phone,
                 content: `새로운 의뢰가 도착하였습니다.\n\n(해당 의뢰 알림 메시지는 회원 님의 알림 신청에 의해 발송됩니다.)`,
+                buttons: [
+                  {
+                    type: 'WL',
+                    name: '답변하러 가기',
+                    linkMobile: 'https://crowdcheck.io',
+                    linkPc: 'https://crowdcheck.io',
+                  },
+                ],
               },
             ],
           });

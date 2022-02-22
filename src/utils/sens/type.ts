@@ -4,6 +4,14 @@ export interface ISensSendMessageRequest {
     {
       to: string;
       content: string;
+      buttons?: [
+        {
+          type: string;
+          name: string;
+          linkMobile: string;
+          linkPc: string;
+        }
+      ];
     }
   ];
 }

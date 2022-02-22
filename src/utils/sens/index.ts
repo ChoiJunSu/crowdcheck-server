@@ -5,7 +5,6 @@ import {
 } from '@utils/sens/type';
 import crypto from 'crypto';
 import axios from 'axios';
-import { URLSearchParams } from 'url';
 
 export const SensSingleton = (() => {
   const client = {
