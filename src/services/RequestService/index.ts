@@ -112,11 +112,11 @@ class RequestService {
       }
       // send agree link to candidate
       const sendMessageResponse = await SensSingleton.sendMessage({
-        templateCode: 'agree2',
+        templateCode: 'agree3',
         messages: [
           {
             to: phone,
-            content: `새로운 평판 조회 동의 요청이 도착하였습니다.\n\n(해당 답변 알림 메시지는 회원 님의 알림 신청에 의해 발송됩니다.)`,
+            content: `평판 조회 동의 요청이 도착하였습니다. 아래 버튼으로 접속하여 로그인 후 동의를 완료해주세요.`,
           },
         ],
       });
