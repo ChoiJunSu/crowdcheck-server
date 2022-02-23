@@ -1,6 +1,4 @@
 import {
-  IRequestRegisterRequest,
-  IRequestRegisterResponse,
   IRequestGetCandidateRequest,
   IRequestGetCandidateResponse,
   IRequestListCandidateRequest,
@@ -25,12 +23,13 @@ import {
   IRequestUpdateReceiverResponse,
   IRequestGetCorporateAgreeRequest,
   IRequestGetCorporateAgreeResponse,
+  IRequestRegisterReferenceRequest,
+  IRequestRegisterReferenceResponse,
 } from '@services/RequestService/type';
 import RequestModel from '@models/RequestModel';
 import CorporateModel from '@models/CorporateModel';
 import CandidateModel from '@models/CandidateModel';
 import CandidateAgreeModel from '@models/CandidateAgreeModel';
-import { randomBytes } from 'crypto';
 import CareerModel from '@models/CareerModel';
 import { Op, Sequelize } from 'sequelize';
 import ReceiverModel from '@models/ReceiverModel';
@@ -38,19 +37,18 @@ import { MAX_TIMESTAMP } from '@constants/date';
 import UserModel from '@models/UserModel';
 import { ICorporateRequest } from '@controllers/RequestController/type';
 import careerModel from '@models/CareerModel';
-import { TwilioSingleton } from '@utils/twilio';
 import { SensSingleton } from '@utils/sens';
 
 class RequestService {
-  static async register({
+  static async registerReference({
     userId,
     name,
     phone,
     careers,
     question,
     deadline,
-  }: IRequestRegisterRequest): Promise<IRequestRegisterResponse> {
-    const response: IRequestRegisterResponse = {
+  }: IRequestRegisterReferenceRequest): Promise<IRequestRegisterReferenceResponse> {
+    const response: IRequestRegisterReferenceResponse = {
       ok: false,
       error: '',
     };
@@ -70,6 +68,7 @@ class RequestService {
         corporateId: userFindOneResult.corporateId,
         question,
         deadline: deadline || new Date(MAX_TIMESTAMP),
+        type: 'reference',
       });
       if (!createRequestResult) {
         response.error = '의뢰 생성 오류입니다.';

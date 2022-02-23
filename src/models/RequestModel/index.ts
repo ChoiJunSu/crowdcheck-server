@@ -3,6 +3,7 @@ import {
   IRequestAttributes,
   IRequestCreationAttributes,
   TRequestStatus,
+  TRequestType,
 } from '@models/RequestModel/type';
 import CorporateModel from '@models/CorporateModel';
 import CandidateModel from '@models/CandidateModel';
@@ -18,6 +19,7 @@ class RequestModel
   declare question: string;
   declare deadline: Date;
   declare agreeDescription: string | null;
+  declare type: TRequestType;
   declare status: TRequestStatus;
   declare sentAt: Date;
   declare agreedAt: Date | null;
@@ -57,6 +59,10 @@ export const initRequestModel = (sequelize: Sequelize) => {
       agreeDescription: {
         type: DataTypes.STRING,
         defaultValue: null,
+      },
+      type: {
+        type: DataTypes.ENUM('reference', 'resume'),
+        allowNull: false,
       },
       status: {
         type: DataTypes.ENUM('registered', 'agreed', 'closed'),

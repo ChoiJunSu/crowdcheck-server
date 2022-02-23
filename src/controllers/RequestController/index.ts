@@ -10,7 +10,7 @@ import {
   IRequestListCandidateRequest,
   IRequestListCorporateRequest,
   IRequestListReceiverRequest,
-  IRequestRegisterRequest,
+  IRequestRegisterReferenceRequest,
   IRequestVerifyRequest,
 } from '@services/RequestService/type';
 import AuthMiddleware from '@middlewares/AuthMiddleware';
@@ -29,14 +29,14 @@ RequestController.post(
     const { name, phone, careers, question, deadline } = req.body;
 
     return res.send(
-      await RequestService.register({
+      await RequestService.registerReference({
         userId: req.user!.id,
         name,
         phone,
         careers,
         question,
         deadline,
-      } as IRequestRegisterRequest)
+      } as IRequestRegisterReferenceRequest)
     );
   }
 );

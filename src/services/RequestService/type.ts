@@ -11,7 +11,7 @@ import {
   IReceiverRequest,
 } from '@controllers/RequestController/type';
 
-export interface IRequestRegisterRequest extends IBaseServiceRequest {
+export interface IRequestRegisterReferenceRequest extends IBaseServiceRequest {
   userId: number;
   name: string;
   phone: string;
@@ -20,7 +20,8 @@ export interface IRequestRegisterRequest extends IBaseServiceRequest {
   deadline: Date | null;
 }
 
-export interface IRequestRegisterResponse extends IBaseServiceResponse {}
+export interface IRequestRegisterReferenceResponse
+  extends IBaseServiceResponse {}
 
 export interface IRequestGetReceiverRequest extends IBaseServiceRequest {
   requestId: number;
