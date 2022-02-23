@@ -10,6 +10,7 @@ import { initCandidateModel } from '@models/CandidateModel';
 import { initCorporateVerifyModel } from '@models/CorporateVerifyModel';
 import { initReceiverModel } from '@models/ReceiverModel';
 import { initRequestModel } from '@models/RequestModel';
+import { initCandidateResumeModel } from '@models/CandidateResumeModel';
 
 export const SequelizeSingleton = (() => {
   let sequelize: Sequelize;
@@ -32,6 +33,7 @@ export const SequelizeSingleton = (() => {
       initUserModel(sequelize);
       initRequestModel(sequelize);
       initCandidateModel(sequelize);
+      initCandidateResumeModel(sequelize);
       initCandidateAgreeModel(sequelize);
       initCareerModel(sequelize);
       initCareerVerifyModel(sequelize);

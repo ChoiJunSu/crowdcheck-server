@@ -15,7 +15,6 @@ class CandidateModel
   declare requestId: number;
   declare name: string;
   declare phone: string;
-  declare userId: number | null;
 
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
@@ -44,10 +43,6 @@ export const initCandidateModel = (sequelize: Sequelize) => {
       phone: {
         type: DataTypes.STRING,
         allowNull: false,
-      },
-      userId: {
-        type: DataTypes.INTEGER,
-        defaultValue: null,
       },
     },
     {

@@ -1,30 +1,32 @@
 import {
-  IRequestGetCandidateRequest,
-  IRequestGetCandidateResponse,
-  IRequestListCandidateRequest,
-  IRequestListCandidateResponse,
-  IRequestAgreeRequest,
-  IRequestAgreeResponse,
-  IRequestListReceiverRequest,
-  IRequestListReceiverResponse,
-  IRequestVerifyRequest,
-  IRequestVerifyResponse,
-  IRequestGetReceiverRequest,
-  IRequestGetReceiverResponse,
-  IRequestAnswerRequest,
-  IRequestAnswerResponse,
-  IRequestListCorporateRequest,
-  IRequestListCorporateResponse,
-  IRequestGetCorporateRequest,
-  IRequestGetCorporateResponse,
+  IRequestReferenceGetCandidateRequest,
+  IRequestReferenceGetCandidateResponse,
+  IRequestReferenceListCandidateRequest,
+  IRequestReferenceListCandidateResponse,
+  IRequestReferenceAgreeRequest,
+  IRequestReferenceAgreeResponse,
+  IRequestReferenceListReceiverRequest,
+  IRequestReferenceListReceiverResponse,
+  IRequestReferenceVerifyRequest,
+  IRequestReferenceVerifyResponse,
+  IRequestReferenceGetReceiverRequest,
+  IRequestReferenceGetReceiverResponse,
+  IRequestReferenceAnswerRequest,
+  IRequestReferenceAnswerResponse,
+  IRequestReferenceListCorporateRequest,
+  IRequestReferenceListCorporateResponse,
+  IRequestReferenceGetCorporateRequest,
+  IRequestReferenceGetCorporateResponse,
   IRequestRejectRequest,
   IRequestRejectResponse,
   IRequestUpdateReceiverRequest,
   IRequestUpdateReceiverResponse,
-  IRequestGetCorporateAgreeRequest,
-  IRequestGetCorporateAgreeResponse,
-  IRequestRegisterReferenceRequest,
-  IRequestRegisterReferenceResponse,
+  IRequestReferenceGetCorporateAgreeRequest,
+  IRequestReferenceGetCorporateAgreeResponse,
+  IRequestReferenceRegisterRequest,
+  IRequestReferenceRegisterResponse,
+  IRequestResumeRegisterRequest,
+  IRequestResumeRegisterResponse,
 } from '@services/RequestService/type';
 import RequestModel from '@models/RequestModel';
 import CorporateModel from '@models/CorporateModel';
@@ -35,20 +37,21 @@ import { Op, Sequelize } from 'sequelize';
 import ReceiverModel from '@models/ReceiverModel';
 import { MAX_TIMESTAMP } from '@constants/date';
 import UserModel from '@models/UserModel';
-import { ICorporateRequest } from '@controllers/RequestController/type';
+import { IRequestReferenceCorporate } from '@controllers/RequestController/type';
 import careerModel from '@models/CareerModel';
 import { SensSingleton } from '@utils/sens';
+import CandidateResumeModel from '@models/CandidateResumeModel';
 
 class RequestService {
-  static async registerReference({
+  static async referenceRegister({
     userId,
     name,
     phone,
     careers,
     question,
     deadline,
-  }: IRequestRegisterReferenceRequest): Promise<IRequestRegisterReferenceResponse> {
-    const response: IRequestRegisterReferenceResponse = {
+  }: IRequestReferenceRegisterRequest): Promise<IRequestReferenceRegisterResponse> {
+    const response: IRequestReferenceRegisterResponse = {
       ok: false,
       error: '',
     };
@@ -141,11 +144,65 @@ class RequestService {
     return response;
   }
 
-  static async getReceiver({
+  static async resumeRegister({
+    userId,
+    memo,
+    resume,
+    question,
+    deadline,
+  }: IRequestResumeRegisterRequest): Promise<IRequestResumeRegisterResponse> {
+    const response: IRequestResumeRegisterResponse = {
+      ok: false,
+      error: '',
+    };
+
+    try {
+      // find corporate id
+      const userFindOneResult = await UserModel.findOne({
+        attributes: ['name', 'corporateId'],
+        where: { id: userId },
+      });
+      if (!userFindOneResult || !userFindOneResult.corporateId) {
+        response.error = '사용자 검색 오류입니다.';
+        return response;
+      }
+      // create request
+      const createRequestResult = await RequestModel.create({
+        corporateId: userFindOneResult.corporateId,
+        memo,
+        question,
+        deadline: deadline || new Date(MAX_TIMESTAMP),
+        type: 'resume',
+      });
+      if (!createRequestResult || !createRequestResult.id) {
+        response.error = '의뢰 생성 오류입니다.';
+        return response;
+      }
+      // create candidateResume
+      const candidateResumeCreateResult = await CandidateResumeModel.create({
+        requestId: createRequestResult.id,
+        resumeBucket: resume.bucket,
+        resumeKey: resume.key,
+      });
+      if (!candidateResumeCreateResult) {
+        response.error = '이력서 생성 오류입니다.';
+        return response;
+      }
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '의뢰 등록에 실패했습니다.';
+      return response;
+    }
+
+    return response;
+  }
+
+  static async referenceGetReceiver({
     requestId,
     userId,
-  }: IRequestGetReceiverRequest): Promise<IRequestGetReceiverResponse> {
-    const response: IRequestGetReceiverResponse = {
+  }: IRequestReferenceGetReceiverRequest): Promise<IRequestReferenceGetReceiverResponse> {
+    const response: IRequestReferenceGetReceiverResponse = {
       ok: false,
       error: '',
       corporateName: '',
@@ -199,11 +256,11 @@ class RequestService {
     return response;
   }
 
-  static async getCorporate({
+  static async referenceGetCorporate({
     requestId,
     userId,
-  }: IRequestGetCorporateRequest): Promise<IRequestGetCorporateResponse> {
-    const response: IRequestGetCorporateResponse = {
+  }: IRequestReferenceGetCorporateRequest): Promise<IRequestReferenceGetCorporateResponse> {
+    const response: IRequestReferenceGetCorporateResponse = {
       ok: false,
       error: '',
       candidateName: '',
@@ -275,11 +332,11 @@ class RequestService {
     return response;
   }
 
-  static async getCorporateAgree({
+  static async referenceGetCorporateAgree({
     requestId,
     userId,
-  }: IRequestGetCorporateAgreeRequest): Promise<IRequestGetCorporateAgreeResponse> {
-    const response: IRequestGetCorporateAgreeResponse = {
+  }: IRequestReferenceGetCorporateAgreeRequest): Promise<IRequestReferenceGetCorporateAgreeResponse> {
+    const response: IRequestReferenceGetCorporateAgreeResponse = {
       ok: false,
       error: '',
       candidateName: '',
@@ -345,11 +402,11 @@ class RequestService {
     return response;
   }
 
-  static async getCandidate({
+  static async referenceGetCandidate({
     requestId,
     candidateId,
-  }: IRequestGetCandidateRequest): Promise<IRequestGetCandidateResponse> {
-    const response: IRequestGetCandidateResponse = {
+  }: IRequestReferenceGetCandidateRequest): Promise<IRequestReferenceGetCandidateResponse> {
+    const response: IRequestReferenceGetCandidateResponse = {
       ok: false,
       error: '',
       corporateName: '',
@@ -409,10 +466,10 @@ class RequestService {
     return response;
   }
 
-  static async listReceiver({
+  static async referenceListReceiver({
     userId,
-  }: IRequestListReceiverRequest): Promise<IRequestListReceiverResponse> {
-    const response: IRequestListReceiverResponse = {
+  }: IRequestReferenceListReceiverRequest): Promise<IRequestReferenceListReceiverResponse> {
+    const response: IRequestReferenceListReceiverResponse = {
       ok: false,
       error: '',
       requests: [],
@@ -464,10 +521,10 @@ class RequestService {
     return response;
   }
 
-  static async listCorporate({
+  static async referenceListCorporate({
     userId,
-  }: IRequestListCorporateRequest): Promise<IRequestListCorporateResponse> {
-    const response: IRequestListCorporateResponse = {
+  }: IRequestReferenceListCorporateRequest): Promise<IRequestReferenceListCorporateResponse> {
+    const response: IRequestReferenceListCorporateResponse = {
       ok: false,
       error: '',
       requests: [],
@@ -501,7 +558,7 @@ class RequestService {
       // find receiver and push request
       for (const { id, status, Candidate } of requestFindAllResult) {
         if (!Candidate) continue;
-        const request: ICorporateRequest = {
+        const request: IRequestReferenceCorporate = {
           id,
           status,
           candidateName: Candidate.name,
@@ -529,10 +586,10 @@ class RequestService {
     return response;
   }
 
-  static async listCandidate({
+  static async referenceListCandidate({
     candidateId,
-  }: IRequestListCandidateRequest): Promise<IRequestListCandidateResponse> {
-    const response: IRequestListCandidateResponse = {
+  }: IRequestReferenceListCandidateRequest): Promise<IRequestReferenceListCandidateResponse> {
+    const response: IRequestReferenceListCandidateResponse = {
       ok: false,
       error: '',
       requests: [],
@@ -583,8 +640,8 @@ class RequestService {
     requestId,
     agrees,
     agreeDescription,
-  }: IRequestAgreeRequest): Promise<IRequestAgreeResponse> {
-    const response: IRequestAgreeResponse = {
+  }: IRequestReferenceAgreeRequest): Promise<IRequestReferenceAgreeResponse> {
+    const response: IRequestReferenceAgreeResponse = {
       ok: false,
       error: '',
     };
@@ -709,8 +766,8 @@ class RequestService {
     requestId,
     userId,
     candidatePhone,
-  }: IRequestVerifyRequest): Promise<IRequestVerifyResponse> {
-    const response: IRequestVerifyResponse = {
+  }: IRequestReferenceVerifyRequest): Promise<IRequestReferenceVerifyResponse> {
+    const response: IRequestReferenceVerifyResponse = {
       ok: false,
       error: '',
     };
@@ -788,12 +845,12 @@ class RequestService {
     return response;
   }
 
-  static async answer({
+  static async referenceAnswer({
     requestId,
     userId,
     answer,
-  }: IRequestAnswerRequest): Promise<IRequestAnswerResponse> {
-    const response: IRequestAnswerResponse = {
+  }: IRequestReferenceAnswerRequest): Promise<IRequestReferenceAnswerResponse> {
+    const response: IRequestReferenceAnswerResponse = {
       ok: false,
       error: '',
     };
@@ -873,7 +930,7 @@ class RequestService {
     return response;
   }
 
-  static async reject({
+  static async referenceReject({
     requestId,
     userId,
   }: IRequestRejectRequest): Promise<IRequestRejectResponse> {

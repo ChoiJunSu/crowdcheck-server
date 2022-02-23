@@ -1,17 +1,18 @@
 import { AsyncRouter } from 'express-async-router';
 import RequestService from '@services/RequestService';
 import {
-  IRequestAgreeRequest,
-  IRequestAnswerRequest,
-  IRequestGetCandidateRequest,
-  IRequestGetCorporateAgreeRequest,
-  IRequestGetCorporateRequest,
-  IRequestGetReceiverRequest,
-  IRequestListCandidateRequest,
-  IRequestListCorporateRequest,
-  IRequestListReceiverRequest,
-  IRequestRegisterReferenceRequest,
-  IRequestVerifyRequest,
+  IRequestReferenceAgreeRequest,
+  IRequestReferenceAnswerRequest,
+  IRequestReferenceGetCandidateRequest,
+  IRequestReferenceGetCorporateAgreeRequest,
+  IRequestReferenceGetCorporateRequest,
+  IRequestReferenceGetReceiverRequest,
+  IRequestReferenceListCandidateRequest,
+  IRequestReferenceListCorporateRequest,
+  IRequestReferenceListReceiverRequest,
+  IRequestReferenceRegisterRequest,
+  IRequestResumeRegisterRequest,
+  IRequestReferenceVerifyRequest,
 } from '@services/RequestService/type';
 import AuthMiddleware from '@middlewares/AuthMiddleware';
 import {
@@ -19,112 +20,134 @@ import {
   IRequest,
   IResponse,
 } from '@controllers/BaseController/type';
+import { MulterMiddleware } from '@middlewares/MultureMiddleware';
 
 const RequestController = AsyncRouter();
 
 RequestController.post(
-  '/register',
+  '/reference/register',
   AuthMiddleware.isCorporate,
   async (req: IRequest, res: IResponse, next: INextFunction) => {
     const { name, phone, careers, question, deadline } = req.body;
 
     return res.send(
-      await RequestService.registerReference({
+      await RequestService.referenceRegister({
         userId: req.user!.id,
         name,
         phone,
         careers,
         question,
         deadline,
-      } as IRequestRegisterReferenceRequest)
+      } as IRequestReferenceRegisterRequest)
+    );
+  }
+);
+
+RequestController.post(
+  '/resume/register',
+  AuthMiddleware.isCorporate,
+  MulterMiddleware.upload.single('resume'),
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    const { memo, question, deadline } = req.body;
+    if (!req.file)
+      return res.send({ ok: false, error: '이력서를 업로드해주세요.' });
+
+    return res.send(
+      await RequestService.resumeRegister({
+        userId: req.user!.id,
+        memo,
+        resume: req.file,
+        question,
+        deadline,
+      } as IRequestResumeRegisterRequest)
     );
   }
 );
 
 RequestController.get(
-  '/get/receiver',
+  '/reference/get/receiver',
   AuthMiddleware.isPersonal,
   async (req: IRequest, res: IResponse, next: INextFunction) => {
     const { requestId } = req.query;
 
-    return await RequestService.getReceiver({
+    return await RequestService.referenceGetReceiver({
       requestId: parseInt(requestId as string),
       userId: req.user!.id,
-    } as IRequestGetReceiverRequest);
+    } as IRequestReferenceGetReceiverRequest);
   }
 );
 
 RequestController.get(
-  '/get/corporate',
+  '/reference/get/corporate',
   AuthMiddleware.isCorporate,
   async (req: IRequest, res: IResponse, next: INextFunction) => {
     const { requestId } = req.query;
 
-    return await RequestService.getCorporate({
+    return await RequestService.referenceGetCorporate({
       requestId: parseInt(requestId as string),
       userId: req.user!.id,
-    } as IRequestGetCorporateRequest);
+    } as IRequestReferenceGetCorporateRequest);
   }
 );
 
 RequestController.get(
-  '/get/corporate/agree',
+  '/reference/get/corporate/agree',
   AuthMiddleware.isCorporate,
   async (req: IRequest, res: IResponse, next: INextFunction) => {
     const { requestId } = req.query;
 
-    return await RequestService.getCorporateAgree({
+    return await RequestService.referenceGetCorporateAgree({
       requestId: parseInt(requestId as string),
       userId: req.user!.id,
-    } as IRequestGetCorporateAgreeRequest);
+    } as IRequestReferenceGetCorporateAgreeRequest);
   }
 );
 
 RequestController.get(
-  '/get/candidate',
+  '/reference/get/candidate',
   AuthMiddleware.isCandidate,
   async (req: IRequest, res: IResponse, next: INextFunction) => {
     const { requestId } = req.query;
 
-    return await RequestService.getCandidate({
+    return await RequestService.referenceGetCandidate({
       requestId: parseInt(requestId as string),
       candidateId: req.user!.id,
-    } as IRequestGetCandidateRequest);
+    } as IRequestReferenceGetCandidateRequest);
   }
 );
 
 RequestController.get(
-  '/list/receiver',
+  '/reference/list/receiver',
   AuthMiddleware.isPersonal,
   async (req: IRequest, res: IResponse, next: INextFunction) => {
-    return await RequestService.listReceiver({
+    return await RequestService.referenceListReceiver({
       userId: req.user!.id,
-    } as IRequestListReceiverRequest);
+    } as IRequestReferenceListReceiverRequest);
   }
 );
 
 RequestController.get(
-  '/list/corporate',
+  '/reference/list/corporate',
   AuthMiddleware.isCorporate,
   async (req: IRequest, res: IResponse, next: INextFunction) => {
-    return await RequestService.listCorporate({
+    return await RequestService.referenceListCorporate({
       userId: req.user!.id,
-    } as IRequestListCorporateRequest);
+    } as IRequestReferenceListCorporateRequest);
   }
 );
 
 RequestController.get(
-  '/list/candidate',
+  '/reference/list/candidate',
   AuthMiddleware.isCandidate,
   async (req: IRequest, res: IResponse, next: INextFunction) => {
-    return await RequestService.listCandidate({
+    return await RequestService.referenceListCandidate({
       candidateId: req.user!.id,
-    } as IRequestListCandidateRequest);
+    } as IRequestReferenceListCandidateRequest);
   }
 );
 
 RequestController.post(
-  '/agree',
+  '/reference/agree',
   AuthMiddleware.isCandidate,
   async (req: IRequest, res: IResponse, next: INextFunction) => {
     const { requestId, agrees, agreeDescription } = req.body;
@@ -134,12 +157,12 @@ RequestController.post(
       requestId: parseInt(requestId),
       agrees,
       agreeDescription,
-    } as IRequestAgreeRequest);
+    } as IRequestReferenceAgreeRequest);
   }
 );
 
 RequestController.post(
-  '/verify',
+  '/reference/verify',
   AuthMiddleware.isPersonal,
   async (req: IRequest, res: IResponse, next: INextFunction) => {
     const { requestId, candidatePhone } = req.body;
@@ -148,34 +171,34 @@ RequestController.post(
       requestId: parseInt(requestId),
       userId: req.user!.id,
       candidatePhone,
-    } as IRequestVerifyRequest);
+    } as IRequestReferenceVerifyRequest);
   }
 );
 
 RequestController.post(
-  '/answer',
+  '/reference/answer',
   AuthMiddleware.isPersonal,
   async (req: IRequest, res: IResponse, next: INextFunction) => {
     const { requestId, answer } = req.body;
 
-    return await RequestService.answer({
+    return await RequestService.referenceAnswer({
       requestId: parseInt(requestId),
       userId: req.user!.id,
       answer,
-    } as IRequestAnswerRequest);
+    } as IRequestReferenceAnswerRequest);
   }
 );
 
 RequestController.get(
-  '/reject',
+  '/reference/reject',
   AuthMiddleware.isPersonal,
   async (req: IRequest, res: IResponse, next: INextFunction) => {
     const { requestId } = req.query;
 
-    return await RequestService.reject({
+    return await RequestService.referenceReject({
       requestId: parseInt(requestId as string),
       userId: req.user!.id,
-    } as IRequestAnswerRequest);
+    } as IRequestReferenceAnswerRequest);
   }
 );
 

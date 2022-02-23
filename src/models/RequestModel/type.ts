@@ -11,6 +11,7 @@ export interface IRequestAttributes {
   deadline: Date;
   agreeDescription?: string | null;
   type: TRequestType;
+  memo?: string | null;
   status?: TRequestStatus;
   registeredAt?: Date;
   agreedAt?: Date | null;

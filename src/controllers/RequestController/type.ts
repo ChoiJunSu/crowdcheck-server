@@ -1,21 +1,21 @@
 import { TRequestStatus } from '@models/RequestModel/type';
 import { TReceiverStatus } from '@models/ReceiverModel/type';
 
-export interface IReceiverRequest {
+export interface IRequestReferenceReceiver {
   id: number;
   corporateName: string;
   candidateName: string;
   status: TReceiverStatus;
 }
 
-export interface ICorporateRequest {
+export interface IRequestReferenceCorporate {
   id: number;
   candidateName: string;
   status: TRequestStatus;
   receivers: Array<IReceiver>;
 }
 
-export interface ICandidateRequest {
+export interface IRequestReferenceCandidate {
   id: number;
   corporateName: string;
   status: TRequestStatus;

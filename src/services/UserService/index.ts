@@ -95,7 +95,7 @@ class UserService {
     return response;
   }
 
-  static async getCorporate({
+  static async referenceGetCorporate({
     userId,
   }: IUserGetCorporateRequest): Promise<IUserGetCorporateResponse> {
     const response: IUserGetCorporateResponse = {

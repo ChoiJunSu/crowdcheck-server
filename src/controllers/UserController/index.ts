@@ -13,7 +13,7 @@ import {
   IUserGetPersonalRequest,
 } from '@services/UserService/type';
 import AuthMiddleware from '@middlewares/AuthMiddleware';
-import { MulterSingleton } from '@utils/multer';
+import { MulterMiddleware } from '@middlewares/MultureMiddleware';
 
 const UserController = AsyncRouter();
 
@@ -34,7 +34,7 @@ UserController.get(
   AuthMiddleware.isCorporate,
   async (req: IRequest, res: IResponse, next: INextFunction) => {
     return res.send(
-      await UserService.getCorporate({
+      await UserService.referenceGetCorporate({
         userId: req.user!.id,
       } as IUserGetCorporateRequest)
     );
@@ -75,7 +75,7 @@ UserController.post(
 UserController.post(
   '/career/verify',
   AuthMiddleware.isPersonal,
-  MulterSingleton.upload.single('certificate'),
+  MulterMiddleware.upload.single('certificate'),
   async (req: IRequest, res: IResponse, next: INextFunction) => {
     const { careerId } = req.body;
     if (!req.file)

@@ -6,12 +6,12 @@ import { ICareer } from '@controllers/AuthController/type';
 import {
   IAgree,
   IAnswer,
-  ICandidateRequest,
-  ICorporateRequest,
-  IReceiverRequest,
+  IRequestReferenceCandidate,
+  IRequestReferenceCorporate,
+  IRequestReferenceReceiver,
 } from '@controllers/RequestController/type';
 
-export interface IRequestRegisterReferenceRequest extends IBaseServiceRequest {
+export interface IRequestReferenceRegisterRequest extends IBaseServiceRequest {
   userId: number;
   name: string;
   phone: string;
@@ -20,101 +20,124 @@ export interface IRequestRegisterReferenceRequest extends IBaseServiceRequest {
   deadline: Date | null;
 }
 
-export interface IRequestRegisterReferenceResponse
+export interface IRequestReferenceRegisterResponse
   extends IBaseServiceResponse {}
 
-export interface IRequestGetReceiverRequest extends IBaseServiceRequest {
+export interface IRequestResumeRegisterRequest extends IBaseServiceRequest {
+  userId: number;
+  memo: string | null;
+  resume: Express.MulterS3.File;
+  question: string;
+  deadline: Date | null;
+}
+
+export interface IRequestResumeRegisterResponse extends IBaseServiceResponse {}
+
+export interface IRequestReferenceGetReceiverRequest
+  extends IBaseServiceRequest {
   requestId: number;
   userId: number;
 }
 
-export interface IRequestGetReceiverResponse extends IBaseServiceResponse {
+export interface IRequestReferenceGetReceiverResponse
+  extends IBaseServiceResponse {
   corporateName: string;
   candidateName: string;
   question: string;
 }
 
-export interface IRequestGetCorporateRequest extends IBaseServiceRequest {
+export interface IRequestReferenceGetCorporateRequest
+  extends IBaseServiceRequest {
   requestId: number;
   userId: number;
 }
 
-export interface IRequestGetCorporateResponse extends IBaseServiceResponse {
+export interface IRequestReferenceGetCorporateResponse
+  extends IBaseServiceResponse {
   candidateName: string;
   question: string;
   answers: Array<IAnswer>;
 }
 
-export interface IRequestGetCorporateAgreeRequest extends IBaseServiceRequest {
+export interface IRequestReferenceGetCorporateAgreeRequest
+  extends IBaseServiceRequest {
   requestId: number;
   userId: number;
 }
 
-export interface IRequestGetCorporateAgreeResponse
+export interface IRequestReferenceGetCorporateAgreeResponse
   extends IBaseServiceResponse {
   candidateName: string;
   agrees: Array<IAgree>;
   agreeDescription: string | null;
 }
 
-export interface IRequestGetCandidateRequest extends IBaseServiceRequest {
+export interface IRequestReferenceGetCandidateRequest
+  extends IBaseServiceRequest {
   requestId: number;
   candidateId: number;
 }
 
-export interface IRequestGetCandidateResponse extends IBaseServiceResponse {
+export interface IRequestReferenceGetCandidateResponse
+  extends IBaseServiceResponse {
   corporateName: string;
   careers: Array<ICareer>;
 }
 
-export interface IRequestListReceiverRequest extends IBaseServiceRequest {
+export interface IRequestReferenceListReceiverRequest
+  extends IBaseServiceRequest {
   userId: number;
 }
 
-export interface IRequestListReceiverResponse extends IBaseServiceResponse {
-  requests: Array<IReceiverRequest>;
+export interface IRequestReferenceListReceiverResponse
+  extends IBaseServiceResponse {
+  requests: Array<IRequestReferenceReceiver>;
 }
 
-export interface IRequestListCorporateRequest extends IBaseServiceRequest {
+export interface IRequestReferenceListCorporateRequest
+  extends IBaseServiceRequest {
   userId: number;
 }
 
-export interface IRequestListCorporateResponse extends IBaseServiceResponse {
-  requests: Array<ICorporateRequest>;
+export interface IRequestReferenceListCorporateResponse
+  extends IBaseServiceResponse {
+  requests: Array<IRequestReferenceCorporate>;
 }
 
-export interface IRequestListCandidateRequest extends IBaseServiceRequest {
+export interface IRequestReferenceListCandidateRequest
+  extends IBaseServiceRequest {
   candidateId: number;
 }
 
-export interface IRequestListCandidateResponse extends IBaseServiceResponse {
-  requests: Array<ICandidateRequest>;
+export interface IRequestReferenceListCandidateResponse
+  extends IBaseServiceResponse {
+  requests: Array<IRequestReferenceCandidate>;
 }
 
-export interface IRequestAgreeRequest extends IBaseServiceRequest {
+export interface IRequestReferenceAgreeRequest extends IBaseServiceRequest {
   candidateId: number;
   requestId: number;
   agrees: Array<IAgree>;
   agreeDescription: string;
 }
 
-export interface IRequestAgreeResponse extends IBaseServiceResponse {}
+export interface IRequestReferenceAgreeResponse extends IBaseServiceResponse {}
 
-export interface IRequestVerifyRequest extends IBaseServiceRequest {
+export interface IRequestReferenceVerifyRequest extends IBaseServiceRequest {
   requestId: number;
   userId: number;
   candidatePhone: string;
 }
 
-export interface IRequestVerifyResponse extends IBaseServiceResponse {}
+export interface IRequestReferenceVerifyResponse extends IBaseServiceResponse {}
 
-export interface IRequestAnswerRequest extends IBaseServiceRequest {
+export interface IRequestReferenceAnswerRequest extends IBaseServiceRequest {
   requestId: number;
   userId: number;
   answer: string;
 }
 
-export interface IRequestAnswerResponse extends IBaseServiceResponse {}
+export interface IRequestReferenceAnswerResponse extends IBaseServiceResponse {}
 
 export interface IRequestRejectRequest extends IBaseServiceRequest {
   requestId: number;

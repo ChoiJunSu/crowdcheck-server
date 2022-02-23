@@ -20,8 +20,9 @@ class RequestModel
   declare deadline: Date;
   declare agreeDescription: string | null;
   declare type: TRequestType;
+  declare memo: string | null;
   declare status: TRequestStatus;
-  declare sentAt: Date;
+  declare registeredAt: Date;
   declare agreedAt: Date | null;
   declare closedAt: Date | null;
 
@@ -63,6 +64,10 @@ export const initRequestModel = (sequelize: Sequelize) => {
       type: {
         type: DataTypes.ENUM('reference', 'resume'),
         allowNull: false,
+      },
+      memo: {
+        type: DataTypes.STRING,
+        defaultValue: null,
       },
       status: {
         type: DataTypes.ENUM('registered', 'agreed', 'closed'),

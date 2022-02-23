@@ -3,7 +3,7 @@ import multer from 'multer';
 import multerS3 from 'multer-s3';
 import { randomBytes } from 'crypto';
 
-export const MulterSingleton = (() => {
+export const MulterMiddleware = (() => {
   const client =
     process.env.NODE_ENV === 'development'
       ? new aws.S3({
