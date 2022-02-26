@@ -9,7 +9,10 @@ import {
   IRequestReferenceCandidate,
   IRequestReferenceCorporate,
   IRequestReferenceReceiver,
+  IRequestResumeCorporate,
+  IRequestResumeExpert,
 } from '@controllers/RequestController/type';
+import { TExpertSpecialty } from '@models/ExpertModel/type';
 
 export interface IRequestReferenceRegisterRequest extends IBaseServiceRequest {
   userId: number;
@@ -22,16 +25,6 @@ export interface IRequestReferenceRegisterRequest extends IBaseServiceRequest {
 
 export interface IRequestReferenceRegisterResponse
   extends IBaseServiceResponse {}
-
-export interface IRequestResumeRegisterRequest extends IBaseServiceRequest {
-  userId: number;
-  memo: string | null;
-  resume: Express.MulterS3.File;
-  question: string;
-  deadline: Date | null;
-}
-
-export interface IRequestResumeRegisterResponse extends IBaseServiceResponse {}
 
 export interface IRequestReferenceGetReceiverRequest
   extends IBaseServiceRequest {
@@ -146,8 +139,43 @@ export interface IRequestRejectRequest extends IBaseServiceRequest {
 
 export interface IRequestRejectResponse extends IBaseServiceResponse {}
 
-export interface IRequestUpdateReceiverRequest extends IBaseServiceRequest {
+export interface IRequestReferenceUpdateReceiverRequest
+  extends IBaseServiceRequest {
   userId: number;
 }
 
-export interface IRequestUpdateReceiverResponse extends IBaseServiceResponse {}
+export interface IRequestReferenceUpdateReceiverResponse
+  extends IBaseServiceResponse {}
+
+/*
+  Resume
+ */
+
+export interface IRequestResumeRegisterRequest extends IBaseServiceRequest {
+  userId: number;
+  memo: string | null;
+  resume: Express.MulterS3.File;
+  specialty: TExpertSpecialty;
+  question: string;
+  deadline: Date | null;
+}
+
+export interface IRequestResumeRegisterResponse extends IBaseServiceResponse {}
+
+export interface IRequestResumeListCorporateRequest
+  extends IBaseServiceRequest {
+  userId: number;
+}
+
+export interface IRequestResumeListCorporateResponse
+  extends IBaseServiceResponse {
+  requests: Array<IRequestResumeCorporate>;
+}
+
+export interface IRequestResumeListExpertRequest extends IBaseServiceRequest {
+  userId: number;
+}
+
+export interface IRequestResumeListExpertResponse extends IBaseServiceResponse {
+  requests: Array<IRequestResumeExpert>;
+}

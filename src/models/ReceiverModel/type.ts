@@ -11,12 +11,14 @@ export interface IReceiverAttributes {
   id?: number;
   requestId: number;
   userId: number;
-  corporateId: number;
   answer?: string | null;
-  status?: TReceiverStatus;
-  arrivedAt?: Date;
+  // reference
+  corporateId?: number | null;
   verifiedAt?: Date | null;
   rejectedAt?: Date | null;
+  // reference
+  status?: TReceiverStatus;
+  arrivedAt?: Date;
   answeredAt?: Date | null;
   closedAt?: Date | null;
 }

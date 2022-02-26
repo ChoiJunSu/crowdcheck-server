@@ -19,14 +19,18 @@ import {
   IRequestReferenceGetCorporateResponse,
   IRequestRejectRequest,
   IRequestRejectResponse,
-  IRequestUpdateReceiverRequest,
-  IRequestUpdateReceiverResponse,
+  IRequestReferenceUpdateReceiverRequest,
+  IRequestReferenceUpdateReceiverResponse,
   IRequestReferenceGetCorporateAgreeRequest,
   IRequestReferenceGetCorporateAgreeResponse,
   IRequestReferenceRegisterRequest,
   IRequestReferenceRegisterResponse,
   IRequestResumeRegisterRequest,
   IRequestResumeRegisterResponse,
+  IRequestResumeListCorporateRequest,
+  IRequestResumeListCorporateResponse,
+  IRequestResumeListExpertRequest,
+  IRequestResumeListExpertResponse,
 } from '@services/RequestService/type';
 import RequestModel from '@models/RequestModel';
 import CorporateModel from '@models/CorporateModel';
@@ -37,10 +41,14 @@ import { Op, Sequelize } from 'sequelize';
 import ReceiverModel from '@models/ReceiverModel';
 import { MAX_TIMESTAMP } from '@constants/date';
 import UserModel from '@models/UserModel';
-import { IRequestReferenceCorporate } from '@controllers/RequestController/type';
+import {
+  IRequestReferenceCorporate,
+  IRequestResumeCorporate,
+} from '@controllers/RequestController/type';
 import careerModel from '@models/CareerModel';
 import { SensSingleton } from '@utils/sens';
 import CandidateResumeModel from '@models/CandidateResumeModel';
+import ExpertModel from '@models/ExpertModel';
 
 class RequestService {
   static async referenceRegister({
@@ -144,60 +152,6 @@ class RequestService {
     return response;
   }
 
-  static async resumeRegister({
-    userId,
-    memo,
-    resume,
-    question,
-    deadline,
-  }: IRequestResumeRegisterRequest): Promise<IRequestResumeRegisterResponse> {
-    const response: IRequestResumeRegisterResponse = {
-      ok: false,
-      error: '',
-    };
-
-    try {
-      // find corporate id
-      const userFindOneResult = await UserModel.findOne({
-        attributes: ['name', 'corporateId'],
-        where: { id: userId },
-      });
-      if (!userFindOneResult || !userFindOneResult.corporateId) {
-        response.error = '사용자 검색 오류입니다.';
-        return response;
-      }
-      // create request
-      const createRequestResult = await RequestModel.create({
-        corporateId: userFindOneResult.corporateId,
-        memo,
-        question,
-        deadline: deadline || new Date(MAX_TIMESTAMP),
-        type: 'resume',
-      });
-      if (!createRequestResult || !createRequestResult.id) {
-        response.error = '의뢰 생성 오류입니다.';
-        return response;
-      }
-      // create candidateResume
-      const candidateResumeCreateResult = await CandidateResumeModel.create({
-        requestId: createRequestResult.id,
-        resumeBucket: resume.bucket,
-        resumeKey: resume.key,
-      });
-      if (!candidateResumeCreateResult) {
-        response.error = '이력서 생성 오류입니다.';
-        return response;
-      }
-      response.ok = true;
-    } catch (e) {
-      console.error(e);
-      response.error = '의뢰 등록에 실패했습니다.';
-      return response;
-    }
-
-    return response;
-  }
-
   static async referenceGetReceiver({
     requestId,
     userId,
@@ -223,7 +177,7 @@ class RequestService {
       // find request, corporate, candidate
       const requestFindOneResult = await RequestModel.findOne({
         attributes: ['question'],
-        where: { id: requestId },
+        where: { id: requestId, type: 'reference' },
         include: [
           {
             model: CorporateModel,
@@ -280,7 +234,7 @@ class RequestService {
       }
       const requestFindOnResult = await RequestModel.findOne({
         attributes: ['corporateId', 'question'],
-        where: { id: requestId },
+        where: { id: requestId, type: 'reference' },
       });
       if (!requestFindOnResult) {
         response.error = '의뢰 검색 오류입니다.';
@@ -357,7 +311,11 @@ class RequestService {
       // find request
       const requestFindOneResult = await RequestModel.findOne({
         attributes: ['agreeDescription'],
-        where: { id: requestId, corporateId: userFindOneResult.corporateId },
+        where: {
+          id: requestId,
+          corporateId: userFindOneResult.corporateId,
+          type: 'reference',
+        },
         include: [
           {
             model: CandidateModel,
@@ -416,7 +374,7 @@ class RequestService {
       // find corporate name
       const requestFindOneResult = await RequestModel.findOne({
         attributes: [],
-        where: { id: requestId },
+        where: { id: requestId, type: 'reference' },
         include: {
           model: CorporateModel,
           attributes: ['name'],
@@ -487,7 +445,7 @@ class RequestService {
       for (const { requestId, status } of receiverFindAllResult) {
         const requestFindOneResult = await RequestModel.findOne({
           attributes: ['id'],
-          where: { id: requestId },
+          where: { id: requestId, type: 'reference' },
           include: [
             {
               model: CandidateModel,
@@ -543,7 +501,10 @@ class RequestService {
       // find request and candidate
       const requestFindAllResult = await RequestModel.findAll({
         attributes: ['id', 'status'],
-        where: { corporateId: userFindOneResult.corporateId },
+        where: {
+          corporateId: userFindOneResult.corporateId,
+          type: 'reference',
+        },
         include: [
           {
             model: CandidateModel,
@@ -609,6 +570,7 @@ class RequestService {
       const { name, phone } = candidateFindOneResult;
       const requestFindAllResult = await RequestModel.findAll({
         attributes: ['id', 'status'],
+        where: { type: 'reference' },
         include: [
           { model: CandidateModel, attributes: [], where: { name, phone } },
           { model: CorporateModel, attributes: ['name'] },
@@ -635,7 +597,7 @@ class RequestService {
     return response;
   }
 
-  static async agree({
+  static async referenceAgree({
     candidateId,
     requestId,
     agrees,
@@ -650,7 +612,7 @@ class RequestService {
       // verify candidateId with request
       const requestFindOneResult = await RequestModel.findOne({
         attributes: ['status'],
-        where: { id: requestId },
+        where: { id: requestId, type: 'reference' },
         include: {
           model: CandidateModel,
           attributes: ['id'],
@@ -747,7 +709,7 @@ class RequestService {
       // update request
       const requestUpdateResult = await RequestModel.update(
         { agreeDescription, status: 'agreed' },
-        { where: { id: requestId } }
+        { where: { id: requestId, type: 'reference' } }
       );
       if (!requestUpdateResult) {
         response.error = '의뢰 정보 업데이트 오류입니다.';
@@ -762,7 +724,7 @@ class RequestService {
     return response;
   }
 
-  static async verify({
+  static async referenceVerify({
     requestId,
     userId,
     candidatePhone,
@@ -776,7 +738,7 @@ class RequestService {
       // verify user, request, and receiver status
       const requestFindOneResult = await RequestModel.findOne({
         attributes: ['status'],
-        where: { id: requestId },
+        where: { id: requestId, type: 'reference' },
         include: [
           {
             model: ReceiverModel,
@@ -859,7 +821,7 @@ class RequestService {
       // verify user, request and receiver status
       const requestFindOneResult = await RequestModel.findOne({
         attributes: ['status', 'corporateId'],
-        where: { id: requestId },
+        where: { id: requestId, type: 'reference' },
         include: {
           model: ReceiverModel,
           attributes: ['id', 'status'],
@@ -943,7 +905,7 @@ class RequestService {
       // verify requestId with userId
       const requestFindOneResult = await RequestModel.findOne({
         attributes: ['status'],
-        where: { id: requestId },
+        where: { id: requestId, type: 'reference' },
         include: {
           model: ReceiverModel,
           attributes: ['id', 'status'],
@@ -987,10 +949,10 @@ class RequestService {
     return response;
   }
 
-  static async updateReceiver({
+  static async referenceUpdateReceiver({
     userId,
-  }: IRequestUpdateReceiverRequest): Promise<IRequestUpdateReceiverResponse> {
-    const response: IRequestUpdateReceiverResponse = {
+  }: IRequestReferenceUpdateReceiverRequest): Promise<IRequestReferenceUpdateReceiverResponse> {
+    const response: IRequestReferenceUpdateReceiverResponse = {
       ok: false,
       error: '',
     };
@@ -1009,7 +971,7 @@ class RequestService {
         // find requests
         const requestFindAllResult = await RequestModel.findAll({
           attributes: ['id'],
-          where: { status: { [Op.not]: 'closed' } },
+          where: { status: { [Op.not]: 'closed' }, type: 'reference' },
           include: {
             model: CandidateAgreeModel,
             attributes: ['id'],
@@ -1059,6 +1021,202 @@ class RequestService {
     } catch (e) {
       console.error(e);
       response.error = '의뢰 목록 업데이트에 실패했습니다.';
+    }
+
+    return response;
+  }
+
+  /*
+    Resume
+   */
+
+  static async resumeRegister({
+    userId,
+    memo,
+    resume,
+    specialty,
+    question,
+    deadline,
+  }: IRequestResumeRegisterRequest): Promise<IRequestResumeRegisterResponse> {
+    const response: IRequestResumeRegisterResponse = {
+      ok: false,
+      error: '',
+    };
+
+    try {
+      // find corporate id
+      const userFindOneResult = await UserModel.findOne({
+        attributes: ['name', 'corporateId'],
+        where: { id: userId },
+      });
+      if (!userFindOneResult || !userFindOneResult.corporateId) {
+        response.error = '사용자 검색 오류입니다.';
+        return response;
+      }
+      // create request
+      const createRequestResult = await RequestModel.create({
+        corporateId: userFindOneResult.corporateId,
+        memo,
+        specialty,
+        question,
+        deadline: deadline || new Date(MAX_TIMESTAMP),
+        type: 'resume',
+      });
+      if (!createRequestResult || !createRequestResult.id) {
+        response.error = '의뢰 생성 오류입니다.';
+        return response;
+      }
+      // create candidateResume
+      const candidateResumeCreateResult = await CandidateResumeModel.create({
+        requestId: createRequestResult.id,
+        resumeBucket: resume.bucket,
+        resumeKey: resume.key,
+      });
+      if (!candidateResumeCreateResult) {
+        response.error = '이력서 생성 오류입니다.';
+        return response;
+      }
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '의뢰 등록에 실패했습니다.';
+      return response;
+    }
+
+    return response;
+  }
+
+  static async resumeListCorporate({
+    userId,
+  }: IRequestResumeListCorporateRequest): Promise<IRequestResumeListCorporateResponse> {
+    const response: IRequestResumeListCorporateResponse = {
+      ok: false,
+      error: '',
+      requests: [],
+    };
+
+    try {
+      // find user
+      const userFindOneResult = await UserModel.findOne({
+        attributes: ['corporateId'],
+        where: { id: userId },
+      });
+      if (!userFindOneResult) {
+        response.error = '사용자 검색 오류입니다.';
+        return response;
+      }
+      // find request
+      const requestFindAllResult = await RequestModel.findAll({
+        attributes: ['id', 'status', 'memo'],
+        where: { corporateId: userFindOneResult.corporateId, type: 'resume' },
+      });
+      if (!requestFindAllResult) {
+        response.error = '의뢰 검색 오류입니다.';
+        return response;
+      }
+      // find receiver and push request
+      for (const { id, status, memo } of requestFindAllResult) {
+        const request: IRequestResumeCorporate = {
+          id,
+          status,
+          memo,
+          receivers: [],
+        };
+        const receiverFindAllResult = await ReceiverModel.findAll({
+          attributes: ['id', 'status'],
+          where: { requestId: id },
+        });
+        if (!receiverFindAllResult) {
+          response.error = '평가자 검색 오류입니다.';
+          return response;
+        }
+        for (const { id, status } of receiverFindAllResult) {
+          request.receivers.push({ id, status });
+        }
+        response.requests.push(request);
+      }
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '의뢰 목록을 불러오는데 실패했습니다.';
+    }
+
+    return response;
+  }
+
+  static async resumeListExpert({
+    userId,
+  }: IRequestResumeListExpertRequest): Promise<IRequestResumeListExpertResponse> {
+    const response: IRequestResumeListExpertResponse = {
+      ok: false,
+      error: '',
+      requests: [],
+    };
+
+    try {
+      // verify user is expert
+      const expertFindOneResult = await ExpertModel.findOne({
+        attributes: ['specialty'],
+        where: { userId },
+      });
+      if (!expertFindOneResult) {
+        response.error = '사용자 검색 오류입니다.';
+        return response;
+      }
+      // find request
+      const requestFindAllResult = await RequestModel.findAll({
+        attributes: [
+          'id',
+          'deadline',
+          'rewardNum',
+          'rewardPrice',
+          [
+            Sequelize.fn('COUNT', Sequelize.col('Receivers.id')),
+            'receiverCount',
+          ],
+        ],
+        where: {
+          type: 'resume',
+          status: { [Op.not]: 'closed' },
+          specialty: expertFindOneResult.specialty,
+        },
+        include: [
+          {
+            model: ReceiverModel,
+            attributes: ['id'],
+          },
+          {
+            model: CorporateModel,
+            attributes: ['name'],
+          },
+        ],
+      });
+      if (!requestFindAllResult) {
+        response.error = '의뢰 검색 오류입니다.';
+        return response;
+      }
+      for (const {
+        id,
+        deadline,
+        rewardNum,
+        rewardPrice,
+        receiverCount,
+        Corporate,
+      } of requestFindAllResult) {
+        if (!receiverCount || !Corporate) continue;
+        response.requests.push({
+          id,
+          corporateName: Corporate.name,
+          deadline: deadline === new Date(MAX_TIMESTAMP) ? null : deadline,
+          rewardNum,
+          rewardPrice,
+          receiverCount,
+        });
+      }
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '의뢰 목록을 불러오는데 실패했습니다.';
     }
 
     return response;

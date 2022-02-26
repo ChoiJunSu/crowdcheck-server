@@ -15,12 +15,12 @@ class ReceiverModel
   declare id: number;
   declare requestId: number;
   declare userId: number;
-  declare corporateId: number;
   declare answer: string | null;
-  declare status: TReceiverStatus;
-  declare arrivedAt: Date;
+  declare corporateId: number | null;
   declare verifiedAt: Date | null;
   declare rejectedAt: Date | null;
+  declare status: TReceiverStatus;
+  declare arrivedAt: Date;
   declare answeredAt: Date | null;
   declare closedAt: Date | null;
 
@@ -48,7 +48,7 @@ export const initReceiverModel = (sequelize: Sequelize) => {
       },
       corporateId: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        defaultValue: null,
       },
       answer: {
         type: DataTypes.TEXT,

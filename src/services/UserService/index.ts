@@ -16,7 +16,6 @@ import CorporateModel from '@models/CorporateModel';
 import { genSalt, hash } from 'bcrypt';
 import { MAX_TIMESTAMP } from '@constants/date';
 import CareerVerifyModel from '@models/CareerVerifyModel';
-import careerModel from '@models/CareerModel';
 import RequestService from '@services/RequestService';
 
 class UserService {
@@ -212,9 +211,10 @@ class UserService {
         }
       }
       // update receiver
-      const updateReceiverResponse = await RequestService.updateReceiver({
-        userId,
-      });
+      const updateReceiverResponse =
+        await RequestService.referenceUpdateReceiver({
+          userId,
+        });
       response.ok = true;
     } catch (e) {
       console.error(e);

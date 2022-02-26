@@ -15,15 +15,17 @@ class RequestModel
   implements IRequestAttributes
 {
   declare id: number;
-  declare corporateId: number;
   declare question: string;
   declare deadline: Date;
-  declare agreeDescription: string | null;
   declare type: TRequestType;
+  declare corporateId: number;
+  declare agreeDescription: string | null;
+  declare agreedAt: Date | null;
   declare memo: string | null;
+  declare rewardNum: number;
+  declare rewardPrice: number;
   declare status: TRequestStatus;
   declare registeredAt: Date;
-  declare agreedAt: Date | null;
   declare closedAt: Date | null;
 
   declare readonly createdAt: Date;
@@ -33,6 +35,8 @@ class RequestModel
   declare readonly Candidate?: CandidateModel;
   declare readonly CandidateAgrees?: Array<CandidateAgreeModel>;
   declare readonly Receivers?: Array<ReceiverModel>;
+
+  declare readonly receiverCount?: number;
 
   declare static associations: {};
 }
@@ -45,10 +49,6 @@ export const initRequestModel = (sequelize: Sequelize) => {
         autoIncrement: true,
         primaryKey: true,
       },
-      corporateId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-      },
       question: {
         type: DataTypes.TEXT,
         allowNull: false,
@@ -57,16 +57,36 @@ export const initRequestModel = (sequelize: Sequelize) => {
         type: DataTypes.DATE,
         allowNull: false,
       },
-      agreeDescription: {
-        type: DataTypes.STRING,
-        defaultValue: null,
-      },
       type: {
         type: DataTypes.ENUM('reference', 'resume'),
         allowNull: false,
       },
+      corporateId: {
+        type: DataTypes.INTEGER,
+        defaultValue: false,
+      },
+      agreeDescription: {
+        type: DataTypes.STRING,
+        defaultValue: null,
+      },
+      agreedAt: {
+        type: DataTypes.DATE,
+        defaultValue: null,
+      },
       memo: {
         type: DataTypes.STRING,
+        defaultValue: null,
+      },
+      specialty: {
+        type: DataTypes.ENUM('개발', '디자인', '기획', '마케팅'),
+        defaultValue: null,
+      },
+      rewardNum: {
+        type: DataTypes.INTEGER,
+        defaultValue: null,
+      },
+      rewardPrice: {
+        type: DataTypes.INTEGER,
         defaultValue: null,
       },
       status: {
@@ -78,10 +98,6 @@ export const initRequestModel = (sequelize: Sequelize) => {
         type: DataTypes.DATE,
         defaultValue: Sequelize.fn('now'),
         allowNull: false,
-      },
-      agreedAt: {
-        type: DataTypes.DATE,
-        defaultValue: null,
       },
       closedAt: {
         type: DataTypes.DATE,

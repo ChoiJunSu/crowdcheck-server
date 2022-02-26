@@ -5,6 +5,7 @@ import {
 } from '@services/BaseService/type';
 import { ICareer, TOauthProvider } from '@controllers/AuthController/type';
 import { TUserType } from '@models/UserModel/type';
+import { TExpertSpecialty } from '@models/ExpertModel/type';
 
 export interface IAuthTokenPayload extends JwtPayload {
   id: number;
@@ -31,6 +32,7 @@ export interface IAuthLoginOauthRequest extends IBaseServiceRequest {
   provider: TOauthProvider;
   code: string;
   redirectUri: string;
+  type: TUserType;
 }
 
 export interface IAuthLoginOauthResponse extends IBaseServiceResponse {
@@ -65,14 +67,15 @@ export interface IAuthRegisterPersonalRequest extends IBaseServiceRequest {
 
 export interface IAuthRegisterPersonalResponse extends IBaseServiceResponse {}
 
-export interface IAuthRegisterOauthRequest extends IBaseServiceRequest {
+export interface IAuthRegisterOauthPersonalRequest extends IBaseServiceRequest {
   name: string;
   phone: string;
   careers: Array<ICareer>;
   registerToken: string;
 }
 
-export interface IAuthRegisterOauthResponse extends IBaseServiceResponse {}
+export interface IAuthRegisterOauthPersonalResponse
+  extends IBaseServiceResponse {}
 
 export interface IAuthRegisterCorporateRequest extends IBaseServiceRequest {
   name: string;
@@ -83,6 +86,17 @@ export interface IAuthRegisterCorporateRequest extends IBaseServiceRequest {
 }
 
 export interface IAuthRegisterCorporateResponse extends IBaseServiceResponse {}
+
+export interface IAuthRegisterExpertRequest extends IBaseServiceRequest {
+  name: string;
+  phone: string;
+  email: string;
+  password: string;
+  specialty: TExpertSpecialty;
+  certificate: Express.MulterS3.File;
+}
+
+export interface IAuthRegisterExpertResponse extends IBaseServiceResponse {}
 
 export interface IAuthPhoneSendRequest extends IBaseServiceRequest {
   phone: string;

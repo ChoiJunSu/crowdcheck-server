@@ -13,6 +13,7 @@ import {
   IRequestReferenceRegisterRequest,
   IRequestResumeRegisterRequest,
   IRequestReferenceVerifyRequest,
+  IRequestResumeListCorporateRequest,
 } from '@services/RequestService/type';
 import AuthMiddleware from '@middlewares/AuthMiddleware';
 import {
@@ -39,27 +40,6 @@ RequestController.post(
         question,
         deadline,
       } as IRequestReferenceRegisterRequest)
-    );
-  }
-);
-
-RequestController.post(
-  '/resume/register',
-  AuthMiddleware.isCorporate,
-  MulterMiddleware.upload.single('resume'),
-  async (req: IRequest, res: IResponse, next: INextFunction) => {
-    const { memo, question, deadline } = req.body;
-    if (!req.file)
-      return res.send({ ok: false, error: '이력서를 업로드해주세요.' });
-
-    return res.send(
-      await RequestService.resumeRegister({
-        userId: req.user!.id,
-        memo,
-        resume: req.file,
-        question,
-        deadline,
-      } as IRequestResumeRegisterRequest)
     );
   }
 );
@@ -152,7 +132,7 @@ RequestController.post(
   async (req: IRequest, res: IResponse, next: INextFunction) => {
     const { requestId, agrees, agreeDescription } = req.body;
 
-    return await RequestService.agree({
+    return await RequestService.referenceAgree({
       candidateId: req.user!.id,
       requestId: parseInt(requestId),
       agrees,
@@ -167,7 +147,7 @@ RequestController.post(
   async (req: IRequest, res: IResponse, next: INextFunction) => {
     const { requestId, candidatePhone } = req.body;
 
-    return await RequestService.verify({
+    return await RequestService.referenceVerify({
       requestId: parseInt(requestId),
       userId: req.user!.id,
       candidatePhone,
@@ -199,6 +179,40 @@ RequestController.get(
       requestId: parseInt(requestId as string),
       userId: req.user!.id,
     } as IRequestReferenceAnswerRequest);
+  }
+);
+
+RequestController.post(
+  '/resume/register',
+  AuthMiddleware.isCorporate,
+  MulterMiddleware.upload.single('resume'),
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    const { memo, specialty, question, deadline } = req.body;
+    if (!req.file)
+      return res.send({ ok: false, error: '이력서를 업로드해주세요.' });
+
+    return res.send(
+      await RequestService.resumeRegister({
+        userId: req.user!.id,
+        memo,
+        resume: req.file,
+        specialty,
+        question,
+        deadline,
+      } as IRequestResumeRegisterRequest)
+    );
+  }
+);
+
+RequestController.get(
+  '/resume/list/corporate',
+  AuthMiddleware.isCorporate,
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    return res.send(
+      await RequestService.resumeListCorporate({
+        userId: req.user!.id,
+      } as IRequestResumeListCorporateRequest)
+    );
   }
 );
 

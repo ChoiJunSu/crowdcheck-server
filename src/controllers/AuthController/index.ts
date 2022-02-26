@@ -7,9 +7,10 @@ import {
   IAuthLoginRequest,
   IAuthRegisterPersonalRequest,
   IAuthLoginCandidateRequest,
-  IAuthRegisterOauthRequest,
+  IAuthRegisterOauthPersonalRequest,
   IAuthPhoneSendRequest,
   IAuthPhoneVerifyRequest,
+  IAuthRegisterExpertRequest,
 } from '@services/AuthService/type';
 import AuthMiddleware from '@middlewares/AuthMiddleware';
 import {
@@ -39,13 +40,14 @@ AuthController.post(
 AuthController.get(
   '/login/oauth',
   async (req: IRequest, res: IResponse, next: INextFunction) => {
-    const { provider, code, redirectUri } = req.query;
+    const { provider, code, redirectUri, type } = req.query;
 
     return res.send(
       await AuthService.loginOauth({
         provider,
         code,
         redirectUri,
+        type,
       } as IAuthLoginOauthRequest)
     );
   }
@@ -99,17 +101,17 @@ AuthController.post(
 );
 
 AuthController.post(
-  '/register/oauth',
+  '/register/oauth/personal',
   async (req: IRequest, res: IResponse, next: INextFunction) => {
     const { name, phone, careers, registerToken } = req.body;
 
     return res.send(
-      await AuthService.registerOauth({
+      await AuthService.registerOauthPersonal({
         name,
         phone,
         careers,
         registerToken,
-      } as IAuthRegisterOauthRequest)
+      } as IAuthRegisterOauthPersonalRequest)
     );
   }
 );
@@ -130,6 +132,27 @@ AuthController.post(
         email,
         password,
       } as IAuthRegisterCorporateRequest)
+    );
+  }
+);
+
+AuthController.post(
+  '/register/expert',
+  MulterMiddleware.upload.single('certificate'),
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    const { name, phone, email, password, specialty } = req.body;
+    if (!req.file)
+      return res.send({ ok: false, error: '증빙서류를 업로드해주세요.' });
+
+    return res.send(
+      await AuthService.registerExpert({
+        name,
+        phone,
+        email,
+        password,
+        certificate: req.file,
+        specialty,
+      } as IAuthRegisterExpertRequest)
     );
   }
 );

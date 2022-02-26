@@ -61,7 +61,7 @@ export const initUserModel = (sequelize: Sequelize) => {
         allowNull: false,
       },
       type: {
-        type: DataTypes.ENUM('personal', 'corporate'),
+        type: DataTypes.ENUM('personal', 'corporate', 'expert'),
         allowNull: false,
       },
       oauthProvider: {

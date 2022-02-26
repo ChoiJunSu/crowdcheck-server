@@ -38,3 +38,19 @@ export interface IAnswer {
   status: TReceiverStatus;
   answer: string | null;
 }
+
+export interface IRequestResumeCorporate {
+  id: number;
+  memo: string | null;
+  status: TRequestStatus;
+  receivers: Array<IReceiver>;
+}
+
+export interface IRequestResumeExpert {
+  id: number;
+  corporateName: string;
+  deadline: Date | null;
+  rewardNum: number;
+  rewardPrice: number;
+  receiverCount: number;
+}

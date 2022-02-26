@@ -12,13 +12,15 @@ import {
   IAuthRegisterPersonalResponse,
   IAuthLoginCandidateRequest,
   IAuthLoginCandidateResponse,
-  IAuthRegisterOauthRequest,
-  IAuthRegisterOauthResponse,
+  IAuthRegisterOauthPersonalRequest,
+  IAuthRegisterOauthPersonalResponse,
   IRegisterTokenPayload,
   IAuthPhoneSendRequest,
   IAuthPhoneSendResponse,
   IAuthPhoneVerifyRequest,
   IAuthPhoneVerifyResponse,
+  IAuthRegisterExpertRequest,
+  IAuthRegisterExpertResponse,
 } from '@services/AuthService/type';
 import { compare, genSalt, hash } from 'bcrypt';
 import UserModel from '@models/UserModel';
@@ -35,6 +37,9 @@ import RequestService from '@services/RequestService';
 import { TwilioSingleton } from '@utils/twilio';
 import { JwtSingleton } from '@utils/jwt';
 import { SensSingleton } from '@utils/sens';
+import { ICareer } from '@controllers/AuthController/type';
+import ExpertModel from '@models/ExpertModel';
+import ExpertVerifyModel from '@models/ExpertVerifyModel';
 
 class AuthService {
   static async login({
@@ -90,6 +95,7 @@ class AuthService {
     provider,
     code,
     redirectUri,
+    type,
   }: IAuthLoginOauthRequest): Promise<IAuthLoginOauthResponse> {
     const response: IAuthLoginOauthResponse = {
       ok: false,
@@ -99,6 +105,11 @@ class AuthService {
     };
 
     try {
+      // verify type
+      if (type !== 'personal' && type !== 'expert') {
+        response.error = '사용자 유형 오류입니다.';
+        return response;
+      }
       // get email by oauth code
       const getEmailByOauthCodeResponse =
         await OauthService.getEmailByOauthCode({ provider, code, redirectUri });
@@ -111,7 +122,7 @@ class AuthService {
         attributes: ['id', 'name', 'oauthProvider'],
         where: {
           email: getEmailByOauthCodeResponse.email,
-          type: 'personal',
+          type,
         },
       });
       if (!userFindOneResult) {
@@ -132,7 +143,7 @@ class AuthService {
       response.authToken = JwtSingleton.sign({
         id,
         name,
-        type: 'personal',
+        type,
       } as IAuthTokenPayload);
       response.ok = true;
     } catch (e) {
@@ -293,9 +304,10 @@ class AuthService {
         }
       }
       // update receiver
-      const updateReceiverResponse = await RequestService.updateReceiver({
-        userId: userCreateResult.id,
-      });
+      const updateReceiverResponse =
+        await RequestService.referenceUpdateReceiver({
+          userId: userCreateResult.id,
+        });
       response.ok = true;
     } catch (e) {
       console.error(e);
@@ -305,13 +317,13 @@ class AuthService {
     return response;
   }
 
-  static async registerOauth({
+  static async registerOauthPersonal({
     name,
     phone,
     careers,
     registerToken,
-  }: IAuthRegisterOauthRequest): Promise<IAuthRegisterOauthResponse> {
-    const response: IAuthRegisterOauthResponse = {
+  }: IAuthRegisterOauthPersonalRequest): Promise<IAuthRegisterOauthPersonalResponse> {
+    const response: IAuthRegisterOauthPersonalResponse = {
       ok: false,
       error: '',
     };
@@ -376,9 +388,10 @@ class AuthService {
         }
       }
       // update receiver
-      const updateReceiverResponse = await RequestService.updateReceiver({
-        userId: userCreateResult.id,
-      });
+      const updateReceiverResponse =
+        await RequestService.referenceUpdateReceiver({
+          userId: userCreateResult.id,
+        });
       response.ok = true;
     } catch (e) {
       console.error(e);
@@ -454,6 +467,77 @@ class AuthService {
     } catch (e) {
       console.error(e);
       response.error = '기업회원 가입에 실패했습니다.';
+    }
+
+    return response;
+  }
+
+  static async registerExpert({
+    name,
+    phone,
+    email,
+    password,
+    specialty,
+    certificate,
+  }: IAuthRegisterExpertRequest) {
+    const response: IAuthRegisterExpertResponse = {
+      ok: false,
+      error: '',
+    };
+
+    try {
+      // verify phone
+      const phoneVerifyFindOneResult = await phoneVerifyModel.findOne({
+        attributes: ['verifiedAt'],
+        where: { phone },
+        order: [['createdAt', 'DESC']],
+      });
+      if (!phoneVerifyFindOneResult) {
+        response.error = '전화번호 인증 정보 검색 오류입니다.';
+        return response;
+      }
+      if (!phoneVerifyFindOneResult.verifiedAt) {
+        response.error = '전화번호 인증 기록이 없습니다.';
+        return response;
+      }
+      // hash password
+      const salt = await genSalt(10);
+      const hashed = await hash(password, salt);
+      // create user
+      const userCreateResult = await UserModel.create({
+        name,
+        phone,
+        email,
+        hashed,
+        type: 'expert',
+      });
+      if (!userCreateResult) {
+        response.error = '회원 생성 오류입니다.';
+        return response;
+      }
+      // create expert
+      const expertCreateResult = await ExpertModel.create({
+        userId: userCreateResult.id,
+        specialty,
+      });
+      if (!expertCreateResult) {
+        response.error = '전문가 생성 오류입니다.';
+        return response;
+      }
+      // create expertVerify
+      const expertVerifyCreateResult = await ExpertVerifyModel.create({
+        userId: userCreateResult.id,
+        certificateBucket: certificate.bucket,
+        certificateKey: certificate.key,
+      });
+      if (!expertVerifyCreateResult) {
+        response.error = '인증 생성 오류입니다.';
+        return response;
+      }
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '전문가 회원 가입에 실패했습니다.';
     }
 
     return response;

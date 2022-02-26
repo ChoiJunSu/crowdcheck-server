@@ -1,4 +1,5 @@
 import { Optional } from 'sequelize';
+import { TExpertSpecialty } from '@models/ExpertModel/type';
 
 export type TRequestStatus = 'registered' | 'agreed' | 'closed';
 
@@ -6,15 +7,22 @@ export type TRequestType = 'reference' | 'resume';
 
 export interface IRequestAttributes {
   id?: number;
-  corporateId: number;
   question: string;
   deadline: Date;
-  agreeDescription?: string | null;
   type: TRequestType;
+  // reference
+  corporateId?: number | null;
+  agreeDescription?: string | null;
+  agreedAt?: Date | null;
+  // reference
+  // resume
   memo?: string | null;
+  specialty?: TExpertSpecialty | null;
+  rewardNum?: number | null;
+  rewardPrice?: number | null;
+  // resume
   status?: TRequestStatus;
   registeredAt?: Date;
-  agreedAt?: Date | null;
   closedAt?: Date | null;
 }
 
