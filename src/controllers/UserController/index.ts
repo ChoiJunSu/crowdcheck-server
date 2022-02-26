@@ -8,8 +8,10 @@ import UserService from '@services/UserService';
 import {
   IUserCareerVerifyRequest,
   IUserEditCorporateRequest,
+  IUserEditExpertRequest,
   IUserEditPersonalRequest,
   IUserGetCorporateRequest,
+  IUserGetExpertRequest,
   IUserGetPersonalRequest,
 } from '@services/UserService/type';
 import AuthMiddleware from '@middlewares/AuthMiddleware';
@@ -34,9 +36,21 @@ UserController.get(
   AuthMiddleware.isCorporate,
   async (req: IRequest, res: IResponse, next: INextFunction) => {
     return res.send(
-      await UserService.referenceGetCorporate({
+      await UserService.getCorporate({
         userId: req.user!.id,
       } as IUserGetCorporateRequest)
+    );
+  }
+);
+
+UserController.get(
+  '/get/expert',
+  AuthMiddleware.isExpert,
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    return res.send(
+      await UserService.getExpert({
+        userId: req.user!.id,
+      } as IUserGetExpertRequest)
     );
   }
 );
@@ -68,6 +82,21 @@ UserController.post(
         userId: req.user!.id,
         password,
       } as IUserEditCorporateRequest)
+    );
+  }
+);
+
+UserController.post(
+  '/edit/expert',
+  AuthMiddleware.isExpert,
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    const { password } = req.body;
+
+    return res.send(
+      await UserService.editExpert({
+        userId: req.user!.id,
+        password,
+      } as IUserEditExpertRequest)
     );
   }
 );

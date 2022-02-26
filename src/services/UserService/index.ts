@@ -4,10 +4,14 @@ import {
   IUserCareerVerifyResponse,
   IUserEditCorporateRequest,
   IUserEditCorporateResponse,
+  IUserEditExpertRequest,
+  IUserEditExpertResponse,
   IUserEditPersonalRequest,
   IUserEditPersonalResponse,
   IUserGetCorporateRequest,
   IUserGetCorporateResponse,
+  IUserGetExpertRequest,
+  IUserGetExpertResponse,
   IUserGetPersonalRequest,
   IUserGetPersonalResponse,
 } from '@services/UserService/type';
@@ -17,6 +21,7 @@ import { genSalt, hash } from 'bcrypt';
 import { MAX_TIMESTAMP } from '@constants/date';
 import CareerVerifyModel from '@models/CareerVerifyModel';
 import RequestService from '@services/RequestService';
+import ExpertModel from '@models/ExpertModel';
 
 class UserService {
   static async getPersonal({
@@ -94,7 +99,7 @@ class UserService {
     return response;
   }
 
-  static async referenceGetCorporate({
+  static async getCorporate({
     userId,
   }: IUserGetCorporateRequest): Promise<IUserGetCorporateResponse> {
     const response: IUserGetCorporateResponse = {
@@ -119,6 +124,51 @@ class UserService {
         name: userFindOneResult.name,
         phone: userFindOneResult.phone,
       };
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '사용자 정보 불러오기에 실패했습니다.';
+    }
+
+    return response;
+  }
+
+  static async getExpert({
+    userId,
+  }: IUserGetExpertRequest): Promise<IUserGetExpertResponse> {
+    const response: IUserGetExpertResponse = {
+      ok: false,
+      error: '',
+      user: null,
+      specialty: null,
+    };
+
+    try {
+      // find user
+      const userFindOneResult = await UserModel.findOne({
+        attributes: ['email', 'name', 'phone'],
+        where: { id: userId },
+      });
+      if (!userFindOneResult) {
+        response.error = '사용자 검색 오류입니다.';
+        return response;
+      }
+      // find expert
+      const expertFindOneResult = await ExpertModel.findOne({
+        attributes: ['specialty'],
+        where: { userId },
+      });
+      if (!expertFindOneResult) {
+        response.error = '전문가 검색 오류입니다.';
+        return response;
+      }
+      // generate response
+      response.user = {
+        email: userFindOneResult.email,
+        name: userFindOneResult.name,
+        phone: userFindOneResult.phone,
+      };
+      response.specialty = expertFindOneResult.specialty;
       response.ok = true;
     } catch (e) {
       console.error(e);
@@ -229,6 +279,48 @@ class UserService {
     password,
   }: IUserEditCorporateRequest): Promise<IUserEditCorporateResponse> {
     const response: IUserEditCorporateResponse = {
+      ok: false,
+      error: '',
+    };
+
+    try {
+      // find user
+      const userFindOneResult = await UserModel.findOne({
+        attributes: ['id'],
+        where: { id: userId },
+      });
+      if (!userFindOneResult) {
+        response.error = '사용자 검색 오류입니다.';
+        return response;
+      }
+      // update user password
+      if (password) {
+        // hash password
+        const salt = await genSalt(10);
+        const hashed = await hash(password, salt);
+        const userPasswordUpdateResult = await UserModel.update(
+          { hashed },
+          { where: { id: userId } }
+        );
+        if (!userPasswordUpdateResult) {
+          response.error = '사용자 비밀번호 업데이트 오류입니다.';
+          return response;
+        }
+      }
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '사용자 정보 수정에 실패했습니다.';
+    }
+
+    return response;
+  }
+
+  static async editExpert({
+    userId,
+    password,
+  }: IUserEditExpertRequest): Promise<IUserEditExpertResponse> {
+    const response: IUserEditExpertResponse = {
       ok: false,
       error: '',
     };
