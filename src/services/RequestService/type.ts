@@ -10,9 +10,12 @@ import {
   IRequestReferenceCorporate,
   IRequestReferenceReceiver,
   IRequestResumeCorporate,
+  IRequestResumeDetailExpert,
   IRequestResumeExpert,
+  IRequestResumeGetAnswerExpert,
 } from '@controllers/RequestController/type';
 import { TExpertSpecialty } from '@models/ExpertModel/type';
+import { TRequestStatus } from '@models/RequestModel/type';
 
 export interface IRequestReferenceRegisterRequest extends IBaseServiceRequest {
   userId: number;
@@ -155,9 +158,12 @@ export interface IRequestResumeRegisterRequest extends IBaseServiceRequest {
   userId: number;
   memo: string | null;
   resume: Express.MulterS3.File;
+  portfolio: Express.MulterS3.File | null;
   specialty: TExpertSpecialty;
   question: string;
   deadline: Date | null;
+  rewardNum: number;
+  rewardPrice: number;
 }
 
 export interface IRequestResumeRegisterResponse extends IBaseServiceResponse {}
@@ -179,3 +185,49 @@ export interface IRequestResumeListExpertRequest extends IBaseServiceRequest {
 export interface IRequestResumeListExpertResponse extends IBaseServiceResponse {
   requests: Array<IRequestResumeExpert>;
 }
+
+export interface IRequestResumeExploreRequest extends IBaseServiceRequest {
+  userId: number;
+  page: number;
+}
+
+export interface IRequestResumeExploreResponse extends IBaseServiceResponse {
+  requests: Array<IRequestResumeExpert>;
+}
+
+export interface IRequestResumeDetailExpertRequest extends IBaseServiceRequest {
+  userId: number;
+  requestId: number;
+}
+
+export interface IRequestResumeDetailExpertResponse
+  extends IBaseServiceResponse {
+  request: IRequestResumeDetailExpert | null;
+}
+
+export interface IRequestResumeGetAnswerExpertRequest
+  extends IBaseServiceRequest {
+  userId: number;
+  requestId: number;
+}
+
+export interface IRequestResumeGetAnswerExpertResponse
+  extends IBaseServiceResponse {
+  request: IRequestResumeGetAnswerExpert | null;
+}
+
+export interface IRequestResumeAnswerRequest extends IBaseServiceRequest {
+  userId: number;
+  requestId: number;
+  workExperience: number;
+  workExperienceDescription: string;
+  roleFit: number;
+  roleFitDescription: string;
+  collaborationAbility: number;
+  collaborationAbilityDescription: string;
+  hardWorking: number;
+  hardWorkingDescription: string;
+  recommendedSalary: string;
+}
+
+export interface IRequestResumeAnswerResponse extends IBaseServiceResponse {}

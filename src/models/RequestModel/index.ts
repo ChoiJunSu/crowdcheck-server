@@ -9,6 +9,8 @@ import CorporateModel from '@models/CorporateModel';
 import CandidateModel from '@models/CandidateModel';
 import ReceiverModel from '@models/ReceiverModel';
 import CandidateAgreeModel from '@models/CandidateAgreeModel';
+import CandidateResumeModel from '@models/CandidateResumeModel';
+import CandidatePortfolioModel from '@models/CandidatePortfolioModel';
 
 class RequestModel
   extends Model<IRequestAttributes, IRequestCreationAttributes>
@@ -35,8 +37,8 @@ class RequestModel
   declare readonly Candidate?: CandidateModel;
   declare readonly CandidateAgrees?: Array<CandidateAgreeModel>;
   declare readonly Receivers?: Array<ReceiverModel>;
-
-  declare readonly receiverCount?: number;
+  declare readonly CandidateResume?: CandidateResumeModel;
+  declare readonly CandidatePortfolio?: CandidatePortfolioModel;
 
   declare static associations: {};
 }

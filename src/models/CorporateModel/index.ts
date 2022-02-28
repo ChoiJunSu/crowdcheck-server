@@ -25,6 +25,8 @@ class CorporateModel
   declare readonly Request?: RequestModel;
   declare readonly User?: UserModel;
 
+  declare readonly receiverCount?: number;
+
   declare static associations: {};
 }
 

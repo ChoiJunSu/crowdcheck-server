@@ -13,6 +13,8 @@ import { initRequestModel } from '@models/RequestModel';
 import { initCandidateResumeModel } from '@models/CandidateResumeModel';
 import { initExpertModel } from '@models/ExpertModel';
 import { initExpertVerifyModel } from '@models/ExpertVerifyModel';
+import { initCandidatePortfolioModel } from '@models/CandidatePortfolioModel';
+import { initReceiverAnswerModel } from '@models/ReceiverAnswerModel';
 
 export const SequelizeSingleton = (() => {
   let sequelize: Sequelize;
@@ -36,12 +38,14 @@ export const SequelizeSingleton = (() => {
       initRequestModel(sequelize);
       initCandidateModel(sequelize);
       initCandidateResumeModel(sequelize);
+      initCandidatePortfolioModel(sequelize);
       initCandidateAgreeModel(sequelize);
       initCareerModel(sequelize);
       initCareerVerifyModel(sequelize);
       initCorporateVerifyModel(sequelize);
       initPhoneVerifyModel(sequelize);
       initReceiverModel(sequelize);
+      initReceiverAnswerModel(sequelize);
       initExpertModel(sequelize);
       initExpertVerifyModel(sequelize);
 

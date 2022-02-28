@@ -14,6 +14,11 @@ import {
   IRequestResumeRegisterRequest,
   IRequestReferenceVerifyRequest,
   IRequestResumeListCorporateRequest,
+  IRequestResumeListExpertRequest,
+  IRequestResumeExploreRequest,
+  IRequestResumeDetailExpertRequest,
+  IRequestResumeGetAnswerExpertRequest,
+  IRequestResumeAnswerRequest,
 } from '@services/RequestService/type';
 import AuthMiddleware from '@middlewares/AuthMiddleware';
 import {
@@ -185,20 +190,28 @@ RequestController.get(
 RequestController.post(
   '/resume/register',
   AuthMiddleware.isCorporate,
-  MulterMiddleware.upload.single('resume'),
+  MulterMiddleware.upload.fields([
+    { name: 'resume', maxCount: 1 },
+    { name: 'portfolio', maxCount: 1 },
+  ]),
   async (req: IRequest, res: IResponse, next: INextFunction) => {
-    const { memo, specialty, question, deadline } = req.body;
-    if (!req.file)
+    const { memo, specialty, question, deadline, rewardNum, rewardPrice } =
+      req.body;
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+    if (!files['resume'][0])
       return res.send({ ok: false, error: '이력서를 업로드해주세요.' });
 
     return res.send(
       await RequestService.resumeRegister({
         userId: req.user!.id,
         memo,
-        resume: req.file,
+        resume: files['resume'][0],
+        portfolio: files['portfolio'][0] || null,
         specialty,
         question,
         deadline,
+        rewardNum,
+        rewardPrice,
       } as IRequestResumeRegisterRequest)
     );
   }
@@ -212,6 +225,98 @@ RequestController.get(
       await RequestService.resumeListCorporate({
         userId: req.user!.id,
       } as IRequestResumeListCorporateRequest)
+    );
+  }
+);
+
+RequestController.get(
+  '/resume/list/expert',
+  AuthMiddleware.isExpert,
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    return res.send(
+      await RequestService.resumeListExpert({
+        userId: req.user!.id,
+      } as IRequestResumeListExpertRequest)
+    );
+  }
+);
+
+RequestController.get(
+  '/resume/explore',
+  AuthMiddleware.isExpert,
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    const { page } = req.query;
+
+    return res.send(
+      await RequestService.resumeExplore({
+        userId: req.user!.id,
+        page: parseInt(page as string),
+      } as IRequestResumeExploreRequest)
+    );
+  }
+);
+
+RequestController.get(
+  '/resume/detail/expert',
+  AuthMiddleware.isExpert,
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    const { requestId } = req.query;
+
+    return res.send(
+      await RequestService.resumeDetailExpert({
+        userId: req.user!.id,
+        requestId: parseInt(requestId as string),
+      } as IRequestResumeDetailExpertRequest)
+    );
+  }
+);
+
+RequestController.get(
+  '/resume/get/answer/expert',
+  AuthMiddleware.isExpert,
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    const { requestId } = req.query;
+
+    return res.send(
+      await RequestService.resumeGetAnswerExpert({
+        userId: req.user!.id,
+        requestId: parseInt(requestId as string),
+      } as IRequestResumeGetAnswerExpertRequest)
+    );
+  }
+);
+
+RequestController.post(
+  '/resume/answer',
+  AuthMiddleware.isExpert,
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    const {
+      requestId,
+      workExperience,
+      workExperienceDescription,
+      roleFit,
+      roleFitDescription,
+      collaborationAbility,
+      collaborationAbilityDescription,
+      hardWorking,
+      hardWorkingDescription,
+      recommendedSalary,
+    } = req.body;
+
+    return res.send(
+      await RequestService.resumeAnswer({
+        userId: req.user!.id,
+        requestId,
+        workExperience,
+        workExperienceDescription,
+        roleFit,
+        roleFitDescription,
+        collaborationAbility,
+        collaborationAbilityDescription,
+        hardWorking,
+        hardWorkingDescription,
+        recommendedSalary,
+      } as IRequestResumeAnswerRequest)
     );
   }
 );

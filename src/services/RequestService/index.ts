@@ -31,6 +31,14 @@ import {
   IRequestResumeListCorporateResponse,
   IRequestResumeListExpertRequest,
   IRequestResumeListExpertResponse,
+  IRequestResumeExploreRequest,
+  IRequestResumeExploreResponse,
+  IRequestResumeDetailExpertRequest,
+  IRequestResumeDetailExpertResponse,
+  IRequestResumeGetAnswerExpertRequest,
+  IRequestResumeGetAnswerExpertResponse,
+  IRequestResumeAnswerRequest,
+  IRequestResumeAnswerResponse,
 } from '@services/RequestService/type';
 import RequestModel from '@models/RequestModel';
 import CorporateModel from '@models/CorporateModel';
@@ -49,6 +57,11 @@ import careerModel from '@models/CareerModel';
 import { SensSingleton } from '@utils/sens';
 import CandidateResumeModel from '@models/CandidateResumeModel';
 import ExpertModel from '@models/ExpertModel';
+import { S3Singleton } from '@utils/s3';
+import candidateResumeModel from '@models/CandidateResumeModel';
+import CandidatePortfolioModel from '@models/CandidatePortfolioModel';
+import candidatePortfolioModel from '@models/CandidatePortfolioModel';
+import ReceiverAnswerModel from '@models/ReceiverAnswerModel';
 
 class RequestService {
   static async referenceRegister({
@@ -1034,9 +1047,12 @@ class RequestService {
     userId,
     memo,
     resume,
+    portfolio,
     specialty,
     question,
     deadline,
+    rewardNum,
+    rewardPrice,
   }: IRequestResumeRegisterRequest): Promise<IRequestResumeRegisterResponse> {
     const response: IRequestResumeRegisterResponse = {
       ok: false,
@@ -1060,13 +1076,15 @@ class RequestService {
         specialty,
         question,
         deadline: deadline || new Date(MAX_TIMESTAMP),
+        rewardNum,
+        rewardPrice,
         type: 'resume',
       });
       if (!createRequestResult || !createRequestResult.id) {
         response.error = '의뢰 생성 오류입니다.';
         return response;
       }
-      // create candidateResume
+      // create candidate resume
       const candidateResumeCreateResult = await CandidateResumeModel.create({
         requestId: createRequestResult.id,
         resumeBucket: resume.bucket,
@@ -1075,6 +1093,19 @@ class RequestService {
       if (!candidateResumeCreateResult) {
         response.error = '이력서 생성 오류입니다.';
         return response;
+      }
+      // create candidate portfolio
+      if (portfolio) {
+        const candidatePortfolioCreateResult =
+          await CandidatePortfolioModel.create({
+            requestId: createRequestResult.id,
+            portfolioBucket: portfolio.bucket,
+            portfolioKey: portfolio.key,
+          });
+        if (!candidatePortfolioCreateResult) {
+          response.error = '포트폴리오 생성 오류입니다.';
+          return response;
+        }
       }
       response.ok = true;
     } catch (e) {
@@ -1154,6 +1185,65 @@ class RequestService {
     };
 
     try {
+      const receiverFindAllResult = await ReceiverModel.findAll({
+        attributes: ['requestId', 'status'],
+        where: { userId },
+      });
+      if (!receiverFindAllResult) {
+        response.error = '요청 검색 오류입니다.';
+        return response;
+      }
+      for (const { requestId, status } of receiverFindAllResult) {
+        const requestFindOneResult = await RequestModel.findOne({
+          attributes: ['id', 'deadline', 'rewardNum', 'rewardPrice'],
+          where: { id: requestId, type: 'resume' },
+          include: [
+            {
+              model: CorporateModel,
+              attributes: ['name'],
+            },
+          ],
+        });
+        // count receiver
+        const receiverCountResult = await ReceiverModel.count({
+          where: { requestId },
+        });
+        if (!requestFindOneResult || !requestFindOneResult.Corporate) continue;
+        // generate response
+        const { deadline, rewardNum, rewardPrice, Corporate } =
+          requestFindOneResult;
+        response.requests.push({
+          id: requestFindOneResult.id,
+          corporateName: Corporate.name,
+          deadline:
+            deadline && deadline.getTime() === new Date(MAX_TIMESTAMP).getTime()
+              ? null
+              : deadline,
+          rewardNum,
+          rewardPrice,
+          receiverCount: receiverCountResult ?? 0,
+        });
+      }
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '의뢰 목록을 불러오는데 실패했습니다.';
+    }
+
+    return response;
+  }
+
+  static async resumeExplore({
+    userId,
+    page,
+  }: IRequestResumeExploreRequest): Promise<IRequestResumeExploreResponse> {
+    const response: IRequestResumeExploreResponse = {
+      ok: false,
+      error: '',
+      requests: [],
+    };
+
+    try {
       // verify user is expert
       const expertFindOneResult = await ExpertModel.findOne({
         attributes: ['specialty'],
@@ -1165,26 +1255,16 @@ class RequestService {
       }
       // find request
       const requestFindAllResult = await RequestModel.findAll({
-        attributes: [
-          'id',
-          'deadline',
-          'rewardNum',
-          'rewardPrice',
-          [
-            Sequelize.fn('COUNT', Sequelize.col('Receivers.id')),
-            'receiverCount',
-          ],
-        ],
+        attributes: ['id', 'deadline', 'rewardNum', 'rewardPrice'],
         where: {
           type: 'resume',
           status: { [Op.not]: 'closed' },
           specialty: expertFindOneResult.specialty,
         },
+        order: [['deadline', 'ASC']],
+        offset: 20 * (page - 1),
+        limit: 20,
         include: [
-          {
-            model: ReceiverModel,
-            attributes: ['id'],
-          },
           {
             model: CorporateModel,
             attributes: ['name'],
@@ -1195,28 +1275,278 @@ class RequestService {
         response.error = '의뢰 검색 오류입니다.';
         return response;
       }
+      // generate response
       for (const {
         id,
         deadline,
         rewardNum,
         rewardPrice,
-        receiverCount,
         Corporate,
       } of requestFindAllResult) {
-        if (!receiverCount || !Corporate) continue;
+        if (!Corporate) continue;
+        // count receiver
+        const receiverCountResult = await ReceiverModel.count({
+          where: { requestId: id },
+        });
         response.requests.push({
           id,
           corporateName: Corporate.name,
-          deadline: deadline === new Date(MAX_TIMESTAMP) ? null : deadline,
+          deadline:
+            deadline && deadline.getTime() === new Date(MAX_TIMESTAMP).getTime()
+              ? null
+              : deadline,
           rewardNum,
           rewardPrice,
-          receiverCount,
+          receiverCount: receiverCountResult ?? 0,
         });
       }
       response.ok = true;
     } catch (e) {
       console.error(e);
-      response.error = '의뢰 목록을 불러오는데 실패했습니다.';
+      response.error = '의뢰 탐색에 실패했습니다.';
+    }
+
+    return response;
+  }
+
+  static async resumeDetailExpert({
+    userId,
+    requestId,
+  }: IRequestResumeDetailExpertRequest): Promise<IRequestResumeDetailExpertResponse> {
+    const response: IRequestResumeDetailExpertResponse = {
+      ok: false,
+      error: '',
+      request: null,
+    };
+
+    try {
+      // verify expert
+      const expertFindOneResult = await ExpertModel.findOne({
+        attributes: ['specialty'],
+        where: { userId },
+      });
+      if (!expertFindOneResult) {
+        response.error = '전문가 검색 오류입니다.';
+        return response;
+      }
+      // find request
+      const requestFindOneResult = await RequestModel.findOne({
+        attributes: [
+          'id',
+          'question',
+          'deadline',
+          'rewardNum',
+          'rewardPrice',
+          'status',
+        ],
+        where: {
+          id: requestId,
+          type: 'resume',
+          specialty: expertFindOneResult.specialty,
+        },
+        include: [
+          {
+            model: CorporateModel,
+            attributes: ['name'],
+          },
+        ],
+      });
+      if (!requestFindOneResult || !requestFindOneResult.Corporate) {
+        response.error = '의뢰 검색 오류입니다.';
+        return response;
+      }
+      const {
+        id,
+        question,
+        deadline,
+        rewardNum,
+        rewardPrice,
+        status,
+        Corporate,
+      } = requestFindOneResult;
+      // count receiver
+      const receiverCountResult = await ReceiverModel.count({
+        where: { requestId },
+      });
+      response.request = {
+        id,
+        corporateName: Corporate.name,
+        question,
+        deadline:
+          deadline && deadline.getTime() === new Date(MAX_TIMESTAMP).getTime()
+            ? null
+            : deadline,
+        rewardNum,
+        rewardPrice,
+        receiverCount: receiverCountResult ?? 0,
+        status,
+      };
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '의뢰 조회에 실패했습니다.';
+    }
+
+    return response;
+  }
+
+  static async resumeGetAnswerExpert({
+    userId,
+    requestId,
+  }: IRequestResumeGetAnswerExpertRequest): Promise<IRequestResumeGetAnswerExpertResponse> {
+    const response: IRequestResumeGetAnswerExpertResponse = {
+      ok: false,
+      error: '',
+      request: null,
+    };
+
+    try {
+      // verify expert
+      const expertFindOneResult = await ExpertModel.findOne({
+        attributes: ['specialty'],
+        where: { userId },
+      });
+      if (!expertFindOneResult) {
+        response.error = '전문가 검색 오류입니다.';
+        return response;
+      }
+      // find receiver
+      const receiverFineOneResult = await ReceiverModel.findOne({
+        attributes: ['id'],
+        where: { requestId, userId },
+      });
+      if (receiverFineOneResult) {
+        response.error = '이미 답변하신 의뢰입니다.';
+        return response;
+      }
+      // find request
+      const requestFindOneResult = await RequestModel.findOne({
+        attributes: ['id', 'question', 'status'],
+        where: {
+          id: requestId,
+          type: 'resume',
+          specialty: expertFindOneResult.specialty,
+        },
+        include: [
+          {
+            model: CorporateModel,
+            attributes: ['name'],
+          },
+          {
+            model: CandidateResumeModel,
+            attributes: ['resumeBucket', 'resumeKey'],
+          },
+          {
+            model: CandidatePortfolioModel,
+            attributes: ['portfolioBucket', 'portfolioKey'],
+          },
+        ],
+      });
+      if (
+        !requestFindOneResult ||
+        !requestFindOneResult.Corporate ||
+        !requestFindOneResult.CandidateResume
+      ) {
+        response.error = '의뢰 검색 오류입니다.';
+        return response;
+      } else if (requestFindOneResult.status !== 'registered') {
+        response.error = '이미 마감된 의뢰입니다.';
+        return response;
+      }
+      // generate response
+      const { id, question, Corporate, CandidateResume, CandidatePortfolio } =
+        requestFindOneResult;
+      response.request = {
+        id,
+        corporateName: Corporate.name,
+        question,
+        resumeUrl: S3Singleton.getSignedUrl(
+          CandidateResume?.resumeBucket,
+          CandidateResume?.resumeKey
+        ),
+        portfolioUrl: CandidatePortfolio
+          ? S3Singleton.getSignedUrl(
+              CandidatePortfolio.portfolioBucket,
+              CandidatePortfolio.portfolioKey
+            )
+          : null,
+      };
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '의뢰 정보 불러오기에 실패했습니다.';
+    }
+
+    return response;
+  }
+
+  static async resumeAnswer({
+    userId,
+    requestId,
+    workExperience,
+    workExperienceDescription,
+    roleFit,
+    roleFitDescription,
+    collaborationAbility,
+    collaborationAbilityDescription,
+    hardWorking,
+    hardWorkingDescription,
+    recommendedSalary,
+  }: IRequestResumeAnswerRequest): Promise<IRequestResumeAnswerResponse> {
+    const response: IRequestResumeAnswerResponse = {
+      ok: false,
+      error: '',
+    };
+
+    try {
+      // verify expert
+      const expertFindOneResult = await ExpertModel.findOne({
+        attributes: ['specialty'],
+        where: { userId },
+      });
+      if (!expertFindOneResult) {
+        response.error = '전문가 검색 오류입니다.';
+        return response;
+      }
+      // find or create receiver
+      const receiverFindOrCreateResult = await ReceiverModel.findOrCreate({
+        where: {
+          userId,
+          requestId,
+        },
+        defaults: {
+          userId,
+          requestId,
+        },
+      });
+      if (!receiverFindOrCreateResult) {
+        response.error = '답변 생성 오류입니다.';
+        return response;
+      } else if (!receiverFindOrCreateResult[1]) {
+        response.error = '이미 답변하신 의뢰입니다.';
+        return response;
+      }
+      // create receiver answer
+      const receiverAnswerCreateResult = await ReceiverAnswerModel.create({
+        receiverId: receiverFindOrCreateResult[0].id,
+        workExperience,
+        workExperienceDescription,
+        roleFit,
+        roleFitDescription,
+        collaborationAbility,
+        collaborationAbilityDescription,
+        hardWorking,
+        hardWorkingDescription,
+        recommendedSalary,
+      });
+      if (!receiverAnswerCreateResult) {
+        response.error = '답변 생성 오류입니다.';
+        return response;
+      }
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '의뢰 답변에 실패했습니다.';
     }
 
     return response;

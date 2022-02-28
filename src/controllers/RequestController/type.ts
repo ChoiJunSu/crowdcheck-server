@@ -54,3 +54,22 @@ export interface IRequestResumeExpert {
   rewardPrice: number;
   receiverCount: number;
 }
+
+export interface IRequestResumeDetailExpert {
+  id: number;
+  corporateName: string;
+  question: string;
+  deadline: Date | null;
+  rewardNum: number;
+  rewardPrice: number;
+  receiverCount: number;
+  status: TRequestStatus;
+}
+
+export interface IRequestResumeGetAnswerExpert {
+  id: number;
+  corporateName: string;
+  question: string;
+  resumeUrl: string;
+  portfolioUrl: string | null;
+}
