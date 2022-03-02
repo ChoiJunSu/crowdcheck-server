@@ -21,7 +21,7 @@ class ReceiverModel
   declare verifiedAt: Date | null;
   declare rejectedAt: Date | null;
   declare status: TReceiverStatus;
-  declare arrivedAt: Date;
+  declare receivedAt: Date;
   declare answeredAt: Date | null;
   declare closedAt: Date | null;
 
@@ -59,17 +59,11 @@ export const initReceiverModel = (sequelize: Sequelize) => {
         defaultValue: null,
       },
       status: {
-        type: DataTypes.ENUM(
-          'arrived',
-          'verified',
-          'rejected',
-          'answered',
-          'closed'
-        ),
-        defaultValue: 'arrived',
+        type: DataTypes.ENUM('received', 'verified', 'rejected', 'answered'),
+        defaultValue: 'received',
         allowNull: false,
       },
-      arrivedAt: {
+      receivedAt: {
         type: DataTypes.DATE,
         defaultValue: Sequelize.fn('now'),
         allowNull: false,

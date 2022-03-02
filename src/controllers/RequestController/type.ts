@@ -44,13 +44,14 @@ export interface IRequestResumeCorporate {
   memo: string | null;
   deadline: Date | null;
   rewardNum: number;
-  rewardPrice: number;
+  rewardAmount: number;
   receiverCount: number;
   status: TRequestStatus;
   createdAt: Date;
 }
 
 export interface IRequestResumeAnswerCorporate {
+  receiverId: number;
   receiverName: string;
   answeredAt: Date | null;
   workExperience: number;
@@ -69,7 +70,7 @@ export interface IRequestResumeExpert {
   corporateName: string;
   deadline: Date | null;
   rewardNum: number;
-  rewardPrice: number;
+  rewardAmount: number;
   receiverCount: number;
   status: TRequestStatus;
   createdAt: Date;
@@ -81,7 +82,7 @@ export interface IRequestResumeDetailCorporate {
   question: string;
   deadline: Date | null;
   rewardNum: number;
-  rewardPrice: number;
+  rewardAmount: number;
   receiverCount: number;
   status: TRequestStatus;
   createdAt: Date;
@@ -93,7 +94,7 @@ export interface IRequestResumeDetailExpert {
   question: string;
   deadline: Date | null;
   rewardNum: number;
-  rewardPrice: number;
+  rewardAmount: number;
   receiverCount: number;
   status: TRequestStatus;
   createdAt: Date;

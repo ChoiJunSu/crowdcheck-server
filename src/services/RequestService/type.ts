@@ -17,7 +17,6 @@ import {
   IRequestResumeGetAnswerExpert,
 } from '@controllers/RequestController/type';
 import { TExpertSpecialty } from '@models/ExpertModel/type';
-import { TRequestStatus } from '@models/RequestModel/type';
 
 export interface IRequestReferenceRegisterRequest extends IBaseServiceRequest {
   userId: number;
@@ -165,7 +164,7 @@ export interface IRequestResumeRegisterRequest extends IBaseServiceRequest {
   question: string;
   deadline: Date | null;
   rewardNum: number;
-  rewardPrice: number;
+  rewardAmount: number;
 }
 
 export interface IRequestResumeRegisterResponse extends IBaseServiceResponse {}
@@ -217,6 +216,7 @@ export interface IRequestResumeDetailExpertRequest extends IBaseServiceRequest {
 export interface IRequestResumeDetailExpertResponse
   extends IBaseServiceResponse {
   request: IRequestResumeDetailExpert | null;
+  answered: boolean;
 }
 
 export interface IRequestResumeGetAnswerExpertRequest
@@ -245,3 +245,18 @@ export interface IRequestResumeAnswerRequest extends IBaseServiceRequest {
 }
 
 export interface IRequestResumeAnswerResponse extends IBaseServiceResponse {}
+
+export interface IRequestResumeCloseRequest extends IBaseServiceRequest {
+  userId: number;
+  requestId: number;
+}
+
+export interface IRequestResumeCloseResponse extends IBaseServiceResponse {}
+
+export interface IRequestResumeRewardRequest extends IBaseServiceRequest {
+  userId: number;
+  requestId: number;
+  receivers: Array<{ id: number }>;
+}
+
+export interface IRequestResumeRewardResponse extends IBaseServiceResponse {}

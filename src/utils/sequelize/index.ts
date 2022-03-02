@@ -15,6 +15,7 @@ import { initExpertModel } from '@models/ExpertModel';
 import { initExpertVerifyModel } from '@models/ExpertVerifyModel';
 import { initCandidatePortfolioModel } from '@models/CandidatePortfolioModel';
 import { initReceiverAnswerModel } from '@models/ReceiverAnswerModel';
+import { initReceiverRewardModel } from '@models/ReceiverRewardModel';
 
 export const SequelizeSingleton = (() => {
   let sequelize: Sequelize;
@@ -46,6 +47,7 @@ export const SequelizeSingleton = (() => {
       initPhoneVerifyModel(sequelize);
       initReceiverModel(sequelize);
       initReceiverAnswerModel(sequelize);
+      initReceiverRewardModel(sequelize);
       initExpertModel(sequelize);
       initExpertVerifyModel(sequelize);
 

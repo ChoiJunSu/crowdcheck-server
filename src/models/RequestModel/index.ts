@@ -25,7 +25,7 @@ class RequestModel
   declare agreedAt: Date | null;
   declare memo: string | null;
   declare rewardNum: number;
-  declare rewardPrice: number;
+  declare rewardAmount: number;
   declare status: TRequestStatus;
   declare registeredAt: Date;
   declare closedAt: Date | null;
@@ -87,12 +87,12 @@ export const initRequestModel = (sequelize: Sequelize) => {
         type: DataTypes.INTEGER,
         defaultValue: null,
       },
-      rewardPrice: {
+      rewardAmount: {
         type: DataTypes.INTEGER,
         defaultValue: null,
       },
       status: {
-        type: DataTypes.ENUM('registered', 'agreed', 'closed'),
+        type: DataTypes.ENUM('registered', 'agreed', 'closed', 'rewarded'),
         defaultValue: 'registered',
         allowNull: false,
       },

@@ -20,6 +20,8 @@ import {
   IRequestResumeGetAnswerExpertRequest,
   IRequestResumeAnswerRequest,
   IRequestResumeDetailCorporateRequest,
+  IRequestResumeCloseRequest,
+  IRequestResumeRewardRequest,
 } from '@services/RequestService/type';
 import AuthMiddleware from '@middlewares/AuthMiddleware';
 import {
@@ -196,7 +198,7 @@ RequestController.post(
     { name: 'portfolio', maxCount: 1 },
   ]),
   async (req: IRequest, res: IResponse, next: INextFunction) => {
-    const { memo, specialty, question, deadline, rewardNum, rewardPrice } =
+    const { memo, specialty, question, deadline, rewardNum, rewardAmount } =
       req.body;
     const files = req.files as { [fieldname: string]: Express.Multer.File[] };
     if (!files['resume'][0])
@@ -212,7 +214,7 @@ RequestController.post(
         question,
         deadline,
         rewardNum,
-        rewardPrice,
+        rewardAmount,
       } as IRequestResumeRegisterRequest)
     );
   }
@@ -333,6 +335,39 @@ RequestController.post(
         hardWorkingDescription,
         recommendedSalary,
       } as IRequestResumeAnswerRequest)
+    );
+  }
+);
+
+RequestController.get(
+  '/resume/close',
+  AuthMiddleware.isCorporate,
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    const { requestId } = req.query;
+
+    return res.send(
+      await RequestService.resumeClose({
+        userId: req.user!.id,
+        requestId: parseInt(requestId as string),
+      } as IRequestResumeCloseRequest)
+    );
+  }
+);
+
+RequestController.post(
+  '/resume/reward',
+  AuthMiddleware.isCorporate,
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    const { requestId, receivers } = req.body;
+
+    return res.send(
+      await RequestService.resumeReward({
+        userId: req.user!.id,
+        requestId: parseInt(requestId as string),
+        receivers: receivers.map((receiver: any) => ({
+          id: parseInt(receiver.id as string),
+        })),
+      } as IRequestResumeRewardRequest)
     );
   }
 );

@@ -41,6 +41,10 @@ import {
   IRequestResumeAnswerResponse,
   IRequestResumeDetailCorporateRequest,
   IRequestResumeDetailCorporateResponse,
+  IRequestResumeCloseRequest,
+  IRequestResumeCloseResponse,
+  IRequestResumeRewardRequest,
+  IRequestResumeRewardResponse,
 } from '@services/RequestService/type';
 import RequestModel from '@models/RequestModel';
 import CorporateModel from '@models/CorporateModel';
@@ -60,10 +64,9 @@ import { SensSingleton } from '@utils/sens';
 import CandidateResumeModel from '@models/CandidateResumeModel';
 import ExpertModel from '@models/ExpertModel';
 import { S3Singleton } from '@utils/s3';
-import candidateResumeModel from '@models/CandidateResumeModel';
 import CandidatePortfolioModel from '@models/CandidatePortfolioModel';
-import candidatePortfolioModel from '@models/CandidatePortfolioModel';
 import ReceiverAnswerModel from '@models/ReceiverAnswerModel';
+import ReceiverRewardModel from '@models/ReceiverRewardModel';
 
 class RequestService {
   static async referenceRegister({
@@ -778,7 +781,7 @@ class RequestService {
         return response;
       } else if (
         requestFindOneResult.status !== 'agreed' ||
-        requestFindOneResult.Receivers[0].status !== 'arrived'
+        requestFindOneResult.Receivers[0].status !== 'received'
       ) {
         response.error = '의뢰 상태 오류입니다.';
         return response;
@@ -937,7 +940,7 @@ class RequestService {
       }
       if (
         requestFindOneResult.status !== 'agreed' ||
-        (requestFindOneResult.Receivers[0].status !== 'arrived' &&
+        (requestFindOneResult.Receivers[0].status !== 'received' &&
           requestFindOneResult.Receivers[0].status !== 'verified')
       ) {
         response.error = '의뢰 상태 오류입니다.';
@@ -1054,7 +1057,7 @@ class RequestService {
     question,
     deadline,
     rewardNum,
-    rewardPrice,
+    rewardAmount,
   }: IRequestResumeRegisterRequest): Promise<IRequestResumeRegisterResponse> {
     const response: IRequestResumeRegisterResponse = {
       ok: false,
@@ -1079,7 +1082,7 @@ class RequestService {
         question,
         deadline: deadline || new Date(MAX_TIMESTAMP),
         rewardNum,
-        rewardPrice,
+        rewardAmount,
         type: 'resume',
       });
       if (!createRequestResult || !createRequestResult.id) {
@@ -1145,7 +1148,7 @@ class RequestService {
           'memo',
           'deadline',
           'rewardNum',
-          'rewardPrice',
+          'rewardAmount',
           'status',
           'createdAt',
         ],
@@ -1162,7 +1165,7 @@ class RequestService {
         memo,
         deadline,
         rewardNum,
-        rewardPrice,
+        rewardAmount,
         status,
         createdAt,
       } of requestFindAllResult) {
@@ -1179,7 +1182,7 @@ class RequestService {
               ? null
               : deadline,
           rewardNum,
-          rewardPrice,
+          rewardAmount,
           receiverCount: receiverCountResult ?? 0,
           status,
           createdAt,
@@ -1218,7 +1221,7 @@ class RequestService {
             'id',
             'deadline',
             'rewardNum',
-            'rewardPrice',
+            'rewardAmount',
             'status',
             'createdAt',
           ],
@@ -1239,7 +1242,7 @@ class RequestService {
         const {
           deadline,
           rewardNum,
-          rewardPrice,
+          rewardAmount,
           status,
           createdAt,
           Corporate,
@@ -1252,7 +1255,7 @@ class RequestService {
               ? null
               : deadline,
           rewardNum,
-          rewardPrice,
+          rewardAmount,
           receiverCount: receiverCountResult ?? 0,
           status,
           createdAt,
@@ -1293,7 +1296,7 @@ class RequestService {
           'id',
           'deadline',
           'rewardNum',
-          'rewardPrice',
+          'rewardAmount',
           'status',
           'createdAt',
         ],
@@ -1321,7 +1324,7 @@ class RequestService {
         id,
         deadline,
         rewardNum,
-        rewardPrice,
+        rewardAmount,
         status,
         createdAt,
         Corporate,
@@ -1339,7 +1342,7 @@ class RequestService {
               ? null
               : deadline,
           rewardNum,
-          rewardPrice,
+          rewardAmount,
           receiverCount: receiverCountResult ?? 0,
           status,
           createdAt,
@@ -1383,7 +1386,7 @@ class RequestService {
           'question',
           'deadline',
           'rewardNum',
-          'rewardPrice',
+          'rewardAmount',
           'status',
           'createdAt',
         ],
@@ -1403,7 +1406,7 @@ class RequestService {
         question,
         deadline,
         rewardNum,
-        rewardPrice,
+        rewardAmount,
         status,
         createdAt,
       } = requestFindOneResult;
@@ -1446,6 +1449,7 @@ class RequestService {
           recommendedSalary,
         } = ReceiverAnswer;
         response.answers.push({
+          receiverId: id,
           receiverName: User.name,
           answeredAt,
           workExperience,
@@ -1468,7 +1472,7 @@ class RequestService {
             ? null
             : deadline,
         rewardNum,
-        rewardPrice,
+        rewardAmount,
         receiverCount: receiverFindAndCountAllResult.count,
         status,
         createdAt,
@@ -1490,6 +1494,7 @@ class RequestService {
       ok: false,
       error: '',
       request: null,
+      answered: false,
     };
 
     try {
@@ -1509,7 +1514,7 @@ class RequestService {
           'question',
           'deadline',
           'rewardNum',
-          'rewardPrice',
+          'rewardAmount',
           'status',
           'createdAt',
         ],
@@ -1534,15 +1539,31 @@ class RequestService {
         question,
         deadline,
         rewardNum,
-        rewardPrice,
+        rewardAmount,
         status,
         createdAt,
         Corporate,
       } = requestFindOneResult;
-      // count receiver
-      const receiverCountResult = await ReceiverModel.count({
-        where: { requestId },
-      });
+      // find and count receiver
+      const receiverFindAndCountAllResult = await ReceiverModel.findAndCountAll(
+        {
+          attributes: ['id'],
+          where: { requestId },
+          include: {
+            model: UserModel,
+            attributes: ['id'],
+          },
+        }
+      );
+      if (!receiverFindAndCountAllResult) {
+        response.error = '답변자 검색 오류입니다.';
+        return response;
+      }
+      for (const { User } of receiverFindAndCountAllResult.rows) {
+        if (!User) continue;
+        if (userId === User.id) response.answered = true;
+      }
+      // generate response
       response.request = {
         id,
         corporateName: Corporate.name,
@@ -1552,8 +1573,8 @@ class RequestService {
             ? null
             : deadline,
         rewardNum,
-        rewardPrice,
-        receiverCount: receiverCountResult ?? 0,
+        rewardAmount,
+        receiverCount: receiverFindAndCountAllResult.count ?? 0,
         status,
         createdAt,
       };
@@ -1724,6 +1745,152 @@ class RequestService {
     } catch (e) {
       console.error(e);
       response.error = '의뢰 답변에 실패했습니다.';
+    }
+
+    return response;
+  }
+
+  static async resumeClose({
+    userId,
+    requestId,
+  }: IRequestResumeCloseRequest): Promise<IRequestResumeCloseResponse> {
+    const response: IRequestResumeCloseResponse = {
+      ok: false,
+      error: '',
+    };
+
+    try {
+      // verify userId with requestId
+      const userFindOneResult = await UserModel.findOne({
+        attributes: ['id'],
+        where: { id: userId },
+        include: {
+          model: CorporateModel,
+          attributes: ['id'],
+        },
+      });
+      if (!userFindOneResult || !userFindOneResult.Corporate) {
+        response.error = '사용자 검색에 실패했습니다.';
+        return response;
+      }
+      const requestFindOneResult = await RequestModel.findOne({
+        attributes: ['status'],
+        where: {
+          id: requestId,
+          corporateId: userFindOneResult.Corporate.id,
+          type: 'resume',
+        },
+      });
+      if (!requestFindOneResult) {
+        response.error = '의뢰 검색 오류입니다.';
+        return response;
+      } else if (requestFindOneResult.status !== 'registered') {
+        response.error = '이미 마감된 의뢰입니다.';
+        return response;
+      }
+      // update request
+      const requestUpdateResult = await RequestModel.update(
+        {
+          status: 'closed',
+          closedAt: new Date(),
+        },
+        { where: { id: requestId } }
+      );
+      if (!requestUpdateResult) {
+        response.error = '의뢰 업데이트 오류입니다.';
+        return response;
+      }
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '의뢰 마감에 실패했습니다.';
+    }
+
+    return response;
+  }
+
+  static async resumeReward({
+    userId,
+    requestId,
+    receivers,
+  }: IRequestResumeRewardRequest): Promise<IRequestResumeRewardResponse> {
+    const response: IRequestResumeRewardResponse = {
+      ok: false,
+      error: '',
+    };
+
+    try {
+      // verify userId with requestId
+      const userFindOneResult = await UserModel.findOne({
+        attributes: ['id'],
+        where: { id: userId },
+        include: {
+          model: CorporateModel,
+          attributes: ['id'],
+        },
+      });
+      if (!userFindOneResult || !userFindOneResult.Corporate) {
+        response.error = '사용자 검색에 실패했습니다.';
+        return response;
+      }
+      const requestFindOneResult = await RequestModel.findOne({
+        attributes: ['status', 'rewardNum', 'rewardAmount'],
+        where: {
+          id: requestId,
+          corporateId: userFindOneResult.Corporate.id,
+          type: 'resume',
+        },
+        include: {
+          model: ReceiverModel,
+          attributes: ['id'],
+        },
+      });
+      if (!requestFindOneResult || !requestFindOneResult.Receivers) {
+        response.error = '의뢰 검색 오류입니다.';
+        return response;
+      } else if (requestFindOneResult.status !== 'closed') {
+        response.error = '먼저 의뢰를 마감해주세요.';
+        return response;
+      } else if (requestFindOneResult.rewardNum < receivers.length) {
+        response.error = '선정하신 답변 수가 너무 많습니다.';
+        return response;
+      }
+      // generate request receivers
+      const requestReceivers: Array<number> = [];
+      for (const { id } of requestFindOneResult.Receivers) {
+        requestReceivers.push(id);
+      }
+      // create receiver reward
+      for (const { id } of receivers) {
+        if (!requestReceivers.includes(id)) {
+          response.error = '답변자 검색 오류입니다.';
+          return response;
+        }
+        const receiverRewardCreateResult = await ReceiverRewardModel.create({
+          receiverId: id,
+          amount: requestFindOneResult.rewardAmount,
+        });
+        if (!receiverRewardCreateResult) {
+          response.error = '답변자 보상 생성 오류입니다.';
+          return response;
+        }
+      }
+      // update request
+      const requestUpdateResult = await RequestModel.update(
+        {
+          status: 'rewarded',
+          rewardedAt: new Date(),
+        },
+        { where: { id: requestId } }
+      );
+      if (!requestUpdateResult) {
+        response.error = '의뢰 업데이트 오류입니다.';
+        return response;
+      }
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '답변 선정에 실패했습니다.';
     }
 
     return response;

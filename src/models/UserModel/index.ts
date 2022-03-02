@@ -28,6 +28,7 @@ class UserModel
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 
+  declare readonly Corporate?: CorporateModel;
   declare readonly Candidate?: CandidateModel;
   declare readonly Careers?: Array<CareerModel>;
   declare readonly CorporateVerify?: CorporateVerifyModel;

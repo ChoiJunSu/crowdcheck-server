@@ -1,11 +1,6 @@
 import { Optional } from 'sequelize';
 
-export type TReceiverStatus =
-  | 'arrived'
-  | 'verified'
-  | 'rejected'
-  | 'answered'
-  | 'closed';
+export type TReceiverStatus = 'received' | 'verified' | 'rejected' | 'answered';
 
 export interface IReceiverAttributes {
   id?: number;
@@ -18,7 +13,7 @@ export interface IReceiverAttributes {
   rejectedAt?: Date | null;
   // reference
   status?: TReceiverStatus;
-  arrivedAt?: Date;
+  receivedAt?: Date;
   answeredAt?: Date | null;
   closedAt?: Date | null;
 }

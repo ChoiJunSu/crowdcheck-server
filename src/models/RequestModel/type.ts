@@ -1,7 +1,7 @@
 import { Optional } from 'sequelize';
 import { TExpertSpecialty } from '@models/ExpertModel/type';
 
-export type TRequestStatus = 'registered' | 'agreed' | 'closed';
+export type TRequestStatus = 'registered' | 'agreed' | 'closed' | 'rewarded';
 
 export type TRequestType = 'reference' | 'resume';
 
@@ -19,7 +19,8 @@ export interface IRequestAttributes {
   memo?: string | null;
   specialty?: TExpertSpecialty | null;
   rewardNum?: number | null;
-  rewardPrice?: number | null;
+  rewardAmount?: number | null;
+  rewardedAt?: Date | null;
   // resume
   status?: TRequestStatus;
   registeredAt?: Date;
