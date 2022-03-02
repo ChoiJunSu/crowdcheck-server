@@ -39,6 +39,8 @@ import {
   IRequestResumeGetAnswerExpertResponse,
   IRequestResumeAnswerRequest,
   IRequestResumeAnswerResponse,
+  IRequestResumeDetailCorporateRequest,
+  IRequestResumeDetailCorporateResponse,
 } from '@services/RequestService/type';
 import RequestModel from '@models/RequestModel';
 import CorporateModel from '@models/CorporateModel';
@@ -1138,33 +1140,50 @@ class RequestService {
       }
       // find request
       const requestFindAllResult = await RequestModel.findAll({
-        attributes: ['id', 'status', 'memo'],
+        attributes: [
+          'id',
+          'memo',
+          'deadline',
+          'rewardNum',
+          'rewardPrice',
+          'status',
+          'createdAt',
+        ],
         where: { corporateId: userFindOneResult.corporateId, type: 'resume' },
+        order: [['createdAt', 'DESC']],
       });
       if (!requestFindAllResult) {
         response.error = '의뢰 검색 오류입니다.';
         return response;
       }
       // find receiver and push request
-      for (const { id, status, memo } of requestFindAllResult) {
-        const request: IRequestResumeCorporate = {
-          id,
-          status,
-          memo,
-          receivers: [],
-        };
-        const receiverFindAllResult = await ReceiverModel.findAll({
-          attributes: ['id', 'status'],
+      for (const {
+        id,
+        memo,
+        deadline,
+        rewardNum,
+        rewardPrice,
+        status,
+        createdAt,
+      } of requestFindAllResult) {
+        // count receiver
+        const receiverCountResult = await ReceiverModel.count({
           where: { requestId: id },
         });
-        if (!receiverFindAllResult) {
-          response.error = '평가자 검색 오류입니다.';
-          return response;
-        }
-        for (const { id, status } of receiverFindAllResult) {
-          request.receivers.push({ id, status });
-        }
-        response.requests.push(request);
+        // generate response
+        response.requests.push({
+          id,
+          memo,
+          deadline:
+            deadline && deadline.getTime() === new Date(MAX_TIMESTAMP).getTime()
+              ? null
+              : deadline,
+          rewardNum,
+          rewardPrice,
+          receiverCount: receiverCountResult ?? 0,
+          status,
+          createdAt,
+        });
       }
       response.ok = true;
     } catch (e) {
@@ -1195,7 +1214,14 @@ class RequestService {
       }
       for (const { requestId, status } of receiverFindAllResult) {
         const requestFindOneResult = await RequestModel.findOne({
-          attributes: ['id', 'deadline', 'rewardNum', 'rewardPrice'],
+          attributes: [
+            'id',
+            'deadline',
+            'rewardNum',
+            'rewardPrice',
+            'status',
+            'createdAt',
+          ],
           where: { id: requestId, type: 'resume' },
           include: [
             {
@@ -1210,8 +1236,14 @@ class RequestService {
         });
         if (!requestFindOneResult || !requestFindOneResult.Corporate) continue;
         // generate response
-        const { deadline, rewardNum, rewardPrice, Corporate } =
-          requestFindOneResult;
+        const {
+          deadline,
+          rewardNum,
+          rewardPrice,
+          status,
+          createdAt,
+          Corporate,
+        } = requestFindOneResult;
         response.requests.push({
           id: requestFindOneResult.id,
           corporateName: Corporate.name,
@@ -1222,6 +1254,8 @@ class RequestService {
           rewardNum,
           rewardPrice,
           receiverCount: receiverCountResult ?? 0,
+          status,
+          createdAt,
         });
       }
       response.ok = true;
@@ -1255,7 +1289,14 @@ class RequestService {
       }
       // find request
       const requestFindAllResult = await RequestModel.findAll({
-        attributes: ['id', 'deadline', 'rewardNum', 'rewardPrice'],
+        attributes: [
+          'id',
+          'deadline',
+          'rewardNum',
+          'rewardPrice',
+          'status',
+          'createdAt',
+        ],
         where: {
           type: 'resume',
           status: { [Op.not]: 'closed' },
@@ -1281,6 +1322,8 @@ class RequestService {
         deadline,
         rewardNum,
         rewardPrice,
+        status,
+        createdAt,
         Corporate,
       } of requestFindAllResult) {
         if (!Corporate) continue;
@@ -1298,12 +1341,142 @@ class RequestService {
           rewardNum,
           rewardPrice,
           receiverCount: receiverCountResult ?? 0,
+          status,
+          createdAt,
         });
       }
       response.ok = true;
     } catch (e) {
       console.error(e);
       response.error = '의뢰 탐색에 실패했습니다.';
+    }
+
+    return response;
+  }
+
+  static async resumeDetailCorporate({
+    userId,
+    requestId,
+  }: IRequestResumeDetailCorporateRequest): Promise<IRequestResumeDetailCorporateResponse> {
+    const response: IRequestResumeDetailCorporateResponse = {
+      ok: false,
+      error: '',
+      request: null,
+      answers: [],
+    };
+
+    try {
+      // find corporate id
+      const userFindOneResult = await UserModel.findOne({
+        attributes: ['corporateId'],
+        where: { id: userId },
+      });
+      if (!userFindOneResult) {
+        response.error = '사용자 검색 오류입니다.';
+        return response;
+      }
+      // find request
+      const requestFindOneResult = await RequestModel.findOne({
+        attributes: [
+          'id',
+          'memo',
+          'question',
+          'deadline',
+          'rewardNum',
+          'rewardPrice',
+          'status',
+          'createdAt',
+        ],
+        where: {
+          id: requestId,
+          corporateId: userFindOneResult.corporateId,
+          type: 'resume',
+        },
+      });
+      if (!requestFindOneResult) {
+        response.error = '의뢰 검색 오류입니다.';
+        return response;
+      }
+      const {
+        id,
+        memo,
+        question,
+        deadline,
+        rewardNum,
+        rewardPrice,
+        status,
+        createdAt,
+      } = requestFindOneResult;
+      // find and count receivers
+      const receiverFindAndCountAllResult = await ReceiverModel.findAndCountAll(
+        {
+          attributes: ['id', 'answeredAt'],
+          where: { requestId },
+          include: [
+            {
+              model: UserModel,
+              attributes: ['name'],
+            },
+            {
+              model: ReceiverAnswerModel,
+            },
+          ],
+        }
+      );
+      if (!receiverFindAndCountAllResult) {
+        response.error = '답변 검색 오류입니다.';
+        return response;
+      }
+      for (const {
+        id,
+        answeredAt,
+        User,
+        ReceiverAnswer,
+      } of receiverFindAndCountAllResult.rows) {
+        if (!User || !ReceiverAnswer) continue;
+        const {
+          workExperience,
+          workExperienceDescription,
+          roleFit,
+          roleFitDescription,
+          collaborationAbility,
+          collaborationAbilityDescription,
+          hardWorking,
+          hardWorkingDescription,
+          recommendedSalary,
+        } = ReceiverAnswer;
+        response.answers.push({
+          receiverName: User.name,
+          answeredAt,
+          workExperience,
+          workExperienceDescription,
+          roleFit,
+          roleFitDescription,
+          collaborationAbility,
+          collaborationAbilityDescription,
+          hardWorking,
+          hardWorkingDescription,
+          recommendedSalary,
+        });
+      }
+      response.request = {
+        id,
+        memo: memo!,
+        question,
+        deadline:
+          deadline && deadline.getTime() === new Date(MAX_TIMESTAMP).getTime()
+            ? null
+            : deadline,
+        rewardNum,
+        rewardPrice,
+        receiverCount: receiverFindAndCountAllResult.count,
+        status,
+        createdAt,
+      };
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '의뢰 조회에 실패했습니다.';
     }
 
     return response;
@@ -1338,6 +1511,7 @@ class RequestService {
           'rewardNum',
           'rewardPrice',
           'status',
+          'createdAt',
         ],
         where: {
           id: requestId,
@@ -1362,6 +1536,7 @@ class RequestService {
         rewardNum,
         rewardPrice,
         status,
+        createdAt,
         Corporate,
       } = requestFindOneResult;
       // count receiver
@@ -1380,6 +1555,7 @@ class RequestService {
         rewardPrice,
         receiverCount: receiverCountResult ?? 0,
         status,
+        createdAt,
       };
       response.ok = true;
     } catch (e) {
@@ -1517,6 +1693,7 @@ class RequestService {
         defaults: {
           userId,
           requestId,
+          answeredAt: new Date(),
         },
       });
       if (!receiverFindOrCreateResult) {

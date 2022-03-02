@@ -19,6 +19,7 @@ import {
   IRequestResumeDetailExpertRequest,
   IRequestResumeGetAnswerExpertRequest,
   IRequestResumeAnswerRequest,
+  IRequestResumeDetailCorporateRequest,
 } from '@services/RequestService/type';
 import AuthMiddleware from '@middlewares/AuthMiddleware';
 import {
@@ -252,6 +253,21 @@ RequestController.get(
         userId: req.user!.id,
         page: parseInt(page as string),
       } as IRequestResumeExploreRequest)
+    );
+  }
+);
+
+RequestController.get(
+  '/resume/detail/corporate',
+  AuthMiddleware.isCorporate,
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    const { requestId } = req.query;
+
+    return res.send(
+      await RequestService.resumeDetailCorporate({
+        userId: req.user!.id,
+        requestId: parseInt(requestId as string),
+      } as IRequestResumeDetailCorporateRequest)
     );
   }
 );

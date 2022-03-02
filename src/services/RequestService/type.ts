@@ -9,7 +9,9 @@ import {
   IRequestReferenceCandidate,
   IRequestReferenceCorporate,
   IRequestReferenceReceiver,
+  IRequestResumeAnswerCorporate,
   IRequestResumeCorporate,
+  IRequestResumeDetailCorporate,
   IRequestResumeDetailExpert,
   IRequestResumeExpert,
   IRequestResumeGetAnswerExpert,
@@ -193,6 +195,18 @@ export interface IRequestResumeExploreRequest extends IBaseServiceRequest {
 
 export interface IRequestResumeExploreResponse extends IBaseServiceResponse {
   requests: Array<IRequestResumeExpert>;
+}
+
+export interface IRequestResumeDetailCorporateRequest
+  extends IBaseServiceRequest {
+  userId: number;
+  requestId: number;
+}
+
+export interface IRequestResumeDetailCorporateResponse
+  extends IBaseServiceResponse {
+  request: IRequestResumeDetailCorporate | null;
+  answers: Array<IRequestResumeAnswerCorporate>;
 }
 
 export interface IRequestResumeDetailExpertRequest extends IBaseServiceRequest {

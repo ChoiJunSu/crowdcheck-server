@@ -7,6 +7,7 @@ import {
 import RequestModel from '@models/RequestModel';
 import UserModel from '@models/UserModel';
 import CorporateModel from '@models/CorporateModel';
+import ReceiverAnswerModel from '@models/ReceiverAnswerModel';
 
 class ReceiverModel
   extends Model<IReceiverAttributes, IReceiverCreationAttributes>
@@ -26,6 +27,9 @@ class ReceiverModel
 
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
+
+  declare readonly User?: UserModel;
+  declare readonly ReceiverAnswer?: ReceiverAnswerModel;
 
   declare static associations: {};
 }

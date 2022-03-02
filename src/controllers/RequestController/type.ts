@@ -42,8 +42,26 @@ export interface IAnswer {
 export interface IRequestResumeCorporate {
   id: number;
   memo: string | null;
+  deadline: Date | null;
+  rewardNum: number;
+  rewardPrice: number;
+  receiverCount: number;
   status: TRequestStatus;
-  receivers: Array<IReceiver>;
+  createdAt: Date;
+}
+
+export interface IRequestResumeAnswerCorporate {
+  receiverName: string;
+  answeredAt: Date | null;
+  workExperience: number;
+  workExperienceDescription: string;
+  roleFit: number;
+  roleFitDescription: string;
+  collaborationAbility: number;
+  collaborationAbilityDescription: string;
+  hardWorking: number;
+  hardWorkingDescription: string;
+  recommendedSalary: string;
 }
 
 export interface IRequestResumeExpert {
@@ -53,6 +71,20 @@ export interface IRequestResumeExpert {
   rewardNum: number;
   rewardPrice: number;
   receiverCount: number;
+  status: TRequestStatus;
+  createdAt: Date;
+}
+
+export interface IRequestResumeDetailCorporate {
+  id: number;
+  memo: string;
+  question: string;
+  deadline: Date | null;
+  rewardNum: number;
+  rewardPrice: number;
+  receiverCount: number;
+  status: TRequestStatus;
+  createdAt: Date;
 }
 
 export interface IRequestResumeDetailExpert {
@@ -64,6 +96,7 @@ export interface IRequestResumeDetailExpert {
   rewardPrice: number;
   receiverCount: number;
   status: TRequestStatus;
+  createdAt: Date;
 }
 
 export interface IRequestResumeGetAnswerExpert {
