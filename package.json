@@ -1,7 +1,6 @@
 {
   "name": "crowdcheck-server",
   "version": "1.0.0",
-  "agreeDescription": "",
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon",
     "build": "cross-env NODE_ENV=production tsc -p .",

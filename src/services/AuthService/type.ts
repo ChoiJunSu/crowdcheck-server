@@ -110,3 +110,9 @@ export interface IAuthPhoneVerifyRequest extends IBaseServiceRequest {
 }
 
 export interface IAuthPhoneVerifyResponse extends IBaseServiceResponse {}
+
+export interface IAuthWithdrawRequest extends IBaseServiceRequest {
+  userId: number;
+}
+
+export interface IAuthWithdrawResponse extends IBaseServiceResponse {}

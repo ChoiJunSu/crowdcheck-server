@@ -21,6 +21,8 @@ import {
   IAuthPhoneVerifyResponse,
   IAuthRegisterExpertRequest,
   IAuthRegisterExpertResponse,
+  IAuthWithdrawRequest,
+  IAuthWithdrawResponse,
 } from '@services/AuthService/type';
 import { compare, genSalt, hash } from 'bcrypt';
 import UserModel from '@models/UserModel';
@@ -647,6 +649,31 @@ class AuthService {
     } catch (e) {
       console.error(e);
       response.error = '전화번호 인증에 실패했습니다.';
+    }
+
+    return response;
+  }
+
+  static async withdraw({
+    userId,
+  }: IAuthWithdrawRequest): Promise<IAuthWithdrawResponse> {
+    const response: IAuthWithdrawResponse = {
+      ok: false,
+      error: '',
+    };
+
+    try {
+      // destroy user
+      const userDeleteResult = await UserModel.destroy({
+        where: { id: userId },
+      });
+      if (!userDeleteResult) {
+        response.error = '사용자 삭제 오류입니다.';
+        return response;
+      }
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
     }
 
     return response;

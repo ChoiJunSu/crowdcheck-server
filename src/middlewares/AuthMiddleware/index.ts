@@ -5,8 +5,6 @@ import {
   IResponse,
 } from '@controllers/BaseController/type';
 import { JwtSingleton } from '@utils/jwt';
-import { IUserGetCorporateResponse } from '@services/UserService/type';
-import UserModel from '@models/UserModel';
 
 class AuthMiddleware {
   static isLoggedIn = async (

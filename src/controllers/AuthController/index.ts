@@ -11,6 +11,7 @@ import {
   IAuthPhoneSendRequest,
   IAuthPhoneVerifyRequest,
   IAuthRegisterExpertRequest,
+  IAuthWithdrawRequest,
 } from '@services/AuthService/type';
 import AuthMiddleware from '@middlewares/AuthMiddleware';
 import {
@@ -178,6 +179,18 @@ AuthController.post(
         phone,
         code: parseInt(code),
       } as IAuthPhoneVerifyRequest)
+    );
+  }
+);
+
+AuthController.get(
+  '/withdraw',
+  AuthMiddleware.isLoggedIn,
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    return res.send(
+      await AuthService.withdraw({
+        userId: req.user!.id,
+      } as IAuthWithdrawRequest)
     );
   }
 );
