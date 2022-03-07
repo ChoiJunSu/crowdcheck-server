@@ -6,7 +6,6 @@ import {
 import UserModel from '@models/UserModel';
 import CorporateModel from '@models/CorporateModel';
 import CandidateAgreeModel from '@models/CandidateAgreeModel';
-import CareerVerifyModel from '@models/CareerVerifyModel';
 
 class CareerModel
   extends Model<ICareerAttributes, ICareerCreationAttributes>
@@ -18,6 +17,8 @@ class CareerModel
   declare department: string | null;
   declare startAt: Date;
   declare endAt: Date;
+  declare certificateBucket: string | null;
+  declare certificateKey: string | null;
   declare verifiedAt: Date | null;
 
   declare readonly createdAt: Date;
@@ -25,7 +26,6 @@ class CareerModel
 
   declare readonly CandidateAgree?: CandidateAgreeModel;
   declare readonly Corporate?: CorporateModel;
-  declare readonly CareerVerify?: CareerVerifyModel;
 
   declare static associations: {};
 }
@@ -57,6 +57,14 @@ export const initCareerModel = (sequelize: Sequelize) => {
       endAt: {
         type: DataTypes.DATE,
         allowNull: false,
+      },
+      certificateBucket: {
+        type: DataTypes.STRING,
+        defaultValue: null,
+      },
+      certificateKey: {
+        type: DataTypes.STRING,
+        defaultValue: null,
       },
       verifiedAt: {
         type: DataTypes.DATE,

@@ -9,7 +9,6 @@ import { TOauthProvider } from '@controllers/AuthController/type';
 import CareerModel from '@models/CareerModel';
 import CandidateModel from '@models/CandidateModel';
 import ReceiverModel from '@models/ReceiverModel';
-import CorporateVerifyModel from '@models/CorporateVerifyModel';
 
 class UserModel
   extends Model<IUserAttributes, IUserCreationAttributes>
@@ -31,7 +30,6 @@ class UserModel
   declare readonly Corporate?: CorporateModel;
   declare readonly Candidate?: CandidateModel;
   declare readonly Careers?: Array<CareerModel>;
-  declare readonly CorporateVerify?: CorporateVerifyModel;
   declare readonly Receivers?: Array<ReceiverModel>;
 
   declare static associations: {};

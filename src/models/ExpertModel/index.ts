@@ -13,6 +13,9 @@ class ExpertModel
   declare id: number;
   declare userId: number;
   declare specialty: TExpertSpecialty;
+  declare certificateBucket: string | null;
+  declare certificateKey: string | null;
+  declare verifiedAt: Date | null;
 
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
@@ -36,6 +39,18 @@ export const initExpertModel = (sequelize: Sequelize) => {
       specialty: {
         type: DataTypes.ENUM('개발', '디자인', '기획', '마케팅'),
         allowNull: false,
+      },
+      certificateBucket: {
+        type: DataTypes.STRING,
+        defaultValue: null,
+      },
+      certificateKey: {
+        type: DataTypes.STRING,
+        defaultValue: null,
+      },
+      verifiedAt: {
+        type: DataTypes.DATE,
+        defaultValue: null,
       },
     },
     {

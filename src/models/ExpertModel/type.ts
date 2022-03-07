@@ -6,6 +6,9 @@ export interface IExpertAttributes {
   id?: number;
   userId: number;
   specialty: TExpertSpecialty;
+  certificateBucket?: string | null;
+  certificateKey?: string | null;
+  verifiedAt?: Date | null;
 }
 
 export interface IExpertCreationAttributes

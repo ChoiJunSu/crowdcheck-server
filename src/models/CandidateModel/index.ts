@@ -13,8 +13,12 @@ class CandidateModel
 {
   declare id: number;
   declare requestId: number;
-  declare name: string;
-  declare phone: string;
+  declare name: string | null;
+  declare phone: string | null;
+  declare resumeBucket: string | null;
+  declare resumeKey: string | null;
+  declare portfolioBucket: string | null;
+  declare portfolioKey: string | null;
 
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
@@ -38,11 +42,27 @@ export const initCandidateModel = (sequelize: Sequelize) => {
       },
       name: {
         type: DataTypes.STRING,
-        allowNull: false,
+        defaultValue: null,
       },
       phone: {
         type: DataTypes.STRING,
-        allowNull: false,
+        defaultValue: null,
+      },
+      resumeBucket: {
+        type: DataTypes.STRING,
+        defaultValue: null,
+      },
+      resumeKey: {
+        type: DataTypes.STRING,
+        defaultValue: null,
+      },
+      portfolioBucket: {
+        type: DataTypes.STRING,
+        defaultValue: null,
+      },
+      portfolioKey: {
+        type: DataTypes.STRING,
+        defaultValue: null,
       },
     },
     {

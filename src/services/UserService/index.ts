@@ -19,7 +19,6 @@ import CareerModel from '@models/CareerModel';
 import CorporateModel from '@models/CorporateModel';
 import { genSalt, hash } from 'bcrypt';
 import { MAX_TIMESTAMP } from '@constants/date';
-import CareerVerifyModel from '@models/CareerVerifyModel';
 import RequestService from '@services/RequestService';
 import ExpertModel from '@models/ExpertModel';
 
@@ -381,14 +380,16 @@ class UserService {
         response.error = '경력 정보가 일치하지 않습니다.';
         return response;
       }
-      // create careerVerify
-      const careerVerifyCreateResult = await CareerVerifyModel.create({
-        careerId,
-        certificateBucket: certificate.bucket,
-        certificateKey: certificate.key,
-      });
-      if (!careerVerifyCreateResult) {
-        response.error = '경력 인증 생성 오류입니다.';
+      // update career
+      const careerUpdateResult = await CareerModel.update(
+        {
+          certificateBucket: certificate.bucket,
+          certificateKey: certificate.key,
+        },
+        { where: { id: careerId } }
+      );
+      if (!careerUpdateResult) {
+        response.error = '경력 업데이트 오류입니다.';
         return response;
       }
       response.ok = true;

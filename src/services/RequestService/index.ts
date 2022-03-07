@@ -55,17 +55,11 @@ import { Op, Sequelize } from 'sequelize';
 import ReceiverModel from '@models/ReceiverModel';
 import { MAX_TIMESTAMP } from '@constants/date';
 import UserModel from '@models/UserModel';
-import {
-  IRequestReferenceCorporate,
-  IRequestResumeCorporate,
-} from '@controllers/RequestController/type';
+import { IRequestReferenceCorporate } from '@controllers/RequestController/type';
 import careerModel from '@models/CareerModel';
 import { SensSingleton } from '@utils/sens';
-import CandidateResumeModel from '@models/CandidateResumeModel';
 import ExpertModel from '@models/ExpertModel';
 import { S3Singleton } from '@utils/s3';
-import CandidatePortfolioModel from '@models/CandidatePortfolioModel';
-import ReceiverAnswerModel from '@models/ReceiverAnswerModel';
 import ReceiverRewardModel from '@models/ReceiverRewardModel';
 
 class RequestService {
@@ -217,7 +211,7 @@ class RequestService {
       }
       const { question, Corporate, Candidate } = requestFindOneResult;
       response.corporateName = Corporate.name;
-      response.candidateName = Candidate.name;
+      response.candidateName = Candidate.name!;
       response.question = question;
       response.ok = true;
     } catch (e) {
@@ -294,7 +288,7 @@ class RequestService {
         });
       }
       response.question = requestFindOnResult.question;
-      response.candidateName = candidateFindOneResult.name;
+      response.candidateName = candidateFindOneResult.name!;
       response.ok = true;
     } catch (e) {
       console.error(e);
@@ -368,7 +362,7 @@ class RequestService {
         });
       }
       response.agreeDescription = requestFindOneResult.agreeDescription;
-      response.candidateName = Candidate.name;
+      response.candidateName = Candidate.name!;
       response.ok = true;
     } catch (e) {
       console.error(e);
@@ -484,7 +478,7 @@ class RequestService {
         response.requests.push({
           id: requestFindOneResult.id,
           corporateName: requestFindOneResult.Corporate.name,
-          candidateName: requestFindOneResult.Candidate.name,
+          candidateName: requestFindOneResult.Candidate.name!,
           status,
         });
       }
@@ -536,7 +530,7 @@ class RequestService {
       }
       // find receiver and push request
       for (const { id, status, Candidate } of requestFindAllResult) {
-        if (!Candidate) continue;
+        if (!Candidate || !Candidate.name) continue;
         const request: IRequestReferenceCorporate = {
           id,
           status,
@@ -1089,28 +1083,17 @@ class RequestService {
         response.error = '의뢰 생성 오류입니다.';
         return response;
       }
-      // create candidate resume
-      const candidateResumeCreateResult = await CandidateResumeModel.create({
+      // create candidate
+      const candidateCreateResult = await CandidateModel.create({
         requestId: createRequestResult.id,
         resumeBucket: resume.bucket,
         resumeKey: resume.key,
+        portfolioBucket: portfolio?.bucket ?? null,
+        portfolioKey: portfolio?.key ?? null,
       });
-      if (!candidateResumeCreateResult) {
-        response.error = '이력서 생성 오류입니다.';
+      if (!candidateCreateResult) {
+        response.error = '지원자 생성 오류입니다.';
         return response;
-      }
-      // create candidate portfolio
-      if (portfolio) {
-        const candidatePortfolioCreateResult =
-          await CandidatePortfolioModel.create({
-            requestId: createRequestResult.id,
-            portfolioBucket: portfolio.bucket,
-            portfolioKey: portfolio.key,
-          });
-        if (!candidatePortfolioCreateResult) {
-          response.error = '포트폴리오 생성 오류입니다.';
-          return response;
-        }
       }
       response.ok = true;
     } catch (e) {
@@ -1413,15 +1396,24 @@ class RequestService {
       // find and count receivers
       const receiverFindAndCountAllResult = await ReceiverModel.findAndCountAll(
         {
-          attributes: ['id', 'answeredAt'],
+          attributes: [
+            'id',
+            'workExperience',
+            'workExperienceDescription',
+            'roleFit',
+            'roleFitDescription',
+            'collaborationAbility',
+            'collaborationAbilityDescription',
+            'hardWorking',
+            'hardWorkingDescription',
+            'recommendedSalary',
+            'answeredAt',
+          ],
           where: { requestId },
           include: [
             {
               model: UserModel,
               attributes: ['name'],
-            },
-            {
-              model: ReceiverAnswerModel,
             },
           ],
         }
@@ -1432,35 +1424,32 @@ class RequestService {
       }
       for (const {
         id,
+        workExperience,
+        workExperienceDescription,
+        roleFit,
+        roleFitDescription,
+        collaborationAbility,
+        collaborationAbilityDescription,
+        hardWorking,
+        hardWorkingDescription,
+        recommendedSalary,
         answeredAt,
         User,
-        ReceiverAnswer,
       } of receiverFindAndCountAllResult.rows) {
-        if (!User || !ReceiverAnswer) continue;
-        const {
-          workExperience,
-          workExperienceDescription,
-          roleFit,
-          roleFitDescription,
-          collaborationAbility,
-          collaborationAbilityDescription,
-          hardWorking,
-          hardWorkingDescription,
-          recommendedSalary,
-        } = ReceiverAnswer;
+        if (!User) continue;
         response.answers.push({
           receiverId: id,
           receiverName: User.name,
           answeredAt,
-          workExperience,
-          workExperienceDescription,
-          roleFit,
-          roleFitDescription,
-          collaborationAbility,
-          collaborationAbilityDescription,
-          hardWorking,
-          hardWorkingDescription,
-          recommendedSalary,
+          workExperience: workExperience!,
+          workExperienceDescription: workExperienceDescription!,
+          roleFit: roleFit!,
+          roleFitDescription: roleFitDescription!,
+          collaborationAbility: collaborationAbility!,
+          collaborationAbilityDescription: collaborationAbilityDescription!,
+          hardWorking: hardWorking!,
+          hardWorkingDescription: hardWorkingDescription!,
+          recommendedSalary: recommendedSalary!,
         });
       }
       response.request = {
@@ -1630,19 +1619,20 @@ class RequestService {
             attributes: ['name'],
           },
           {
-            model: CandidateResumeModel,
-            attributes: ['resumeBucket', 'resumeKey'],
-          },
-          {
-            model: CandidatePortfolioModel,
-            attributes: ['portfolioBucket', 'portfolioKey'],
+            model: CandidateModel,
+            attributes: [
+              'resumeBucket',
+              'resumeKey',
+              'portfolioBucket',
+              'portfolioKey',
+            ],
           },
         ],
       });
       if (
         !requestFindOneResult ||
         !requestFindOneResult.Corporate ||
-        !requestFindOneResult.CandidateResume
+        !requestFindOneResult.Candidate
       ) {
         response.error = '의뢰 검색 오류입니다.';
         return response;
@@ -1651,20 +1641,19 @@ class RequestService {
         return response;
       }
       // generate response
-      const { id, question, Corporate, CandidateResume, CandidatePortfolio } =
-        requestFindOneResult;
+      const { id, question, Corporate, Candidate } = requestFindOneResult;
       response.request = {
         id,
         corporateName: Corporate.name,
         question,
         resumeUrl: S3Singleton.getSignedUrl(
-          CandidateResume?.resumeBucket,
-          CandidateResume?.resumeKey
+          Candidate.resumeBucket!,
+          Candidate.resumeKey!
         ),
-        portfolioUrl: CandidatePortfolio
+        portfolioUrl: Candidate.portfolioBucket
           ? S3Singleton.getSignedUrl(
-              CandidatePortfolio.portfolioBucket,
-              CandidatePortfolio.portfolioKey
+              Candidate.portfolioBucket,
+              Candidate.portfolioKey!
             )
           : null,
       };
@@ -1714,6 +1703,15 @@ class RequestService {
         defaults: {
           userId,
           requestId,
+          workExperience,
+          workExperienceDescription,
+          roleFit,
+          roleFitDescription,
+          collaborationAbility,
+          collaborationAbilityDescription,
+          hardWorking,
+          hardWorkingDescription,
+          recommendedSalary,
           answeredAt: new Date(),
         },
       });
@@ -1724,23 +1722,39 @@ class RequestService {
         response.error = '이미 답변하신 의뢰입니다.';
         return response;
       }
-      // create receiver answer
-      const receiverAnswerCreateResult = await ReceiverAnswerModel.create({
-        receiverId: receiverFindOrCreateResult[0].id,
-        workExperience,
-        workExperienceDescription,
-        roleFit,
-        roleFitDescription,
-        collaborationAbility,
-        collaborationAbilityDescription,
-        hardWorking,
-        hardWorkingDescription,
-        recommendedSalary,
+      // find request corporate id
+      const requestFindOneResult = await RequestModel.findOne({
+        attributes: ['corporateId'],
+        where: { id: requestId },
       });
-      if (!receiverAnswerCreateResult) {
-        response.error = '답변 생성 오류입니다.';
-        return response;
+      if (requestFindOneResult && requestFindOneResult.corporateId) {
+        // find user phone
+        const userFindOneResult = await UserModel.findOne({
+          attributes: ['phone'],
+          where: { corporateId: requestFindOneResult.corporateId },
+        });
+        if (userFindOneResult && userFindOneResult.phone) {
+          // send alarm
+          const sendMessageResponse = await SensSingleton.sendMessage({
+            templateCode: 'answer2',
+            messages: [
+              {
+                to: userFindOneResult.phone,
+                content: `새로운 답변이 등록되었습니다.\n\n(해당 답변 알림 메시지는 회원 님의 알림 신청에 의해 발송됩니다.)`,
+                buttons: [
+                  {
+                    type: 'WL',
+                    name: '확인하러 가기',
+                    linkMobile: 'https://crowdcheck.io',
+                    linkPc: 'https://crowdcheck.io',
+                  },
+                ],
+              },
+            ],
+          });
+        }
       }
+
       response.ok = true;
     } catch (e) {
       console.error(e);
@@ -1842,7 +1856,7 @@ class RequestService {
         },
         include: {
           model: ReceiverModel,
-          attributes: ['id'],
+          attributes: ['id', 'userId'],
         },
       });
       if (!requestFindOneResult || !requestFindOneResult.Receivers) {
@@ -1873,6 +1887,19 @@ class RequestService {
         if (!receiverRewardCreateResult) {
           response.error = '답변자 보상 생성 오류입니다.';
           return response;
+        }
+        for (const receiver of requestFindOneResult.Receivers) {
+          if (receiver.id === id) {
+            // find user phone
+            const userFindOneResult = await UserModel.findOne({
+              attributes: ['phone'],
+              where: { id: receiver.userId },
+            });
+            if (userFindOneResult && userFindOneResult.phone) {
+              // send message
+            }
+            break;
+          }
         }
       }
       // update request

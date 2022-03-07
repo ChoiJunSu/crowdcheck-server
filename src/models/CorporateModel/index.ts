@@ -15,6 +15,9 @@ class CorporateModel
 {
   declare id: number;
   declare name: string;
+  declare certificateBucket: string | null;
+  declare certificateKey: string | null;
+  declare verifiedAt: Date | null;
 
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
@@ -42,6 +45,18 @@ export const initCorporateModel = (sequelize: Sequelize) => {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true,
+      },
+      certificateBucket: {
+        type: DataTypes.STRING,
+        defaultValue: null,
+      },
+      certificateKey: {
+        type: DataTypes.STRING,
+        defaultValue: null,
+      },
+      verifiedAt: {
+        type: DataTypes.DATE,
+        defaultValue: null,
       },
     },
     {

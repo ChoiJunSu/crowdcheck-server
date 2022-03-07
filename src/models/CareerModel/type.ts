@@ -7,6 +7,8 @@ export interface ICareerAttributes {
   department?: string | null;
   startAt: Date;
   endAt: Date;
+  certificateBucket?: string | null;
+  certificateKey?: string | null;
   verifiedAt?: Date | null;
 }
 

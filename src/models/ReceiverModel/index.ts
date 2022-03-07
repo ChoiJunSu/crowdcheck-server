@@ -7,7 +7,6 @@ import {
 import RequestModel from '@models/RequestModel';
 import UserModel from '@models/UserModel';
 import CorporateModel from '@models/CorporateModel';
-import ReceiverAnswerModel from '@models/ReceiverAnswerModel';
 
 class ReceiverModel
   extends Model<IReceiverAttributes, IReceiverCreationAttributes>
@@ -20,16 +19,23 @@ class ReceiverModel
   declare corporateId: number | null;
   declare verifiedAt: Date | null;
   declare rejectedAt: Date | null;
+  declare workExperience: number | null;
+  declare workExperienceDescription: string | null;
+  declare roleFit: number | null;
+  declare roleFitDescription: string | null;
+  declare collaborationAbility: number | null;
+  declare collaborationAbilityDescription: string | null;
+  declare hardWorking: number | null;
+  declare hardWorkingDescription: string | null;
+  declare recommendedSalary: string | null;
   declare status: TReceiverStatus;
   declare receivedAt: Date;
   declare answeredAt: Date | null;
-  declare closedAt: Date | null;
 
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 
   declare readonly User?: UserModel;
-  declare readonly ReceiverAnswer?: ReceiverAnswerModel;
 
   declare static associations: {};
 }
@@ -58,6 +64,42 @@ export const initReceiverModel = (sequelize: Sequelize) => {
         type: DataTypes.TEXT,
         defaultValue: null,
       },
+      workExperience: {
+        type: DataTypes.INTEGER,
+        defaultValue: null,
+      },
+      workExperienceDescription: {
+        type: DataTypes.STRING,
+        defaultValue: null,
+      },
+      roleFit: {
+        type: DataTypes.INTEGER,
+        defaultValue: null,
+      },
+      roleFitDescription: {
+        type: DataTypes.STRING,
+        defaultValue: null,
+      },
+      collaborationAbility: {
+        type: DataTypes.INTEGER,
+        defaultValue: null,
+      },
+      collaborationAbilityDescription: {
+        type: DataTypes.STRING,
+        defaultValue: null,
+      },
+      hardWorking: {
+        type: DataTypes.INTEGER,
+        defaultValue: null,
+      },
+      hardWorkingDescription: {
+        type: DataTypes.STRING,
+        defaultValue: null,
+      },
+      recommendedSalary: {
+        type: DataTypes.STRING,
+        defaultValue: null,
+      },
       status: {
         type: DataTypes.ENUM('received', 'verified', 'rejected', 'answered'),
         defaultValue: 'received',
@@ -77,10 +119,6 @@ export const initReceiverModel = (sequelize: Sequelize) => {
         defaultValue: null,
       },
       answeredAt: {
-        type: DataTypes.DATE,
-        defaultValue: null,
-      },
-      closedAt: {
         type: DataTypes.DATE,
         defaultValue: null,
       },

@@ -30,18 +30,14 @@ import CorporateModel from '@models/CorporateModel';
 import CareerModel from '@models/CareerModel';
 import CandidateModel from '@models/CandidateModel';
 import { MAX_TIMESTAMP } from '@constants/date';
-import CorporateVerifyModel from '@models/CorporateVerifyModel';
 import OauthService from '@services/OauthService';
 import PhoneVerifyModel from '@models/PhoneVerifyModel';
 import phoneVerifyModel from '@models/PhoneVerifyModel';
 import { Op, Sequelize } from 'sequelize';
 import RequestService from '@services/RequestService';
-import { TwilioSingleton } from '@utils/twilio';
 import { JwtSingleton } from '@utils/jwt';
 import { SensSingleton } from '@utils/sens';
-import { ICareer } from '@controllers/AuthController/type';
 import ExpertModel from '@models/ExpertModel';
-import ExpertVerifyModel from '@models/ExpertVerifyModel';
 
 class AuthService {
   static async login({
@@ -455,14 +451,16 @@ class AuthService {
         response.error = '회원 생성 오류입니다.';
         return response;
       }
-      // create corporateVerify
-      const corporateVerifyCreateResult = await CorporateVerifyModel.create({
-        userId: userCreateResult.id,
-        certificateBucket: certificate.bucket,
-        certificateKey: certificate.key,
-      });
-      if (!corporateVerifyCreateResult) {
-        response.error = '인증 생성 오류입니다.';
+      // update corporate
+      const updateCorporateResult = await CorporateModel.update(
+        {
+          certificateBucket: certificate.bucket,
+          certificateKey: certificate.key,
+        },
+        { where: { id: corporateFindOrCreateResult[0].id } }
+      );
+      if (!updateCorporateResult) {
+        response.error = '기업 정보 업데이트 오류입니다.';
         return response;
       }
       response.ok = true;
@@ -521,19 +519,11 @@ class AuthService {
       const expertCreateResult = await ExpertModel.create({
         userId: userCreateResult.id,
         specialty,
-      });
-      if (!expertCreateResult) {
-        response.error = '전문가 생성 오류입니다.';
-        return response;
-      }
-      // create expertVerify
-      const expertVerifyCreateResult = await ExpertVerifyModel.create({
-        userId: userCreateResult.id,
         certificateBucket: certificate.bucket,
         certificateKey: certificate.key,
       });
-      if (!expertVerifyCreateResult) {
-        response.error = '인증 생성 오류입니다.';
+      if (!expertCreateResult) {
+        response.error = '전문가 생성 오류입니다.';
         return response;
       }
       response.ok = true;
