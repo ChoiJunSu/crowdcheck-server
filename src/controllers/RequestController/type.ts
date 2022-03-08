@@ -1,18 +1,60 @@
 import { TRequestStatus } from '@models/RequestModel/type';
 import { TReceiverStatus } from '@models/ReceiverModel/type';
 
+export interface IRequestReferenceCorporate {
+  id: number;
+  candidateName: string;
+  deadline: Date | null;
+  rewardNum: number;
+  rewardAmount: number;
+  receiverCount: number;
+  status: TRequestStatus;
+  createdAt: Date;
+}
+
+export interface IRequestReferenceDetailCorporate {
+  id: number;
+  candidateName: string;
+  question: string;
+  deadline: Date | null;
+  rewardNum: number;
+  rewardAmount: number;
+  receiverCount: number;
+  status: TRequestStatus;
+  createdAt: Date;
+}
+
+export interface IRequestReferenceAnswerCorporate {
+  receiverId: number;
+  corporateName: string;
+  status: TReceiverStatus;
+  answer: string | null;
+  answeredAt: Date | null;
+}
+
 export interface IRequestReferenceReceiver {
   id: number;
   corporateName: string;
   candidateName: string;
-  status: TReceiverStatus;
+  deadline: Date | null;
+  rewardNum: number;
+  rewardAmount: number;
+  receiverCount: number;
+  status: TRequestStatus;
+  createdAt: Date;
 }
 
-export interface IRequestReferenceCorporate {
+export interface IRequestReferenceDetailReceiver {
   id: number;
+  corporateName: string;
   candidateName: string;
+  question: string;
+  deadline: Date | null;
+  rewardNum: number;
+  rewardAmount: number;
+  receiverCount: number;
   status: TRequestStatus;
-  receivers: Array<IReceiver>;
+  createdAt: Date;
 }
 
 export interface IRequestReferenceCandidate {
@@ -25,11 +67,6 @@ export interface IAgree {
   corporateId: number;
   corporateName: string;
   agreed: boolean;
-}
-
-export interface IReceiver {
-  id: number;
-  status: TReceiverStatus;
 }
 
 export interface IAnswer {

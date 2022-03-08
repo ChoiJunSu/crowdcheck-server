@@ -4,9 +4,9 @@ import {
   IRequestReferenceAgreeRequest,
   IRequestReferenceAnswerRequest,
   IRequestReferenceGetCandidateRequest,
-  IRequestReferenceGetCorporateAgreeRequest,
-  IRequestReferenceGetCorporateRequest,
-  IRequestReferenceGetReceiverRequest,
+  IRequestReferenceGetAgreeCorporateRequest,
+  IRequestReferenceDetailCorporateRequest,
+  IRequestReferenceDetailReceiverRequest,
   IRequestReferenceListCandidateRequest,
   IRequestReferenceListCorporateRequest,
   IRequestReferenceListReceiverRequest,
@@ -22,6 +22,8 @@ import {
   IRequestResumeDetailCorporateRequest,
   IRequestResumeCloseRequest,
   IRequestResumeRewardRequest,
+  IRequestReferenceCloseRequest,
+  IRequestReferenceRewardRequest,
 } from '@services/RequestService/type';
 import AuthMiddleware from '@middlewares/AuthMiddleware';
 import {
@@ -37,7 +39,15 @@ RequestController.post(
   '/reference/register',
   AuthMiddleware.isCorporate,
   async (req: IRequest, res: IResponse, next: INextFunction) => {
-    const { name, phone, careers, question, deadline } = req.body;
+    const {
+      name,
+      phone,
+      careers,
+      question,
+      deadline,
+      rewardNum,
+      rewardAmount,
+    } = req.body;
 
     return res.send(
       await RequestService.referenceRegister({
@@ -47,47 +57,49 @@ RequestController.post(
         careers,
         question,
         deadline,
+        rewardNum,
+        rewardAmount,
       } as IRequestReferenceRegisterRequest)
     );
   }
 );
 
 RequestController.get(
-  '/reference/get/receiver',
+  '/reference/detail/receiver',
   AuthMiddleware.isPersonal,
   async (req: IRequest, res: IResponse, next: INextFunction) => {
     const { requestId } = req.query;
 
-    return await RequestService.referenceGetReceiver({
+    return await RequestService.referenceDetailReceiver({
       requestId: parseInt(requestId as string),
       userId: req.user!.id,
-    } as IRequestReferenceGetReceiverRequest);
+    } as IRequestReferenceDetailReceiverRequest);
   }
 );
 
 RequestController.get(
-  '/reference/get/corporate',
+  '/reference/detail/corporate',
   AuthMiddleware.isCorporate,
   async (req: IRequest, res: IResponse, next: INextFunction) => {
     const { requestId } = req.query;
 
-    return await RequestService.referenceGetCorporate({
+    return await RequestService.referenceDetailCorporate({
       requestId: parseInt(requestId as string),
       userId: req.user!.id,
-    } as IRequestReferenceGetCorporateRequest);
+    } as IRequestReferenceDetailCorporateRequest);
   }
 );
 
 RequestController.get(
-  '/reference/get/corporate/agree',
+  '/reference/get/agree/corporate',
   AuthMiddleware.isCorporate,
   async (req: IRequest, res: IResponse, next: INextFunction) => {
     const { requestId } = req.query;
 
-    return await RequestService.referenceGetCorporateAgree({
+    return await RequestService.referenceGetAgreeCorporate({
       requestId: parseInt(requestId as string),
       userId: req.user!.id,
-    } as IRequestReferenceGetCorporateAgreeRequest);
+    } as IRequestReferenceGetAgreeCorporateRequest);
   }
 );
 
@@ -189,6 +201,43 @@ RequestController.get(
     } as IRequestReferenceAnswerRequest);
   }
 );
+
+RequestController.get(
+  '/reference/close',
+  AuthMiddleware.isCorporate,
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    const { requestId } = req.query;
+
+    return res.send(
+      await RequestService.referenceClose({
+        userId: req.user!.id,
+        requestId: parseInt(requestId as string),
+      } as IRequestReferenceCloseRequest)
+    );
+  }
+);
+
+RequestController.post(
+  '/reference/reward',
+  AuthMiddleware.isCorporate,
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    const { requestId, receivers } = req.body;
+
+    return res.send(
+      await RequestService.referenceReward({
+        userId: req.user!.id,
+        requestId: parseInt(requestId as string),
+        receivers: receivers.map((receiver: any) => ({
+          id: parseInt(receiver.id as string),
+        })),
+      } as IRequestReferenceRewardRequest)
+    );
+  }
+);
+
+/*
+  resume
+ */
 
 RequestController.post(
   '/resume/register',

@@ -6,8 +6,11 @@ import { ICareer } from '@controllers/AuthController/type';
 import {
   IAgree,
   IAnswer,
+  IRequestReferenceAnswerCorporate,
   IRequestReferenceCandidate,
   IRequestReferenceCorporate,
+  IRequestReferenceDetailCorporate,
+  IRequestReferenceDetailReceiver,
   IRequestReferenceReceiver,
   IRequestResumeAnswerCorporate,
   IRequestResumeCorporate,
@@ -17,6 +20,7 @@ import {
   IRequestResumeGetAnswerExpert,
 } from '@controllers/RequestController/type';
 import { TExpertSpecialty } from '@models/ExpertModel/type';
+import { TReceiverStatus } from '@models/ReceiverModel/type';
 
 export interface IRequestReferenceRegisterRequest extends IBaseServiceRequest {
   userId: number;
@@ -25,44 +29,44 @@ export interface IRequestReferenceRegisterRequest extends IBaseServiceRequest {
   careers: Array<ICareer>;
   question: string;
   deadline: Date | null;
+  rewardNum: number;
+  rewardAmount: number;
 }
 
 export interface IRequestReferenceRegisterResponse
   extends IBaseServiceResponse {}
 
-export interface IRequestReferenceGetReceiverRequest
+export interface IRequestReferenceDetailReceiverRequest
   extends IBaseServiceRequest {
-  requestId: number;
   userId: number;
+  requestId: number;
 }
 
-export interface IRequestReferenceGetReceiverResponse
+export interface IRequestReferenceDetailReceiverResponse
   extends IBaseServiceResponse {
-  corporateName: string;
-  candidateName: string;
-  question: string;
+  request: IRequestReferenceDetailReceiver | null;
+  receiverStatus: TReceiverStatus;
 }
 
-export interface IRequestReferenceGetCorporateRequest
+export interface IRequestReferenceDetailCorporateRequest
   extends IBaseServiceRequest {
   requestId: number;
   userId: number;
 }
 
-export interface IRequestReferenceGetCorporateResponse
+export interface IRequestReferenceDetailCorporateResponse
   extends IBaseServiceResponse {
-  candidateName: string;
-  question: string;
-  answers: Array<IAnswer>;
+  request: IRequestReferenceDetailCorporate | null;
+  answers: Array<IRequestReferenceAnswerCorporate>;
 }
 
-export interface IRequestReferenceGetCorporateAgreeRequest
+export interface IRequestReferenceGetAgreeCorporateRequest
   extends IBaseServiceRequest {
   requestId: number;
   userId: number;
 }
 
-export interface IRequestReferenceGetCorporateAgreeResponse
+export interface IRequestReferenceGetAgreeCorporateResponse
   extends IBaseServiceResponse {
   candidateName: string;
   agrees: Array<IAgree>;
@@ -150,6 +154,21 @@ export interface IRequestReferenceUpdateReceiverRequest
 
 export interface IRequestReferenceUpdateReceiverResponse
   extends IBaseServiceResponse {}
+
+export interface IRequestReferenceCloseRequest extends IBaseServiceRequest {
+  userId: number;
+  requestId: number;
+}
+
+export interface IRequestReferenceCloseResponse extends IBaseServiceResponse {}
+
+export interface IRequestReferenceRewardRequest extends IBaseServiceRequest {
+  userId: number;
+  requestId: number;
+  receivers: Array<{ id: number }>;
+}
+
+export interface IRequestReferenceRewardResponse extends IBaseServiceResponse {}
 
 /*
   Resume
