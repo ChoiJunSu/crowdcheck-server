@@ -72,6 +72,12 @@ export const initCorporateModel = (sequelize: Sequelize) => {
       paranoid: false,
       charset: 'utf8mb4',
       collate: 'utf8mb4_general_ci',
+      indexes: [
+        {
+          unique: true,
+          fields: ['name'],
+        },
+      ],
     }
   );
 };
