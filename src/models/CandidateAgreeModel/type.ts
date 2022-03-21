@@ -9,6 +9,8 @@ export interface ICandidateAgreeAttributes {
   startAt: Date;
   endAt: Date;
   agreedAt?: Date | null;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface ICandidateAgreeCreationAttributes

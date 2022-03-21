@@ -26,6 +26,8 @@ export interface IReceiverAttributes {
   status?: TReceiverStatus;
   receivedAt?: Date;
   answeredAt?: Date | null;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface IReceiverCreationAttributes

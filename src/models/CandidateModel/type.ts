@@ -13,6 +13,8 @@ export interface ICandidateAttributes {
   portfolioBucket?: string | null;
   portfolioKey?: string | null;
   // resume
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface ICandidateCreationAttributes

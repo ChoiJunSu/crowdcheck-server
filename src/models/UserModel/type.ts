@@ -17,6 +17,8 @@ export interface IUserAttributes {
   corporateId?: number | null;
   credit?: number;
   // corporate
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface IUserCreationAttributes

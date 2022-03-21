@@ -5,6 +5,8 @@ export interface IReceiverRewardAttributes {
   receiverId: number;
   amount: number;
   rewardedAt?: Date | null;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface IReceiverRewardCreationAttributes

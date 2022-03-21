@@ -61,6 +61,14 @@ export const initCandidateAgreeModel = (sequelize: Sequelize) => {
         type: DataTypes.DATE,
         defaultValue: null,
       },
+      createdAt: {
+        type: DataTypes.DATE,
+        defaultValue: sequelize.literal('NOW()'),
+      },
+      updatedAt: {
+        type: DataTypes.DATE,
+        defaultValue: sequelize.literal('NOW()'),
+      },
     },
     {
       sequelize,

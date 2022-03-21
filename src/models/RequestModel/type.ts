@@ -25,6 +25,8 @@ export interface IRequestAttributes {
   status?: TRequestStatus;
   registeredAt?: Date;
   closedAt?: Date | null;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface IRequestCreationAttributes

@@ -64,6 +64,14 @@ export const initCandidateModel = (sequelize: Sequelize) => {
         type: DataTypes.STRING,
         defaultValue: null,
       },
+      createdAt: {
+        type: DataTypes.DATE,
+        defaultValue: sequelize.literal('NOW()'),
+      },
+      updatedAt: {
+        type: DataTypes.DATE,
+        defaultValue: sequelize.literal('NOW()'),
+      },
     },
     {
       sequelize,

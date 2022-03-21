@@ -5,6 +5,8 @@ export interface IPhoneVerifyVerifyAttributes {
   phone: string;
   code: number;
   verifiedAt?: Date | null;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface IPhoneVerifyVerifyCreationAttributes
