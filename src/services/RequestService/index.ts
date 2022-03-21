@@ -990,11 +990,15 @@ class RequestService {
         return response;
       }
       // find corporate phone
-      const userFindOneResult = await UserModel.findOne({
-        attributes: ['phone'],
+      const corporateFindOneResult = await CorporateModel.findOne({
+        attributes: ['id'],
         where: { id: requestFindOneResult.corporateId },
+        include: {
+          model: UserModel,
+          attributes: ['phone'],
+        },
       });
-      if (!userFindOneResult) {
+      if (!corporateFindOneResult || !corporateFindOneResult.User) {
         response.error = '기업 검색 오류입니다.';
         return response;
       }
@@ -1003,7 +1007,7 @@ class RequestService {
         templateCode: 'answer2',
         messages: [
           {
-            to: userFindOneResult.phone,
+            to: corporateFindOneResult.User.phone,
             content: `새로운 답변이 등록되었습니다.\n\n(해당 답변 알림 메시지는 회원 님의 알림 신청에 의해 발송됩니다.)`,
             buttons: [
               {
