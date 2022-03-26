@@ -41,6 +41,7 @@ export interface IRequestReferenceReceiver {
   rewardAmount: number;
   receiverCount: number;
   status: TRequestStatus;
+  receiverStatus: TReceiverStatus;
   createdAt: Date;
 }
 
@@ -61,6 +62,7 @@ export interface IRequestReferenceCandidate {
   id: number;
   corporateName: string;
   status: TRequestStatus;
+  createdAt: Date;
 }
 
 export interface IAgree {

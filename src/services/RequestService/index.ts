@@ -573,6 +573,15 @@ class RequestService {
         const receiverCountResult = await ReceiverModel.count({
           where: { requestId, status: 'answered' },
         });
+        // find receiver status
+        const receiverFindOneResult = await ReceiverModel.findOne({
+          attributes: ['status'],
+          where: { requestId, userId },
+        });
+        if (!receiverFindOneResult) {
+          response.error = '수신자 검색 오류입니다.';
+          return response;
+        }
         // generate response
         response.requests.push({
           id: requestId,
@@ -587,6 +596,7 @@ class RequestService {
           corporateName: Corporate.name!,
           candidateName: Candidate.name!,
           receiverCount: receiverCountResult ?? 0,
+          receiverStatus: receiverFindOneResult.status,
         });
       }
       response.ok = true;
@@ -702,7 +712,7 @@ class RequestService {
       // find request for the candidate
       const { name, phone } = candidateFindOneResult;
       const requestFindAllResult = await RequestModel.findAll({
-        attributes: ['id', 'status'],
+        attributes: ['id', 'status', 'createdAt'],
         where: { type: 'reference' },
         include: [
           { model: CandidateModel, attributes: [], where: { name, phone } },
@@ -713,12 +723,13 @@ class RequestService {
         response.error = '지원자 의뢰 검색 오류입니다.';
         return response;
       }
-      for (const { id, status, Corporate } of requestFindAllResult) {
+      for (const { id, status, createdAt, Corporate } of requestFindAllResult) {
         if (!Corporate) continue;
         response.requests.push({
           id,
           corporateName: Corporate.name,
           status,
+          createdAt,
         });
       }
       response.ok = true;
