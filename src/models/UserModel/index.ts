@@ -2,13 +2,11 @@ import { Model, DataTypes, Sequelize } from 'sequelize';
 import {
   IUserAttributes,
   IUserCreationAttributes,
+  TOauthProvider,
   TUserType,
 } from '@models/UserModel/type';
 import CorporateModel from '@models/CorporateModel';
-import { TOauthProvider } from '@controllers/AuthController/type';
 import CareerModel from '@models/CareerModel';
-import CandidateModel from '@models/CandidateModel';
-import ReceiverModel from '@models/ReceiverModel';
 
 class UserModel
   extends Model<IUserAttributes, IUserCreationAttributes>
@@ -22,15 +20,15 @@ class UserModel
   declare type: TUserType;
   declare oauthProvider: TOauthProvider | null;
   declare corporateId: number | null;
-  declare credit: number;
+  declare certificateBucket: string | null;
+  declare certificateKey: string | null;
+  declare verifiedAt: Date | null;
 
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 
   declare readonly Corporate?: CorporateModel;
-  declare readonly Candidate?: CandidateModel;
   declare readonly Careers?: Array<CareerModel>;
-  declare readonly Receivers?: Array<ReceiverModel>;
 
   declare static associations: {};
 }
@@ -60,7 +58,7 @@ export const initUserModel = (sequelize: Sequelize) => {
         allowNull: false,
       },
       type: {
-        type: DataTypes.ENUM('personal', 'corporate', 'expert'),
+        type: DataTypes.ENUM('personal', 'corporate'),
         allowNull: false,
       },
       oauthProvider: {
@@ -71,9 +69,17 @@ export const initUserModel = (sequelize: Sequelize) => {
         type: DataTypes.INTEGER,
         unique: true,
       },
-      credit: {
-        type: DataTypes.INTEGER,
-        defaultValue: 0,
+      certificateBucket: {
+        type: DataTypes.STRING,
+        defaultValue: null,
+      },
+      certificateKey: {
+        type: DataTypes.STRING,
+        defaultValue: null,
+      },
+      verifiedAt: {
+        type: DataTypes.DATE,
+        defaultValue: null,
       },
       createdAt: {
         type: DataTypes.DATE,
@@ -88,8 +94,8 @@ export const initUserModel = (sequelize: Sequelize) => {
       sequelize,
       underscored: false,
       modelName: 'User',
-      tableName: 'user',
-      paranoid: false,
+      tableName: 'User',
+      paranoid: true,
       charset: 'utf8mb4',
       collate: 'utf8mb4_general_ci',
     }

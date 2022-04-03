@@ -1,7 +1,8 @@
 import { Optional } from 'sequelize';
-import { TOauthProvider } from '@controllers/AuthController/type';
 
-export type TUserType = 'personal' | 'corporate' | 'candidate' | 'expert';
+export type TUserType = 'personal' | 'corporate';
+
+export type TOauthProvider = 'google' | 'kakao';
 
 export interface IUserAttributes {
   id?: number;
@@ -10,12 +11,14 @@ export interface IUserAttributes {
   name: string;
   phone: string;
   type: TUserType;
-  // personal or expert
+  // personal
   oauthProvider?: TOauthProvider | null;
-  // personal or expert
+  // personal
   // corporate
   corporateId?: number | null;
-  credit?: number;
+  certificateBucket?: string | null;
+  certificateKey?: string | null;
+  verifiedAt?: Date | null;
   // corporate
   createdAt?: Date;
   updatedAt?: Date;

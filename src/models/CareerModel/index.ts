@@ -5,7 +5,7 @@ import {
 } from '@models/CareerModel/type';
 import UserModel from '@models/UserModel';
 import CorporateModel from '@models/CorporateModel';
-import CandidateAgreeModel from '@models/CandidateAgreeModel';
+import AgreeModel from '@models/AgreeModel';
 
 class CareerModel
   extends Model<ICareerAttributes, ICareerCreationAttributes>
@@ -24,8 +24,9 @@ class CareerModel
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 
-  declare readonly CandidateAgree?: CandidateAgreeModel;
+  declare readonly Agree?: AgreeModel;
   declare readonly Corporate?: CorporateModel;
+  declare readonly User?: UserModel;
 
   declare static associations: {};
 }
@@ -83,8 +84,8 @@ export const initCareerModel = (sequelize: Sequelize) => {
       sequelize,
       underscored: false,
       modelName: 'Career',
-      tableName: 'career',
-      paranoid: false,
+      tableName: 'Career',
+      paranoid: true,
       charset: 'utf8mb4',
       collate: 'utf8mb4_general_ci',
     }

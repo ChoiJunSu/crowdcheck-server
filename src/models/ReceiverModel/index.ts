@@ -6,6 +6,7 @@ import {
 } from '@models/ReceiverModel/type';
 import RequestModel from '@models/RequestModel';
 import UserModel from '@models/UserModel';
+import CareerModel from '@models/CareerModel';
 import CorporateModel from '@models/CorporateModel';
 
 class ReceiverModel
@@ -15,27 +16,19 @@ class ReceiverModel
   declare id: number;
   declare requestId: number;
   declare userId: number;
-  declare answer: string | null;
-  declare corporateId: number | null;
-  declare verifiedAt: Date | null;
-  declare rejectedAt: Date | null;
-  declare workExperience: number | null;
-  declare workExperienceDescription: string | null;
-  declare roleFit: number | null;
-  declare roleFitDescription: string | null;
-  declare collaborationAbility: number | null;
-  declare collaborationAbilityDescription: string | null;
-  declare hardWorking: number | null;
-  declare hardWorkingDescription: string | null;
-  declare recommendedSalary: string | null;
+  declare careerId: number;
+  declare corporateId: number;
   declare status: TReceiverStatus;
   declare receivedAt: Date;
+  declare verifiedAt: Date | null;
+  declare rejectedAt: Date | null;
   declare answeredAt: Date | null;
 
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 
-  declare readonly User?: UserModel;
+  declare readonly Request?: RequestModel;
+  declare readonly Corporate?: CorporateModel;
 
   declare static associations: {};
 }
@@ -56,49 +49,13 @@ export const initReceiverModel = (sequelize: Sequelize) => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
+      careerId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
       corporateId: {
         type: DataTypes.INTEGER,
-        defaultValue: null,
-      },
-      answer: {
-        type: DataTypes.TEXT,
-        defaultValue: null,
-      },
-      workExperience: {
-        type: DataTypes.INTEGER,
-        defaultValue: null,
-      },
-      workExperienceDescription: {
-        type: DataTypes.STRING,
-        defaultValue: null,
-      },
-      roleFit: {
-        type: DataTypes.INTEGER,
-        defaultValue: null,
-      },
-      roleFitDescription: {
-        type: DataTypes.STRING,
-        defaultValue: null,
-      },
-      collaborationAbility: {
-        type: DataTypes.INTEGER,
-        defaultValue: null,
-      },
-      collaborationAbilityDescription: {
-        type: DataTypes.STRING,
-        defaultValue: null,
-      },
-      hardWorking: {
-        type: DataTypes.INTEGER,
-        defaultValue: null,
-      },
-      hardWorkingDescription: {
-        type: DataTypes.STRING,
-        defaultValue: null,
-      },
-      recommendedSalary: {
-        type: DataTypes.STRING,
-        defaultValue: null,
+        allowNull: false,
       },
       status: {
         type: DataTypes.ENUM('received', 'verified', 'rejected', 'answered'),
@@ -135,8 +92,8 @@ export const initReceiverModel = (sequelize: Sequelize) => {
       sequelize,
       underscored: false,
       modelName: 'Receiver',
-      tableName: 'receiver',
-      paranoid: false,
+      tableName: 'Receiver',
+      paranoid: true,
       charset: 'utf8mb4',
       collate: 'utf8mb4_general_ci',
     }
@@ -158,6 +115,15 @@ export const initReceiverModel = (sequelize: Sequelize) => {
   });
   ReceiverModel.belongsTo(UserModel, {
     foreignKey: 'userId',
+  });
+
+  CareerModel.hasMany(ReceiverModel, {
+    foreignKey: 'careerId',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  });
+  ReceiverModel.belongsTo(CareerModel, {
+    foreignKey: 'careerId',
   });
 
   CorporateModel.hasMany(ReceiverModel, {

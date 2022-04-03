@@ -3,9 +3,6 @@ import { Optional } from 'sequelize';
 export interface ICorporateAttributes {
   id?: number;
   name: string;
-  certificateBucket?: string | null;
-  certificateKey?: string | null;
-  verifiedAt?: Date | null;
   createdAt?: Date;
   updatedAt?: Date;
 }

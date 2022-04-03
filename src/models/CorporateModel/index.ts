@@ -4,7 +4,7 @@ import {
   ICorporateCreationAttributes,
 } from '@models/CorporateModel/type';
 import CareerModel from '@models/CareerModel';
-import CandidateAgreeModel from '@models/CandidateAgreeModel';
+import AgreeModel from '@models/AgreeModel';
 import ReceiverModel from '@models/ReceiverModel';
 import RequestModel from '@models/RequestModel';
 import UserModel from '@models/UserModel';
@@ -15,20 +15,12 @@ class CorporateModel
 {
   declare id: number;
   declare name: string;
-  declare certificateBucket: string | null;
-  declare certificateKey: string | null;
-  declare verifiedAt: Date | null;
 
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 
   declare readonly Careers?: Array<CareerModel>;
-  declare readonly CandidateAgrees?: Array<CandidateAgreeModel>;
-  declare readonly Receivers?: Array<ReceiverModel>;
-  declare readonly Request?: RequestModel;
   declare readonly User?: UserModel;
-
-  declare readonly receiverCount?: number;
 
   declare static associations: {};
 }
@@ -46,18 +38,6 @@ export const initCorporateModel = (sequelize: Sequelize) => {
         allowNull: false,
         unique: true,
       },
-      certificateBucket: {
-        type: DataTypes.STRING,
-        defaultValue: null,
-      },
-      certificateKey: {
-        type: DataTypes.STRING,
-        defaultValue: null,
-      },
-      verifiedAt: {
-        type: DataTypes.DATE,
-        defaultValue: null,
-      },
       createdAt: {
         type: DataTypes.DATE,
         defaultValue: sequelize.literal('NOW()'),
@@ -71,8 +51,8 @@ export const initCorporateModel = (sequelize: Sequelize) => {
       sequelize,
       underscored: false,
       modelName: 'Corporate',
-      tableName: 'corporate',
-      paranoid: false,
+      tableName: 'Corporate',
+      paranoid: true,
       charset: 'utf8mb4',
       collate: 'utf8mb4_general_ci',
       indexes: [

@@ -1,19 +1,7 @@
 export interface ISensSendMessageRequest {
-  templateCode: string;
-  messages: [
-    {
-      to: string;
-      content: string;
-      buttons?: [
-        {
-          type: string;
-          name: string;
-          linkMobile: string;
-          linkPc: string;
-        }
-      ];
-    }
-  ];
+  templateName: string;
+  to: string;
+  data?: object;
 }
 
 export interface ISensSendMessageResponse {

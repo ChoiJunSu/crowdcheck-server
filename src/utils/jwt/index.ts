@@ -3,7 +3,7 @@ import { SecretsManagerSingleton } from '@utils/secretesManager';
 
 export const JwtSingleton = (() => {
   return {
-    sign: (payload: any) => {
+    sign: (payload: object) => {
       return sign(payload, SecretsManagerSingleton.getSecrete('JWT_SECRET'), {
         issuer: 'crowdcheck',
         expiresIn: '1h',

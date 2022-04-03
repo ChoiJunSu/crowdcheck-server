@@ -2,34 +2,38 @@ import {
   IBaseServiceRequest,
   IBaseServiceResponse,
 } from '@services/BaseService/type';
-import { IUser } from '@controllers/UserController/type';
-import { ICareer } from '@controllers/AuthController/type';
-import { TExpertSpecialty } from '@models/ExpertModel/type';
 
-export interface IUserGetPersonalRequest extends IBaseServiceRequest {
+export interface IUser {
+  email: string;
+  name: string;
+  phone: string;
+}
+
+export interface ICareer {
+  id: number;
+  corporateId: number;
+  corporateName: string;
+  department: string | null;
+  startAt: Date;
+  endAt: Date | null;
+  verifiedAt?: Date | null;
+}
+
+export interface IUserGetEditPersonalRequest extends IBaseServiceRequest {
   userId: number;
 }
 
-export interface IUserGetPersonalResponse extends IBaseServiceResponse {
+export interface IUserGetEditPersonalResponse extends IBaseServiceResponse {
   user: IUser | null;
   careers: Array<ICareer>;
 }
 
-export interface IUserGetCorporateRequest extends IBaseServiceRequest {
+export interface IUserGetEditCorporateRequest extends IBaseServiceRequest {
   userId: number;
 }
 
-export interface IUserGetCorporateResponse extends IBaseServiceResponse {
+export interface IUserGetEditCorporateResponse extends IBaseServiceResponse {
   user: IUser | null;
-}
-
-export interface IUserGetExpertRequest extends IBaseServiceRequest {
-  userId: number;
-}
-
-export interface IUserGetExpertResponse extends IBaseServiceResponse {
-  user: IUser | null;
-  specialty: TExpertSpecialty | null;
 }
 
 export interface IUserEditPersonalRequest extends IBaseServiceRequest {
@@ -47,13 +51,6 @@ export interface IUserEditCorporateRequest extends IBaseServiceResponse {
 
 export interface IUserEditCorporateResponse extends IBaseServiceResponse {}
 
-export interface IUserEditExpertRequest extends IBaseServiceResponse {
-  userId: number;
-  password: string | null;
-}
-
-export interface IUserEditExpertResponse extends IBaseServiceResponse {}
-
 export interface IUserCareerVerifyRequest extends IBaseServiceRequest {
   userId: number;
   careerId: number;
@@ -61,3 +58,9 @@ export interface IUserCareerVerifyRequest extends IBaseServiceRequest {
 }
 
 export interface IUserCareerVerifyResponse extends IBaseServiceResponse {}
+
+export interface IUserWithdrawRequest extends IBaseServiceRequest {
+  userId: number;
+}
+
+export interface IUserWithdrawResponse extends IBaseServiceResponse {}

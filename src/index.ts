@@ -11,6 +11,8 @@ import { SecretsManagerSingleton } from '@utils/secretesManager';
 import { TwilioSingleton } from '@utils/twilio';
 import { SequelizeSingleton } from '@utils/sequelize';
 import { SensSingleton } from '@utils/sens';
+import ReceiverController from '@controllers/ReceiverController';
+import ReferenceController from '@controllers/ReferenceController';
 
 const app = express();
 const port = 4000;
@@ -51,6 +53,8 @@ app.get('/', (req: Request, res: Response, next: NextFunction) => {
 // controllers
 app.use('/auth', AuthController);
 app.use('/corporate', CorporateController);
+app.use('/receiver', ReceiverController);
+app.use('/reference', ReferenceController);
 app.use('/request', RequestController);
 app.use('/user', UserController);
 

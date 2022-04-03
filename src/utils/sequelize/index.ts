@@ -4,12 +4,11 @@ import { initUserModel } from '@models/UserModel';
 import { initCorporateModel } from '@models/CorporateModel';
 import { initCareerModel } from '@models/CareerModel';
 import { initPhoneVerifyModel } from '@models/PhoneVerifyModel';
-import { initCandidateAgreeModel } from '@models/CandidateAgreeModel';
-import { initCandidateModel } from '@models/CandidateModel';
+import { initAgreeModel } from '@models/AgreeModel';
 import { initReceiverModel } from '@models/ReceiverModel';
 import { initRequestModel } from '@models/RequestModel';
-import { initExpertModel } from '@models/ExpertModel';
-import { initReceiverRewardModel } from '@models/ReceiverRewardModel';
+import { initReferenceModel } from '@models/ReferenceModel';
+import { initReferenceDetailModel } from '@models/ReferenceDetailModel';
 
 export const SequelizeSingleton = (() => {
   let sequelize: Sequelize;
@@ -31,13 +30,12 @@ export const SequelizeSingleton = (() => {
       initCorporateModel(sequelize);
       initUserModel(sequelize);
       initRequestModel(sequelize);
-      initCandidateModel(sequelize);
-      initCandidateAgreeModel(sequelize);
       initCareerModel(sequelize);
+      initAgreeModel(sequelize);
       initPhoneVerifyModel(sequelize);
       initReceiverModel(sequelize);
-      initReceiverRewardModel(sequelize);
-      initExpertModel(sequelize);
+      initReferenceModel(sequelize);
+      initReferenceDetailModel(sequelize);
 
       // authenticate
       sequelize

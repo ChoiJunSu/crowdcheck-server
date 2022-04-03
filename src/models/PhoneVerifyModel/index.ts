@@ -56,8 +56,8 @@ export const initPhoneVerifyModel = (sequelize: Sequelize) => {
       sequelize,
       underscored: false,
       modelName: 'PhoneVerify',
-      tableName: 'phoneVerify',
-      paranoid: false,
+      tableName: 'PhoneVerify',
+      paranoid: true,
       charset: 'utf8mb4',
       collate: 'utf8mb4_general_ci',
     }

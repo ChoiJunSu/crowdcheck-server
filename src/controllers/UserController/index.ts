@@ -8,11 +8,10 @@ import UserService from '@services/UserService';
 import {
   IUserCareerVerifyRequest,
   IUserEditCorporateRequest,
-  IUserEditExpertRequest,
   IUserEditPersonalRequest,
-  IUserGetCorporateRequest,
-  IUserGetExpertRequest,
-  IUserGetPersonalRequest,
+  IUserGetEditCorporateRequest,
+  IUserGetEditPersonalRequest,
+  IUserWithdrawRequest,
 } from '@services/UserService/type';
 import AuthMiddleware from '@middlewares/AuthMiddleware';
 import { MulterMiddleware } from '@middlewares/MultureMiddleware';
@@ -20,37 +19,25 @@ import { MulterMiddleware } from '@middlewares/MultureMiddleware';
 const UserController = AsyncRouter();
 
 UserController.get(
-  '/get/personal',
+  '/edit/personal',
   AuthMiddleware.isPersonal,
   async (req: IRequest, res: IResponse, next: INextFunction) => {
     return res.send(
-      await UserService.getPersonal({
+      await UserService.getEditPersonal({
         userId: req.user!.id,
-      } as IUserGetPersonalRequest)
+      } as IUserGetEditPersonalRequest)
     );
   }
 );
 
 UserController.get(
-  '/get/corporate',
+  '/edit/corporate',
   AuthMiddleware.isCorporate,
   async (req: IRequest, res: IResponse, next: INextFunction) => {
     return res.send(
-      await UserService.getCorporate({
+      await UserService.getEditCorporate({
         userId: req.user!.id,
-      } as IUserGetCorporateRequest)
-    );
-  }
-);
-
-UserController.get(
-  '/get/expert',
-  AuthMiddleware.isExpert,
-  async (req: IRequest, res: IResponse, next: INextFunction) => {
-    return res.send(
-      await UserService.getExpert({
-        userId: req.user!.id,
-      } as IUserGetExpertRequest)
+      } as IUserGetEditCorporateRequest)
     );
   }
 );
@@ -87,21 +74,6 @@ UserController.post(
 );
 
 UserController.post(
-  '/edit/expert',
-  AuthMiddleware.isExpert,
-  async (req: IRequest, res: IResponse, next: INextFunction) => {
-    const { password } = req.body;
-
-    return res.send(
-      await UserService.editExpert({
-        userId: req.user!.id,
-        password,
-      } as IUserEditExpertRequest)
-    );
-  }
-);
-
-UserController.post(
   '/career/verify',
   AuthMiddleware.isPersonal,
   MulterMiddleware.upload.single('certificate'),
@@ -116,6 +88,18 @@ UserController.post(
         careerId,
         certificate: req.file,
       } as IUserCareerVerifyRequest)
+    );
+  }
+);
+
+UserController.get(
+  '/withdraw',
+  AuthMiddleware.isLoggedIn,
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    return res.send(
+      await UserService.withdraw({
+        userId: req.user!.id,
+      } as IUserWithdrawRequest)
     );
   }
 );

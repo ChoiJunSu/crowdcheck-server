@@ -6,12 +6,9 @@ import {
   IAuthTokenRenewRequest,
   IAuthLoginRequest,
   IAuthRegisterPersonalRequest,
-  IAuthLoginCandidateRequest,
   IAuthRegisterOauthPersonalRequest,
   IAuthPhoneSendRequest,
   IAuthPhoneVerifyRequest,
-  IAuthRegisterExpertRequest,
-  IAuthWithdrawRequest,
 } from '@services/AuthService/type';
 import AuthMiddleware from '@middlewares/AuthMiddleware';
 import {
@@ -50,21 +47,6 @@ AuthController.get(
         redirectUri,
         type,
       } as IAuthLoginOauthRequest)
-    );
-  }
-);
-
-AuthController.post(
-  '/login/candidate',
-  async (req: IRequest, res: IResponse, next: INextFunction) => {
-    const { name, phone, code } = req.body;
-
-    return res.send(
-      await AuthService.loginCandidate({
-        name,
-        phone,
-        code,
-      } as IAuthLoginCandidateRequest)
     );
   }
 );
@@ -138,27 +120,6 @@ AuthController.post(
 );
 
 AuthController.post(
-  '/register/expert',
-  MulterMiddleware.upload.single('certificate'),
-  async (req: IRequest, res: IResponse, next: INextFunction) => {
-    const { name, phone, email, password, specialty } = req.body;
-    if (!req.file)
-      return res.send({ ok: false, error: '증빙서류를 업로드해주세요.' });
-
-    return res.send(
-      await AuthService.registerExpert({
-        name,
-        phone,
-        email,
-        password,
-        certificate: req.file,
-        specialty,
-      } as IAuthRegisterExpertRequest)
-    );
-  }
-);
-
-AuthController.post(
   '/phone/send',
   async (req: IRequest, res: IResponse, next: INextFunction) => {
     const { phone } = req.body;
@@ -179,18 +140,6 @@ AuthController.post(
         phone,
         code: parseInt(code),
       } as IAuthPhoneVerifyRequest)
-    );
-  }
-);
-
-AuthController.get(
-  '/withdraw',
-  AuthMiddleware.isLoggedIn,
-  async (req: IRequest, res: IResponse, next: INextFunction) => {
-    return res.send(
-      await AuthService.withdraw({
-        userId: req.user!.id,
-      } as IAuthWithdrawRequest)
     );
   }
 );

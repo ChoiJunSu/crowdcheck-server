@@ -1,33 +1,34 @@
 import { Model, DataTypes, Sequelize } from 'sequelize';
 import {
-  ICandidateAgreeAttributes,
-  ICandidateAgreeCreationAttributes,
-} from '@models/CandidateAgreeModel/type';
+  IAgreeAttributes,
+  IAgreeCreationAttributes,
+} from '@models/AgreeModel/type';
 import RequestModel from '@models/RequestModel';
+import CareerModel from '@models/CareerModel';
 import CorporateModel from '@models/CorporateModel';
-import CandidateModel from '@models/CandidateModel';
 
-class CandidateAgreeModel
-  extends Model<ICandidateAgreeAttributes, ICandidateAgreeCreationAttributes>
-  implements ICandidateAgreeAttributes
+class AgreeModel
+  extends Model<IAgreeAttributes, IAgreeCreationAttributes>
+  implements IAgreeAttributes
 {
   declare id: number;
   declare requestId: number;
+  declare careerId: number;
   declare corporateId: number;
-  declare candidateId: number;
-  declare department: string | null;
-  declare startAt: Date;
-  declare endAt: Date;
+  declare disagreeReason: string | null;
   declare agreedAt: Date | null;
 
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 
+  declare readonly Career?: CareerModel;
+  declare readonly Corporate?: CorporateModel;
+
   declare static associations: {};
 }
 
-export const initCandidateAgreeModel = (sequelize: Sequelize) => {
-  CandidateAgreeModel.init(
+export const initAgreeModel = (sequelize: Sequelize) => {
+  AgreeModel.init(
     {
       id: {
         type: DataTypes.INTEGER,
@@ -38,24 +39,17 @@ export const initCandidateAgreeModel = (sequelize: Sequelize) => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
+      careerId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
       corporateId: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      candidateId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-      },
-      department: {
+      disagreeReason: {
         type: DataTypes.STRING,
-      },
-      startAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-      },
-      endAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
+        defaultValue: null,
       },
       agreedAt: {
         type: DataTypes.DATE,
@@ -73,40 +67,40 @@ export const initCandidateAgreeModel = (sequelize: Sequelize) => {
     {
       sequelize,
       underscored: false,
-      modelName: 'CandidateAgree',
-      tableName: 'candidateAgree',
-      paranoid: false,
+      modelName: 'Agree',
+      tableName: 'Agree',
+      paranoid: true,
       charset: 'utf8mb4',
       collate: 'utf8mb4_general_ci',
     }
   );
 
-  RequestModel.hasMany(CandidateAgreeModel, {
+  RequestModel.hasMany(AgreeModel, {
     foreignKey: 'requestId',
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
   });
-  CandidateAgreeModel.belongsTo(RequestModel, {
+  AgreeModel.belongsTo(RequestModel, {
     foreignKey: 'requestId',
   });
 
-  CorporateModel.hasMany(CandidateAgreeModel, {
+  CareerModel.hasOne(AgreeModel, {
+    foreignKey: 'careerId',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  });
+  AgreeModel.belongsTo(CareerModel, {
+    foreignKey: 'careerId',
+  });
+
+  CorporateModel.hasOne(AgreeModel, {
     foreignKey: 'corporateId',
     onDelete: 'RESTRICT',
     onUpdate: 'CASCADE',
   });
-  CandidateAgreeModel.belongsTo(CorporateModel, {
+  AgreeModel.belongsTo(CorporateModel, {
     foreignKey: 'corporateId',
-  });
-
-  CandidateModel.hasMany(CandidateAgreeModel, {
-    foreignKey: 'candidateId',
-    onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
-  });
-  CandidateAgreeModel.belongsTo(CandidateModel, {
-    foreignKey: 'candidateId',
   });
 };
 
-export default CandidateAgreeModel;
+export default AgreeModel;
