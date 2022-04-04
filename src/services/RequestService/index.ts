@@ -303,7 +303,7 @@ class RequestService {
       // find references
       const referenceFindAndCountAllResult =
         await ReferenceModel.findAndCountAll({
-          attributes: ['type', 'relationship', 'createdAt'],
+          attributes: ['id', 'type', 'relationship', 'createdAt'],
           where: { targetId: candidateId },
           include: [CorporateModel, ReferenceDetailModel],
         });
@@ -311,12 +311,14 @@ class RequestService {
       for (const Reference of referenceFindAndCountAllResult.rows) {
         if (!Reference.Corporate || !Reference.ReferenceDetails) continue;
         response.references.push({
+          id: Reference.id,
           corporateName: Reference.Corporate.name,
           type: Reference.type,
           relationship: Reference.relationship,
           createdAt,
           details: Reference.ReferenceDetails.map(
-            ({ question, score, answer }) => ({
+            ({ id, question, score, answer }) => ({
+              id,
               question,
               score,
               answer,
@@ -328,7 +330,7 @@ class RequestService {
         id,
         candidateName,
         deadline,
-        referenceCount: referenceFindAndCountAllResult.count,
+        referenceCount: referenceFindAndCountAllResult.rows.length,
         status,
         createdAt,
       };

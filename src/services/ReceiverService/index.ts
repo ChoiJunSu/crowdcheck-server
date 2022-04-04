@@ -6,6 +6,8 @@ import {
   IReceiverAnswerResponse,
   IReceiverGetAnswerRequest,
   IReceiverGetAnswerResponse,
+  IReceiverGetVerifyRequest,
+  IReceiverGetVerifyResponse,
   IReceiverRejectRequest,
   IReceiverRejectResponse,
   IReceiverVerifyRequest,
@@ -15,12 +17,85 @@ import UserModel from '@models/UserModel';
 import { SensSingleton } from '@utils/sens';
 import ReferenceModel from '@models/ReferenceModel';
 import ReferenceDetailModel from '@models/ReferenceDetailModel';
-import { Op, Sequelize } from 'sequelize';
-import { TRequestStatus } from '@models/RequestModel/type';
-import { TReceiverStatus } from '@models/ReceiverModel/type';
+import { Op } from 'sequelize';
 import CorporateModel from '@models/CorporateModel';
 
 class ReceiverService {
+  static async getVerify({
+    requestId,
+    userId,
+  }: IReceiverGetVerifyRequest): Promise<IReceiverGetVerifyResponse> {
+    const response: IReceiverGetVerifyResponse = {
+      ok: false,
+      error: '',
+      candidateName: '',
+      career: null,
+    };
+
+    try {
+      // verify user, request, and receiver status
+      const requestFindOneResult = await RequestModel.findOne({
+        attributes: ['candidateName'],
+        where: {
+          id: requestId,
+          status: 'agreed',
+        },
+        include: [
+          {
+            model: ReceiverModel,
+            attributes: ['careerId'],
+            where: { userId, status: 'received' },
+          },
+        ],
+      });
+      if (
+        !requestFindOneResult ||
+        !requestFindOneResult.Receivers ||
+        !requestFindOneResult.Receivers[0]
+      ) {
+        response.error = '의뢰 검색 오류입니다.';
+        return response;
+      }
+      // find career and corporate name
+      const careerFindOneResult = await CareerModel.findOne({
+        where: { id: requestFindOneResult.Receivers[0].careerId },
+        include: {
+          model: CorporateModel,
+          attributes: ['name'],
+        },
+      });
+      if (!careerFindOneResult || !careerFindOneResult.Corporate) {
+        response.error = '경력 검색 오류입니다.';
+        return response;
+      }
+      const {
+        id,
+        corporateId,
+        department,
+        startAt,
+        endAt,
+        verifiedAt,
+        Corporate,
+      } = careerFindOneResult;
+      response.candidateName = requestFindOneResult.candidateName;
+      response.career = {
+        id,
+        corporateId,
+        corporateName: Corporate.name,
+        department,
+        startAt,
+        endAt,
+        verifiedAt,
+      };
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '수신자 검증에 실패했습니다.';
+    }
+
+    return response;
+  }
+
   static async verify({
     requestId,
     userId,
@@ -42,32 +117,25 @@ class ReceiverService {
         include: [
           {
             model: ReceiverModel,
-            attributes: ['id', 'careerId', 'status'],
+            attributes: ['id', 'status'],
             where: { userId, status: 'received' },
+            include: [CareerModel],
           },
         ],
       });
       if (!requestFindOneResult || !requestFindOneResult.Receivers) {
         response.error = '의뢰 검색 오류입니다.';
         return response;
-      } else if (!requestFindOneResult.Receivers[0]) {
-        response.error = '평가자 오류입니다.';
+      } else if (
+        !requestFindOneResult.Receivers[0] ||
+        !requestFindOneResult.Receivers[0].Career
+      ) {
+        response.error = '평가자 검색 오류입니다.';
         return response;
       } else if (requestFindOneResult.candidatePhone !== candidatePhone) {
         response.error = '지원자 정보가 올바르지 않습니다.';
         return response;
-      }
-      // verify career status
-      const careerFindOneResult = await CareerModel.findOne({
-        attributes: ['verifiedAt'],
-        where: {
-          id: requestFindOneResult.Receivers[0].careerId,
-        },
-      });
-      if (!careerFindOneResult) {
-        response.error = '경력 검색 오류입니다.';
-        return response;
-      } else if (careerFindOneResult.verifiedAt) {
+      } else if (!requestFindOneResult.Receivers[0].Career.verifiedAt) {
         response.error = '경력 인증이 필요합니다.';
         return response;
       }

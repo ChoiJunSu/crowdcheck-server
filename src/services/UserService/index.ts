@@ -297,6 +297,7 @@ class UserService {
         {
           certificateBucket: certificate.bucket,
           certificateKey: certificate.key,
+          verifiedAt: new Date(),
         },
         { where: { id: careerId } }
       );

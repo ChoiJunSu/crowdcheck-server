@@ -1,6 +1,8 @@
 import {
   IReferenceListCandidateRequest,
   IReferenceListCandidateResponse,
+  IReferenceRemoveRequest,
+  IReferenceRemoveResponse,
 } from '@services/ReferenceService/type';
 import ReferenceModel from '@models/ReferenceModel';
 import CorporateModel from '@models/CorporateModel';
@@ -19,7 +21,7 @@ class ReferenceService {
     try {
       // find references
       const referenceFindAllResult = await ReferenceModel.findAll({
-        attributes: ['writerId', 'createdAt'],
+        attributes: ['id', 'writerId', 'createdAt'],
         where: { ownerId: userId, type: 'nomination' },
         include: {
           model: CorporateModel,
@@ -31,7 +33,12 @@ class ReferenceService {
         return response;
       }
       // generate response
-      for (const { writerId, createdAt, Corporate } of referenceFindAllResult) {
+      for (const {
+        id,
+        writerId,
+        createdAt,
+        Corporate,
+      } of referenceFindAllResult) {
         if (!Corporate) continue;
         // find writer name
         const userFindOneResult = await UserModel.findOne({
@@ -40,6 +47,7 @@ class ReferenceService {
         });
         if (!userFindOneResult) continue;
         response.references.push({
+          id,
           writerName: userFindOneResult.name,
           corporateName: Corporate.name,
           createdAt,
@@ -49,6 +57,42 @@ class ReferenceService {
     } catch (e) {
       console.error(e);
       response.error = '평판 목록 조회에 실패했습니다.';
+    }
+
+    return response;
+  }
+
+  static async remove({
+    userId,
+    referenceId,
+  }: IReferenceRemoveRequest): Promise<IReferenceRemoveResponse> {
+    const response: IReferenceRemoveResponse = {
+      ok: false,
+      error: '',
+    };
+
+    try {
+      // verify user and reference
+      const referenceFindOneResult = await ReferenceModel.findOne({
+        attributes: ['id'],
+        where: { id: referenceId, ownerId: userId },
+      });
+      if (!referenceFindOneResult) {
+        response.error = '평판 검색 오류입니다.';
+        return response;
+      }
+      // remove reference
+      const referenceDestroyResult = await ReferenceModel.destroy({
+        where: { id: referenceId },
+      });
+      if (!referenceDestroyResult) {
+        response.error = '평판 삭제 오류입니다.';
+        return response;
+      }
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '평판 삭제에 실패했습니다.';
     }
 
     return response;

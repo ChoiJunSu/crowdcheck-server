@@ -29,6 +29,7 @@ class ReceiverModel
 
   declare readonly Request?: RequestModel;
   declare readonly Corporate?: CorporateModel;
+  declare readonly Career?: CareerModel;
 
   declare static associations: {};
 }

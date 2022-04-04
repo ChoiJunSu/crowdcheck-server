@@ -9,11 +9,25 @@ import ReceiverService from '@services/ReceiverService';
 import {
   IReceiverAnswerRequest,
   IReceiverGetAnswerRequest,
+  IReceiverGetVerifyRequest,
   IReceiverRejectRequest,
   IReceiverVerifyRequest,
 } from '@services/ReceiverService/type';
 
 const ReceiverController = AsyncRouter();
+
+ReceiverController.get(
+  '/verify',
+  AuthMiddleware.isPersonal,
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    const { requestId } = req.query;
+
+    return await ReceiverService.getVerify({
+      requestId: parseInt(requestId as string),
+      userId: req.user!.id,
+    } as IReceiverGetVerifyRequest);
+  }
+);
 
 ReceiverController.post(
   '/verify',

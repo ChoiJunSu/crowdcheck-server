@@ -5,6 +5,17 @@ import {
 import { TReferenceType } from '@models/ReferenceModel/type';
 import { IReferenceDetail } from '@services/ReferenceService/type';
 import { IRequestReceiver } from '@services/RequestService/type';
+import { ICareer } from '@services/UserService/type';
+
+export interface IReceiverGetVerifyRequest extends IBaseServiceRequest {
+  requestId: number;
+  userId: number;
+}
+
+export interface IReceiverGetVerifyResponse extends IBaseServiceResponse {
+  candidateName: string;
+  career: ICareer | null;
+}
 
 export interface IReceiverVerifyRequest extends IBaseServiceRequest {
   requestId: number;
