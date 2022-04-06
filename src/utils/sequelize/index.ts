@@ -23,6 +23,7 @@ export const SequelizeSingleton = (() => {
         {
           host: SecretsManagerSingleton.getSecrete('host'),
           dialect: 'mariadb',
+          timezone: process.env.TZ,
         }
       );
 

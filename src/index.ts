@@ -8,11 +8,11 @@ import CorporateController from '@controllers/CorporateController';
 import RequestController from '@controllers/RequestController';
 import UserController from '@controllers/UserController';
 import { SecretsManagerSingleton } from '@utils/secretesManager';
-import { TwilioSingleton } from '@utils/twilio';
 import { SequelizeSingleton } from '@utils/sequelize';
 import { SensSingleton } from '@utils/sens';
 import ReceiverController from '@controllers/ReceiverController';
 import ReferenceController from '@controllers/ReferenceController';
+import { CronSingleton } from '@utils/cron';
 
 const app = express();
 const port = 4000;
@@ -35,11 +35,11 @@ SecretsManagerSingleton.prepare([
   // database
   SequelizeSingleton.prepare();
 
-  // twilio
-  TwilioSingleton.prepare();
-
   // sens
   SensSingleton.prepare();
+
+  // cron
+  CronSingleton.prepare();
 });
 
 // body parser

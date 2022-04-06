@@ -78,7 +78,8 @@ export interface IRequestDetailCorporateRequest extends IBaseServiceRequest {
 
 export interface IRequestDetailCorporateResponse extends IBaseServiceResponse {
   request: IRequestCorporate | null;
-  references: Array<IReferenceCorporate>;
+  nominationReferences: Array<IReferenceCorporate>;
+  blindReferences: Array<IReferenceCorporate>;
 }
 
 export interface IRequestGetAgreeCorporateRequest extends IBaseServiceRequest {

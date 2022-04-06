@@ -274,7 +274,8 @@ class RequestService {
       ok: false,
       error: '',
       request: null,
-      references: [],
+      nominationReferences: [],
+      blindReferences: [],
     };
 
     try {
@@ -310,21 +311,39 @@ class RequestService {
       // generate response
       for (const Reference of referenceFindAndCountAllResult.rows) {
         if (!Reference.Corporate || !Reference.ReferenceDetails) continue;
-        response.references.push({
-          id: Reference.id,
-          corporateName: Reference.Corporate.name,
-          type: Reference.type,
-          relationship: Reference.relationship,
-          createdAt,
-          details: Reference.ReferenceDetails.map(
-            ({ id, question, score, answer }) => ({
-              id,
-              question,
-              score,
-              answer,
-            })
-          ),
-        });
+        if (Reference.type === 'nomination') {
+          response.nominationReferences.push({
+            id: Reference.id,
+            corporateName: Reference.Corporate.name,
+            type: Reference.type,
+            relationship: Reference.relationship,
+            createdAt,
+            details: Reference.ReferenceDetails.map(
+              ({ id, question, score, answer }) => ({
+                id,
+                question,
+                score,
+                answer,
+              })
+            ),
+          });
+        } else {
+          response.blindReferences.push({
+            id: Reference.id,
+            corporateName: Reference.Corporate.name,
+            type: Reference.type,
+            relationship: Reference.relationship,
+            createdAt,
+            details: Reference.ReferenceDetails.map(
+              ({ id, question, score, answer }) => ({
+                id,
+                question,
+                score,
+                answer,
+              })
+            ),
+          });
+        }
       }
       response.request = {
         id,
