@@ -57,15 +57,18 @@ class RequestService {
       // transaction
       await SequelizeSingleton.getInstance().transaction(async (t) => {
         // create request
-        const createRequestResult = await RequestModel.create({
-          ownerId: userId,
-          corporateId: userFindOneResult.corporateId!,
-          candidateName,
-          candidatePhone,
-          deadline: new Date(
-            new Date().setDate(new Date().getDate() + REQUEST_DEADLINE)
-          ),
-        });
+        const createRequestResult = await RequestModel.create(
+          {
+            ownerId: userId,
+            corporateId: userFindOneResult.corporateId!,
+            candidateName,
+            candidatePhone,
+            deadline: new Date(
+              new Date().setDate(new Date().getDate() + REQUEST_DEADLINE)
+            ),
+          },
+          { transaction: t }
+        );
         if (!createRequestResult) throw new Error('의뢰 생성 오류입니다.');
         // update candidate
         const updateCandidateResponse = await InternalService.updateCandidate({
@@ -539,13 +542,16 @@ class RequestService {
       await SequelizeSingleton.getInstance().transaction(async (t) => {
         for (const { career, agreed, disagreeReason } of agrees) {
           // create agree
-          const agreeCreateResult = await AgreeModel.create({
-            requestId,
-            careerId: career.id,
-            corporateId: career.corporateId,
-            agreedAt: agreed ? new Date() : null,
-            disagreeReason,
-          });
+          const agreeCreateResult = await AgreeModel.create(
+            {
+              requestId,
+              careerId: career.id,
+              corporateId: career.corporateId,
+              agreedAt: agreed ? new Date() : null,
+              disagreeReason,
+            },
+            { transaction: t }
+          );
           if (!agreeCreateResult)
             throw new Error('지원자 동의 생성 오류입니다.');
           if (!agreed) continue;
@@ -577,15 +583,18 @@ class RequestService {
               where: { writerId: Career.userId, targetId: userId },
             });
             if (referenceCountResult > 0) continue;
-            const receiverCreateResult = await ReceiverModel.create({
-              userId: Career.userId,
-              careerId: Career.id,
-              corporateId: Career.corporateId,
-              requestId,
-            });
+            const receiverCreateResult = await ReceiverModel.create(
+              {
+                userId: Career.userId,
+                careerId: Career.id,
+                corporateId: Career.corporateId,
+                requestId,
+              },
+              { transaction: t }
+            );
             if (!receiverCreateResult) continue;
             // send alarm
-            const sendMessageResponse = await SensSingleton.sendMessage({
+            await SensSingleton.sendMessage({
               templateName: 'receive',
               to: Career.User.phone,
             });
@@ -594,7 +603,7 @@ class RequestService {
         // update request
         const requestUpdateResult = await RequestModel.update(
           { status: 'agreed' },
-          { where: { id: requestId } }
+          { where: { id: requestId }, transaction: t }
         );
         if (!requestUpdateResult)
           throw new Error('의뢰 정보 업데이트 오류입니다.');

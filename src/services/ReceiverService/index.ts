@@ -255,15 +255,20 @@ class ReceiverService {
       // transaction
       await SequelizeSingleton.getInstance().transaction(async (t) => {
         // create reference
-        const referenceCreateResult = await ReferenceModel.create({
-          ownerId:
-            type === 'nomination' ? requestFindOneResult.candidateId! : userId,
-          targetId: requestFindOneResult.candidateId!,
-          writerId: userId,
-          corporateId: requestFindOneResult.Receivers![0].corporateId,
-          type,
-          relationship,
-        });
+        const referenceCreateResult = await ReferenceModel.create(
+          {
+            ownerId:
+              type === 'nomination'
+                ? requestFindOneResult.candidateId!
+                : userId,
+            targetId: requestFindOneResult.candidateId!,
+            writerId: userId,
+            corporateId: requestFindOneResult.Receivers![0].corporateId,
+            type,
+            relationship,
+          },
+          { transaction: t }
+        );
         if (!referenceCreateResult) throw new Error('답변 생성 오류입니다.');
         // create reference details
         for (const { question, score, answer } of details) {
@@ -273,7 +278,8 @@ class ReceiverService {
               question,
               score,
               answer,
-            }
+            },
+            { transaction: t }
           );
           if (!referenceDetailCreateResult)
             throw new Error('답변 항목 생성 오류입니다.');
@@ -283,7 +289,10 @@ class ReceiverService {
               status: 'answered',
               answeredAt: new Date(),
             },
-            { where: { id: requestFindOneResult.Receivers![0].id } }
+            {
+              where: { id: requestFindOneResult.Receivers![0].id },
+              transaction: t,
+            }
           );
           if (!receiverUpdateResult)
             throw new Error('의뢰 상태 업데이트 오류입니다.');

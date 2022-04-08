@@ -166,7 +166,7 @@ class UserService {
           const hashed = await hash(password, salt);
           const userPasswordUpdateResult = await UserModel.update(
             { hashed },
-            { where: { id: userId } }
+            { where: { id: userId }, transaction: t }
           );
           if (!userPasswordUpdateResult)
             throw new Error('사용자 비밀번호 업데이트 오류입니다.');
@@ -181,6 +181,7 @@ class UserService {
               defaults: {
                 name: corporateName,
               },
+              transaction: t,
             }
           );
           if (!corporateFindOrCreateResult || !corporateFindOrCreateResult[0])
@@ -197,6 +198,7 @@ class UserService {
               startAt,
               endAt: endAt || new Date(MAX_TIMESTAMP),
             },
+            transaction: t,
           });
           if (!careerFindOrCreateResult || !careerFindOrCreateResult[0])
             throw new Error('경력 생성 오류입니다.');
@@ -206,6 +208,7 @@ class UserService {
           if (!corporateIds.includes(corporateId)) {
             const careerDestroyResult = await CareerModel.destroy({
               where: { userId, corporateId },
+              transaction: t,
             });
             if (!careerDestroyResult) throw new Error('경력 삭제 오류입니다.');
           }
