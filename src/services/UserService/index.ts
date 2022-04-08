@@ -18,6 +18,7 @@ import CorporateModel from '@models/CorporateModel';
 import { genSalt, hash } from 'bcrypt';
 import { MAX_TIMESTAMP } from '@constants/date';
 import { InternalService } from '@services/InternalService';
+import { SequelizeSingleton } from '@utils/sequelize';
 
 class UserService {
   static async getEditPersonal({
@@ -156,66 +157,62 @@ class UserService {
         response.error = '사용자 검색 오류입니다.';
         return response;
       }
-      // update user password
-      if (password) {
-        // hash password
-        const salt = await genSalt(10);
-        const hashed = await hash(password, salt);
-        const userPasswordUpdateResult = await UserModel.update(
-          { hashed },
-          { where: { id: userId } }
-        );
-        if (!userPasswordUpdateResult) {
-          response.error = '사용자 비밀번호 업데이트 오류입니다.';
-          return response;
+      // transaction
+      await SequelizeSingleton.getInstance().transaction(async (t) => {
+        // update user password
+        if (password) {
+          // hash password
+          const salt = await genSalt(10);
+          const hashed = await hash(password, salt);
+          const userPasswordUpdateResult = await UserModel.update(
+            { hashed },
+            { where: { id: userId } }
+          );
+          if (!userPasswordUpdateResult)
+            throw new Error('사용자 비밀번호 업데이트 오류입니다.');
         }
-      }
-      // add career
-      const corporateIds: Array<number> = [];
-      for (const { corporateName, department, startAt, endAt } of careers) {
-        const corporateFindOrCreateResult = await CorporateModel.findOrCreate({
-          attributes: ['id'],
-          where: { name: corporateName },
-          defaults: {
-            name: corporateName,
-          },
-        });
-        if (!corporateFindOrCreateResult || !corporateFindOrCreateResult[0]) {
-          response.error = '기업 검색 및 생성 오류입니다.';
-          return response;
-        }
-        corporateIds.push(corporateFindOrCreateResult[0].id);
         // add career
-        const careerFindOrCreateResult = await CareerModel.findOrCreate({
-          attributes: ['id'],
-          where: { userId, corporateId: corporateFindOrCreateResult[0].id },
-          defaults: {
-            userId,
-            corporateId: corporateFindOrCreateResult[0].id,
-            department,
-            startAt,
-            endAt: endAt || new Date(MAX_TIMESTAMP),
-          },
-        });
-        if (!careerFindOrCreateResult || !careerFindOrCreateResult[0]) {
-          response.error = '경력 생성 오류입니다.';
-          return response;
-        }
-      }
-      // remove career
-      for (const { corporateId } of userFindOneResult.Careers) {
-        if (!corporateIds.includes(corporateId)) {
-          const careerDestroyResult = await CareerModel.destroy({
-            where: { userId, corporateId },
+        const corporateIds: Array<number> = [];
+        for (const { corporateName, department, startAt, endAt } of careers) {
+          const corporateFindOrCreateResult = await CorporateModel.findOrCreate(
+            {
+              attributes: ['id'],
+              where: { name: corporateName },
+              defaults: {
+                name: corporateName,
+              },
+            }
+          );
+          if (!corporateFindOrCreateResult || !corporateFindOrCreateResult[0])
+            throw new Error('기업 검색 또는 생성 오류입니다.');
+          corporateIds.push(corporateFindOrCreateResult[0].id);
+          // add career
+          const careerFindOrCreateResult = await CareerModel.findOrCreate({
+            attributes: ['id'],
+            where: { userId, corporateId: corporateFindOrCreateResult[0].id },
+            defaults: {
+              userId,
+              corporateId: corporateFindOrCreateResult[0].id,
+              department,
+              startAt,
+              endAt: endAt || new Date(MAX_TIMESTAMP),
+            },
           });
-          if (!careerDestroyResult) {
-            response.error = '경력 삭제 오류입니다.';
-            return response;
+          if (!careerFindOrCreateResult || !careerFindOrCreateResult[0])
+            throw new Error('경력 생성 오류입니다.');
+        }
+        // remove career
+        for (const { corporateId } of userFindOneResult.Careers!) {
+          if (!corporateIds.includes(corporateId)) {
+            const careerDestroyResult = await CareerModel.destroy({
+              where: { userId, corporateId },
+            });
+            if (!careerDestroyResult) throw new Error('경력 삭제 오류입니다.');
           }
         }
-      }
+      });
       // update receiver
-      const updateReceiverResponse = await InternalService.updateReceiver({
+      await InternalService.updateReceiver({
         userId,
       });
       response.ok = true;

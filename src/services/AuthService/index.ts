@@ -29,6 +29,8 @@ import { Op, Sequelize } from 'sequelize';
 import { JwtSingleton } from '@utils/jwt';
 import { SensSingleton } from '@utils/sens';
 import { InternalService } from '@services/InternalService';
+import { SlackSingleton } from '@utils/slack';
+import { SequelizeSingleton } from '@utils/sequelize';
 
 class AuthService {
   static async login({
@@ -71,6 +73,17 @@ class AuthService {
         name,
         type,
       } as IAuthTokenPayload);
+      // update login at
+      const userUpdateResult = await UserModel.update(
+        {
+          loginAt: new Date(),
+        },
+        {
+          where: {
+            id,
+          },
+        }
+      );
       response.ok = true;
     } catch (e) {
       console.error(e);
@@ -138,6 +151,17 @@ class AuthService {
         name,
         type,
       } as IAuthTokenPayload);
+      // update login at
+      const userUpdateResult = await UserModel.update(
+        {
+          loginAt: new Date(),
+        },
+        {
+          where: {
+            id,
+          },
+        }
+      );
       response.ok = true;
     } catch (e) {
       console.error(e);
@@ -205,55 +229,58 @@ class AuthService {
       // hash password
       const salt = await genSalt(10);
       const hashed = await hash(password, salt);
-      // create user
-      const userCreateResult = await UserModel.create({
-        name,
-        phone,
-        email,
-        hashed,
-        type: 'personal',
-      });
-      if (!userCreateResult) {
-        response.error = '회원 생성 오류입니다.';
-        return response;
-      }
-      // create career
-      for (const { corporateName, department, startAt, endAt } of careers) {
-        // find or create corporate
-        const corporateFindOrCreateResult = await CorporateModel.findOrCreate({
-          where: {
-            name: corporateName,
-          },
-          defaults: {
-            name: corporateName,
-          },
+      // transaction
+      const transactionResult =
+        await SequelizeSingleton.getInstance().transaction(async (t) => {
+          // create user
+          const userCreateResult = await UserModel.create({
+            name,
+            phone,
+            email,
+            hashed,
+            type: 'personal',
+          });
+          if (!userCreateResult) throw new Error('회원 생성 오류입니다.');
+          // create career
+          for (const { corporateName, department, startAt, endAt } of careers) {
+            // find or create corporate
+            const corporateFindOrCreateResult =
+              await CorporateModel.findOrCreate({
+                where: {
+                  name: corporateName,
+                },
+                defaults: {
+                  name: corporateName,
+                },
+              });
+            if (!corporateFindOrCreateResult)
+              throw new Error('경력 오류입니다.');
+            // create career
+            const careerCreateResult = await CareerModel.create({
+              userId: userCreateResult.id,
+              corporateId: corporateFindOrCreateResult[0].id,
+              department,
+              startAt,
+              endAt: endAt || new Date(MAX_TIMESTAMP),
+            });
+            if (!careerCreateResult) throw new Error('경력 생성 오류입니다.');
+          }
+          return userCreateResult;
         });
-        if (!corporateFindOrCreateResult) {
-          response.error = '경력 오류입니다.';
-          return response;
-        }
-        // create career
-        const careerCreateResult = await CareerModel.create({
-          userId: userCreateResult.id,
-          corporateId: corporateFindOrCreateResult[0].id,
-          department,
-          startAt,
-          endAt: endAt || new Date(MAX_TIMESTAMP),
-        });
-        if (!careerCreateResult) {
-          response.error = '경력 생성 오류입니다.';
-          return response;
-        }
-      }
       // update candidate
-      const updateCandidateResponse = await InternalService.updateCandidate({
+      await InternalService.updateCandidate({
         name,
         phone,
       });
       // update receiver
-      const updateReceiverResponse = await InternalService.updateReceiver({
-        userId: userCreateResult.id,
+      await InternalService.updateReceiver({
+        userId: transactionResult!.id,
       });
+      // slack alarm
+      await SlackSingleton.sendMessage(
+        '#aws_server',
+        'AuthService: 개인 회원 가입'
+      );
       response.ok = true;
     } catch (e) {
       console.error(e);
@@ -279,18 +306,6 @@ class AuthService {
       const { provider, email } = JwtSingleton.verify(
         registerToken
       ) as IRegisterTokenPayload;
-      // create user
-      const userCreateResult = await UserModel.create({
-        name,
-        phone,
-        email,
-        type: 'personal',
-        oauthProvider: provider,
-      });
-      if (!userCreateResult) {
-        response.error = '회원 생성 오류입니다.';
-        return response;
-      }
       // verify phone
       const phoneVerifyFindOneResult = await phoneVerifyModel.findOne({
         attributes: ['verifiedAt'],
@@ -305,43 +320,59 @@ class AuthService {
         response.error = '전화번호 인증 기록이 없습니다.';
         return response;
       }
-      // create career
-      for (const { corporateName, department, startAt, endAt } of careers) {
-        // find or create corporate
-        const corporateFindOrCreateResult = await CorporateModel.findOrCreate({
-          where: {
-            name: corporateName,
-          },
-          defaults: {
-            name: corporateName,
-          },
+      // transaction
+      const transactionResult =
+        await SequelizeSingleton.getInstance().transaction(async (t) => {
+          // create user
+          const userCreateResult = await UserModel.create({
+            name,
+            phone,
+            email,
+            type: 'personal',
+            oauthProvider: provider,
+          });
+          if (!userCreateResult) throw new Error('회원 생성 오류입니다.');
+          // create career
+          for (const { corporateName, department, startAt, endAt } of careers) {
+            // find or create corporate
+            const corporateFindOrCreateResult =
+              await CorporateModel.findOrCreate({
+                where: {
+                  name: corporateName,
+                },
+                defaults: {
+                  name: corporateName,
+                },
+              });
+            if (!corporateFindOrCreateResult)
+              throw new Error('경력 오류입니다.');
+            // create career
+            const careerCreateResult = await CareerModel.create({
+              userId: userCreateResult.id,
+              corporateId: corporateFindOrCreateResult[0].id,
+              department,
+              startAt,
+              endAt: endAt || new Date(MAX_TIMESTAMP),
+            });
+            if (!careerCreateResult) throw new Error('경력 생성 오류입니다.');
+          }
+          return userCreateResult;
         });
-        if (!corporateFindOrCreateResult) {
-          response.error = '경력 오류입니다.';
-          return response;
-        }
-        // create career
-        const careerCreateResult = await CareerModel.create({
-          userId: userCreateResult.id,
-          corporateId: corporateFindOrCreateResult[0].id,
-          department,
-          startAt,
-          endAt: endAt || new Date(MAX_TIMESTAMP),
-        });
-        if (!careerCreateResult) {
-          response.error = '경력 생성 오류입니다.';
-          return response;
-        }
-      }
+
       // update candidate
-      const updateCandidateResponse = await InternalService.updateCandidate({
+      await InternalService.updateCandidate({
         name,
         phone,
       });
       // update receiver
-      const updateReceiverResponse = await InternalService.updateReceiver({
-        userId: userCreateResult.id,
+      await InternalService.updateReceiver({
+        userId: transactionResult!.id,
       });
+      // slack alarm
+      await SlackSingleton.sendMessage(
+        '#aws_server',
+        'AuthService: 개인 회원 가입'
+      );
       response.ok = true;
     } catch (e) {
       console.error(e);
@@ -381,30 +412,33 @@ class AuthService {
       // hash password
       const salt = await genSalt(10);
       const hashed = await hash(password, salt);
-      // find or create corporate
-      const corporateFindOrCreateResult = await CorporateModel.findOrCreate({
-        where: { name },
-        defaults: { name },
+      // transaction
+      await SequelizeSingleton.getInstance().transaction(async (t) => {
+        // find or create corporate
+        const corporateFindOrCreateResult = await CorporateModel.findOrCreate({
+          where: { name },
+          defaults: { name },
+        });
+        if (!corporateFindOrCreateResult)
+          throw new Error('기업 생성 오류입니다.');
+        // create user
+        const userCreateResult = await UserModel.create({
+          name,
+          phone,
+          email,
+          hashed,
+          type: 'corporate',
+          corporateId: corporateFindOrCreateResult[0].id,
+          certificateBucket: certificate.bucket,
+          certificateKey: certificate.key,
+        });
+        if (!userCreateResult) throw new Error('회원 생성 오류입니다.');
       });
-      if (!corporateFindOrCreateResult) {
-        response.error = '기업 생성 오류입니다.';
-        return response;
-      }
-      // create user
-      const userCreateResult = await UserModel.create({
-        name,
-        phone,
-        email,
-        hashed,
-        type: 'corporate',
-        corporateId: corporateFindOrCreateResult[0].id,
-        certificateBucket: certificate.bucket,
-        certificateKey: certificate.key,
-      });
-      if (!userCreateResult) {
-        response.error = '회원 생성 오류입니다.';
-        return response;
-      }
+      // slack alarm
+      await SlackSingleton.sendMessage(
+        '#aws_server',
+        'AuthService: 기업 회원 가입'
+      );
       response.ok = true;
     } catch (e) {
       console.error(e);
@@ -440,29 +474,25 @@ class AuthService {
       }
       // generate 6-digit code
       const code = Math.floor(100000 + Math.random() * 900000);
-      // create phoneVerify
-      const phoneVerifyCreateResult = await PhoneVerifyModel.create({
-        phone,
-        code,
-      });
-      if (!phoneVerifyCreateResult) {
-        response.error = '인증번호 생성 오류입니다.';
-        return response;
-      }
-
-      // send code
-      const sendMessageResponse = await SensSingleton.sendMessage({
-        templateName: 'verifyCode',
-        to: phone,
-        data: {
+      // transaction
+      await SequelizeSingleton.getInstance().transaction(async (t) => {
+        // create phoneVerify
+        const phoneVerifyCreateResult = await PhoneVerifyModel.create({
+          phone,
           code,
-        },
+        });
+        if (!phoneVerifyCreateResult)
+          throw new Error('인증번호 생성 오류입니다.');
+        // send code
+        const sendMessageResponse = await SensSingleton.sendMessage({
+          templateName: 'verifyCode',
+          to: phone,
+          data: {
+            code,
+          },
+        });
+        if (!sendMessageResponse.ok) throw new Error(sendMessageResponse.error);
       });
-      if (!sendMessageResponse.ok) {
-        response.error = sendMessageResponse.error;
-        return response;
-      }
-
       response.ok = true;
     } catch (e) {
       console.error(e);

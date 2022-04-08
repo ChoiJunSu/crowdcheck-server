@@ -19,6 +19,7 @@ import ReferenceModel from '@models/ReferenceModel';
 import ReferenceDetailModel from '@models/ReferenceDetailModel';
 import { Op } from 'sequelize';
 import CorporateModel from '@models/CorporateModel';
+import { SequelizeSingleton } from '@utils/sequelize';
 
 class ReceiverService {
   static async getVerify({
@@ -251,45 +252,43 @@ class ReceiverService {
         response.error = '평가자 오류입니다.';
         return response;
       }
-      // create reference
-      const referenceCreateResult = await ReferenceModel.create({
-        ownerId:
-          type === 'nomination' ? requestFindOneResult.candidateId : userId,
-        targetId: requestFindOneResult.candidateId,
-        writerId: userId,
-        corporateId: requestFindOneResult.Receivers[0].corporateId,
-        type,
-        relationship,
-      });
-      if (!referenceCreateResult) {
-        response.error = '답변 생성 오류입니다.';
-        return response;
-      }
-      // create reference details
-      for (const { question, score, answer } of details) {
-        const referenceDetailCreateResult = await ReferenceDetailModel.create({
-          referenceId: referenceCreateResult.id,
-          question,
-          score,
-          answer,
+      // transaction
+      await SequelizeSingleton.getInstance().transaction(async (t) => {
+        // create reference
+        const referenceCreateResult = await ReferenceModel.create({
+          ownerId:
+            type === 'nomination' ? requestFindOneResult.candidateId! : userId,
+          targetId: requestFindOneResult.candidateId!,
+          writerId: userId,
+          corporateId: requestFindOneResult.Receivers![0].corporateId,
+          type,
+          relationship,
         });
-        if (!referenceDetailCreateResult) {
-          response.error = '답변 항목 생성 오류입니다.';
-          return response;
+        if (!referenceCreateResult) throw new Error('답변 생성 오류입니다.');
+        // create reference details
+        for (const { question, score, answer } of details) {
+          const referenceDetailCreateResult = await ReferenceDetailModel.create(
+            {
+              referenceId: referenceCreateResult.id,
+              question,
+              score,
+              answer,
+            }
+          );
+          if (!referenceDetailCreateResult)
+            throw new Error('답변 항목 생성 오류입니다.');
+          // update receiver status
+          const receiverUpdateResult = await ReceiverModel.update(
+            {
+              status: 'answered',
+              answeredAt: new Date(),
+            },
+            { where: { id: requestFindOneResult.Receivers![0].id } }
+          );
+          if (!receiverUpdateResult)
+            throw new Error('의뢰 상태 업데이트 오류입니다.');
         }
-      }
-      // update receiver status
-      const receiverUpdateResult = await ReceiverModel.update(
-        {
-          status: 'answered',
-          answeredAt: new Date(),
-        },
-        { where: { id: requestFindOneResult.Receivers[0].id } }
-      );
-      if (!receiverUpdateResult) {
-        response.error = '의뢰 상태 업데이트 오류입니다.';
-        return response;
-      }
+      });
       // find owner phone
       const userFineOneResult = await UserModel.findOne({
         attributes: ['phone'],
@@ -300,7 +299,7 @@ class ReceiverService {
         return response;
       }
       // send alarm
-      const sendMessageResponse = await SensSingleton.sendMessage({
+      await SensSingleton.sendMessage({
         templateName: 'answer',
         to: userFineOneResult.phone,
       });

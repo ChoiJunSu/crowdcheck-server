@@ -1,4 +1,5 @@
 import { Error, Sequelize } from 'sequelize';
+import cls from 'continuation-local-storage';
 import { SecretsManagerSingleton } from '@utils/secretesManager';
 import { initUserModel } from '@models/UserModel';
 import { initCorporateModel } from '@models/CorporateModel';
@@ -9,6 +10,9 @@ import { initReceiverModel } from '@models/ReceiverModel';
 import { initRequestModel } from '@models/RequestModel';
 import { initReferenceModel } from '@models/ReferenceModel';
 import { initReferenceDetailModel } from '@models/ReferenceDetailModel';
+
+const namespace = cls.createNamespace('sequelizeNamespace');
+Sequelize.useCLS(namespace);
 
 export const SequelizeSingleton = (() => {
   let sequelize: Sequelize;
@@ -58,5 +62,6 @@ export const SequelizeSingleton = (() => {
           console.error(e);
         });
     },
+    getInstance: () => sequelize,
   };
 })();

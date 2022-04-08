@@ -20,6 +20,7 @@ export interface IUserAttributes {
   certificateKey?: string | null;
   verifiedAt?: Date | null;
   // corporate
+  loginAt?: Date | null;
   createdAt?: Date;
   updatedAt?: Date;
 }

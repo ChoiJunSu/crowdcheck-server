@@ -23,6 +23,7 @@ class UserModel
   declare certificateBucket: string | null;
   declare certificateKey: string | null;
   declare verifiedAt: Date | null;
+  declare loginAt: Date | null;
 
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
@@ -78,6 +79,10 @@ export const initUserModel = (sequelize: Sequelize) => {
         defaultValue: null,
       },
       verifiedAt: {
+        type: DataTypes.DATE,
+        defaultValue: null,
+      },
+      loginAt: {
         type: DataTypes.DATE,
         defaultValue: null,
       },

@@ -13,6 +13,7 @@ import { SensSingleton } from '@utils/sens';
 import ReceiverController from '@controllers/ReceiverController';
 import ReferenceController from '@controllers/ReferenceController';
 import { CronSingleton } from '@utils/cron';
+import { SlackSingleton } from '@utils/slack';
 
 const app = express();
 const port = 4000;
@@ -31,7 +32,7 @@ app.use(corsHandler);
 SecretsManagerSingleton.prepare([
   'common/server',
   `${process.env.NODE_ENV}/db`,
-]).then(() => {
+]).then(async () => {
   // database
   SequelizeSingleton.prepare();
 
@@ -40,6 +41,9 @@ SecretsManagerSingleton.prepare([
 
   // cron
   CronSingleton.prepare();
+
+  // slack
+  await SlackSingleton.prepare();
 });
 
 // body parser

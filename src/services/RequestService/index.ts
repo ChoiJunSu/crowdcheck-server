@@ -30,6 +30,8 @@ import ReferenceModel from '@models/ReferenceModel';
 import ReferenceDetailModel from '@models/ReferenceDetailModel';
 import { InternalService } from '@services/InternalService';
 import AgreeModel from '@models/AgreeModel';
+import { SlackSingleton } from '@utils/slack';
+import { SequelizeSingleton } from '@utils/sequelize';
 
 class RequestService {
   static async register({
@@ -52,29 +54,32 @@ class RequestService {
         response.error = '사용자 검색 오류입니다.';
         return response;
       }
-      // create request
-      const createRequestResult = await RequestModel.create({
-        ownerId: userId,
-        corporateId: userFindOneResult.corporateId,
-        candidateName,
-        candidatePhone,
-        deadline: new Date(
-          new Date().setDate(new Date().getDate() + REQUEST_DEADLINE)
-        ),
+      // transaction
+      await SequelizeSingleton.getInstance().transaction(async (t) => {
+        // create request
+        const createRequestResult = await RequestModel.create({
+          ownerId: userId,
+          corporateId: userFindOneResult.corporateId!,
+          candidateName,
+          candidatePhone,
+          deadline: new Date(
+            new Date().setDate(new Date().getDate() + REQUEST_DEADLINE)
+          ),
+        });
+        if (!createRequestResult) throw new Error('의뢰 생성 오류입니다.');
+        // update candidate
+        const updateCandidateResponse = await InternalService.updateCandidate({
+          name: candidateName,
+          phone: candidatePhone,
+        });
+        if (!updateCandidateResponse.ok)
+          throw new Error(updateCandidateResponse.error);
       });
-      if (!createRequestResult) {
-        response.error = '의뢰 생성 오류입니다.';
-        return response;
-      }
-      // update candidate
-      const updateCandidateResponse = await InternalService.updateCandidate({
-        name: candidateName,
-        phone: candidatePhone,
-      });
-      if (!updateCandidateResponse.ok) {
-        response.error = updateCandidateResponse.error;
-        return response;
-      }
+      // slack alarm
+      await SlackSingleton.sendMessage(
+        '#aws_server',
+        'RequestService: 의뢰 등록'
+      );
       response.ok = true;
     } catch (e) {
       console.error(e);
@@ -530,71 +535,70 @@ class RequestService {
         response.error = '지원자 오류입니다.';
         return response;
       }
-      for (const { career, agreed, disagreeReason } of agrees) {
-        // create agree
-        const agreeCreateResult = await AgreeModel.create({
-          requestId,
-          careerId: career.id,
-          corporateId: career.corporateId,
-          agreedAt: agreed ? new Date() : null,
-          disagreeReason,
-        });
-        if (!agreeCreateResult) {
-          response.error = '지원자 동의 생성 오류입니다.';
-          return response;
-        }
-        if (!agreed) continue;
-        // find careers
-        const careerFindAllResult = await CareerModel.findAll({
-          attributes: ['id', 'userId', 'corporateId'],
-          where: {
-            userId: { [Op.not]: userId },
-            [Op.or]: [
-              Sequelize.literal(
-                `startAt BETWEEN '${career.startAt}' AND '${career.endAt}'`
-              ),
-              Sequelize.literal(
-                `'${career.startAt}' BETWEEN startAt AND endAt`
-              ),
-            ],
-          },
-          include: {
-            model: UserModel,
-            attributes: ['phone'],
-          },
-        });
-        if (!careerFindAllResult) continue;
-        // create receiver
-        for (const Career of careerFindAllResult) {
-          if (!Career.User) continue;
-          // check if the user already wrote reference to the candidate
-          const referenceCountResult = await ReferenceModel.count({
-            where: { writerId: Career.userId, targetId: userId },
-          });
-          if (referenceCountResult > 0) continue;
-          const receiverCreateResult = await ReceiverModel.create({
-            userId: Career.userId,
-            careerId: Career.id,
-            corporateId: Career.corporateId,
+      // transaction
+      await SequelizeSingleton.getInstance().transaction(async (t) => {
+        for (const { career, agreed, disagreeReason } of agrees) {
+          // create agree
+          const agreeCreateResult = await AgreeModel.create({
             requestId,
+            careerId: career.id,
+            corporateId: career.corporateId,
+            agreedAt: agreed ? new Date() : null,
+            disagreeReason,
           });
-          if (!receiverCreateResult) continue;
-          // send alarm
-          const sendMessageResponse = await SensSingleton.sendMessage({
-            templateName: 'receive',
-            to: Career.User.phone,
+          if (!agreeCreateResult)
+            throw new Error('지원자 동의 생성 오류입니다.');
+          if (!agreed) continue;
+          // find careers
+          const careerFindAllResult = await CareerModel.findAll({
+            attributes: ['id', 'userId', 'corporateId'],
+            where: {
+              userId: { [Op.not]: userId },
+              [Op.or]: [
+                Sequelize.literal(
+                  `startAt BETWEEN '${career.startAt}' AND '${career.endAt}'`
+                ),
+                Sequelize.literal(
+                  `'${career.startAt}' BETWEEN startAt AND endAt`
+                ),
+              ],
+            },
+            include: {
+              model: UserModel,
+              attributes: ['phone'],
+            },
           });
+          if (!careerFindAllResult) continue;
+          // create receiver
+          for (const Career of careerFindAllResult) {
+            if (!Career.User) continue;
+            // check if the user already wrote reference to the candidate
+            const referenceCountResult = await ReferenceModel.count({
+              where: { writerId: Career.userId, targetId: userId },
+            });
+            if (referenceCountResult > 0) continue;
+            const receiverCreateResult = await ReceiverModel.create({
+              userId: Career.userId,
+              careerId: Career.id,
+              corporateId: Career.corporateId,
+              requestId,
+            });
+            if (!receiverCreateResult) continue;
+            // send alarm
+            const sendMessageResponse = await SensSingleton.sendMessage({
+              templateName: 'receive',
+              to: Career.User.phone,
+            });
+          }
         }
-      }
-      // update request
-      const requestUpdateResult = await RequestModel.update(
-        { status: 'agreed' },
-        { where: { id: requestId } }
-      );
-      if (!requestUpdateResult) {
-        response.error = '의뢰 정보 업데이트 오류입니다.';
-        return response;
-      }
+        // update request
+        const requestUpdateResult = await RequestModel.update(
+          { status: 'agreed' },
+          { where: { id: requestId } }
+        );
+        if (!requestUpdateResult)
+          throw new Error('의뢰 정보 업데이트 오류입니다.');
+      });
       response.ok = true;
     } catch (e) {
       console.error(e);
