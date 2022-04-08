@@ -286,7 +286,7 @@ class AuthService {
       // slack alarm
       await SlackSingleton.sendMessage(
         '#aws_server',
-        'AuthService: 개인 회원 가입'
+        '[AuthService] 개인 회원 가입'
       );
       response.ok = true;
     } catch (e) {
@@ -385,7 +385,7 @@ class AuthService {
       // slack alarm
       await SlackSingleton.sendMessage(
         '#aws_server',
-        'AuthService: 개인 회원 가입'
+        '{AuthService} 개인 회원 가입'
       );
       response.ok = true;
     } catch (e) {
@@ -455,7 +455,7 @@ class AuthService {
       // slack alarm
       await SlackSingleton.sendMessage(
         '#aws_server',
-        'AuthService: 기업 회원 가입'
+        '[AuthService] 기업 회원 가입'
       );
       response.ok = true;
     } catch (e) {

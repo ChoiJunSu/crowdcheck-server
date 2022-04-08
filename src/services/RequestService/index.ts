@@ -81,7 +81,7 @@ class RequestService {
       // slack alarm
       await SlackSingleton.sendMessage(
         '#aws_server',
-        'RequestService: 의뢰 등록'
+        '[RequestService] 의뢰 등록'
       );
       response.ok = true;
     } catch (e) {
