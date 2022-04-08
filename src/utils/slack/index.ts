@@ -23,9 +23,10 @@ export const SlackSingleton = (() => {
           channel,
           attachments: [
             {
+              author_name: process.env.NODE_ENV,
               color:
                 process.env.NODE_ENV === 'development' ? '#6b7280' : '#2aa090',
-              text: `[${process.env.NODE_ENV}]\n${text}`,
+              text,
             },
           ],
         });
