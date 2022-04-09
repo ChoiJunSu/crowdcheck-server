@@ -17,6 +17,8 @@ import {
   IRequestCloseResponse,
   IRequestGetAgreeCandidateRequest,
   IRequestGetAgreeCandidateResponse,
+  IRequestPayRequest,
+  IRequestPayResponse,
 } from '@services/RequestService/type';
 import RequestModel from '@models/RequestModel';
 import CorporateModel from '@models/CorporateModel';
@@ -54,30 +56,29 @@ class RequestService {
         response.error = '사용자 검색 오류입니다.';
         return response;
       }
-      // transaction
-      await SequelizeSingleton.getInstance().transaction(async (t) => {
-        // create request
-        const createRequestResult = await RequestModel.create(
-          {
-            ownerId: userId,
-            corporateId: userFindOneResult.corporateId!,
-            candidateName,
-            candidatePhone,
-            deadline: new Date(
-              new Date().setDate(new Date().getDate() + REQUEST_DEADLINE)
-            ),
-          },
-          { transaction: t }
-        );
-        if (!createRequestResult) throw new Error('의뢰 생성 오류입니다.');
-        // update candidate
-        const updateCandidateResponse = await InternalService.updateCandidate({
-          name: candidateName,
-          phone: candidatePhone,
-        });
-        if (!updateCandidateResponse.ok)
-          throw new Error(updateCandidateResponse.error);
+      // create request
+      const createRequestResult = await RequestModel.create({
+        ownerId: userId,
+        corporateId: userFindOneResult.corporateId!,
+        candidateName,
+        candidatePhone,
+        deadline: new Date(
+          new Date().setDate(new Date().getDate() + REQUEST_DEADLINE)
+        ),
       });
+      if (!createRequestResult) {
+        response.error = '의뢰 생성 오류입니다.';
+        return response;
+      }
+      // update candidate
+      const updateCandidateResponse = await InternalService.updateCandidate({
+        name: candidateName,
+        phone: candidatePhone,
+      });
+      if (!updateCandidateResponse.ok) {
+        response.error = updateCandidateResponse.error;
+        return response;
+      }
       // slack alarm
       await SlackSingleton.sendMessage(
         '#aws_server',
@@ -110,6 +111,7 @@ class RequestService {
           'candidateId',
           'candidateName',
           'deadline',
+          'paidAt',
           'status',
           'createdAt',
         ],
@@ -129,6 +131,7 @@ class RequestService {
         candidateId,
         candidateName,
         deadline,
+        paidAt,
         status,
         createdAt,
       } of requestFindAllResult) {
@@ -141,6 +144,7 @@ class RequestService {
           id,
           candidateName,
           deadline,
+          paidAt,
           referenceCount: referenceCountResult,
           status,
           createdAt,
@@ -294,6 +298,7 @@ class RequestService {
           'candidateId',
           'candidateName',
           'deadline',
+          'paidAt',
           'status',
           'createdAt',
         ],
@@ -307,8 +312,15 @@ class RequestService {
         response.error = '의뢰 검색 오류입니다.';
         return response;
       }
-      const { id, candidateId, candidateName, deadline, status, createdAt } =
-        requestFindOneResult;
+      const {
+        id,
+        candidateId,
+        candidateName,
+        deadline,
+        paidAt,
+        status,
+        createdAt,
+      } = requestFindOneResult;
       // find references
       const referenceFindAndCountAllResult =
         await ReferenceModel.findAndCountAll({
@@ -335,7 +347,7 @@ class RequestService {
               })
             ),
           });
-        } else {
+        } else if (Reference.type === 'blind' && paidAt) {
           response.blindReferences.push({
             id: Reference.id,
             corporateName: Reference.Corporate.name,
@@ -357,6 +369,7 @@ class RequestService {
         id,
         candidateName,
         deadline,
+        paidAt,
         referenceCount: referenceFindAndCountAllResult.rows.length,
         status,
         createdAt,
@@ -602,7 +615,7 @@ class RequestService {
         }
         // update request
         const requestUpdateResult = await RequestModel.update(
-          { status: 'agreed' },
+          { status: 'agreed', agreedAt: new Date() },
           { where: { id: requestId }, transaction: t }
         );
         if (!requestUpdateResult)
@@ -612,6 +625,50 @@ class RequestService {
     } catch (e) {
       console.error(e);
       response.error = '지원자 동의에 실패했습니다.';
+    }
+
+    return response;
+  }
+
+  static async pay({
+    userId,
+    requestId,
+  }: IRequestPayRequest): Promise<IRequestPayResponse> {
+    const response: IRequestPayResponse = {
+      ok: false,
+      error: '',
+    };
+
+    try {
+      // verify userId with request
+      const requestFindOneResult = await RequestModel.findOne({
+        attributes: ['id'],
+        where: {
+          id: requestId,
+          ownerId: userId,
+          status: 'agreed',
+          paidAt: null,
+        },
+      });
+      if (!requestFindOneResult) {
+        response.error = '의뢰 검색 오류입니다.';
+        return response;
+      }
+      // update request
+      const requestUpdateResult = await RequestModel.update(
+        {
+          paidAt: new Date(),
+        },
+        { where: { id: requestId } }
+      );
+      if (!requestUpdateResult) {
+        response.error = '의뢰 업데이트 오류입니다.';
+        return response;
+      }
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '블라인드 평판 조회에 실패했습니다.';
     }
 
     return response;

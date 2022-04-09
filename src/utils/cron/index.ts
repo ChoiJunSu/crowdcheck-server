@@ -12,6 +12,7 @@ export const CronSingleton = (() => {
             const requestUpdateResult = await RequestModel.update(
               {
                 status: 'closed',
+                closedAt: new Date(),
               },
               {
                 where: {

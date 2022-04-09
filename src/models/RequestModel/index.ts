@@ -21,6 +21,7 @@ class RequestModel
   declare candidateName: string;
   declare candidatePhone: string;
   declare deadline: Date;
+  declare paidAt: Date | null;
   declare status: TRequestStatus;
   declare registeredAt: Date;
   declare agreedAt: Date | null;
@@ -67,6 +68,10 @@ export const initRequestModel = (sequelize: Sequelize) => {
       deadline: {
         type: DataTypes.DATE,
         allowNull: false,
+      },
+      paidAt: {
+        type: DataTypes.DATE,
+        defaultValue: null,
       },
       status: {
         type: DataTypes.ENUM('registered', 'agreed', 'closed'),

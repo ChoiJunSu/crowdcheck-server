@@ -10,6 +10,7 @@ export interface IRequestAttributes {
   candidateName: string;
   candidatePhone: string;
   deadline: Date;
+  paidAt?: Date | null;
   status?: TRequestStatus;
   registeredAt?: Date;
   agreedAt?: Date | null;

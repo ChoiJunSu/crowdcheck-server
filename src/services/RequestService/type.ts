@@ -11,6 +11,7 @@ export interface IRequestCorporate {
   id: number;
   candidateName: string;
   deadline: Date;
+  paidAt: Date | null;
   referenceCount: number;
   status: TRequestStatus;
   createdAt: Date;
@@ -111,6 +112,13 @@ export interface IRequestAgreeRequest extends IBaseServiceRequest {
 }
 
 export interface IRequestAgreeResponse extends IBaseServiceResponse {}
+
+export interface IRequestPayRequest extends IBaseServiceRequest {
+  userId: number;
+  requestId: number;
+}
+
+export interface IRequestPayResponse extends IBaseServiceResponse {}
 
 export interface IRequestCloseRequest extends IBaseServiceRequest {
   userId: number;

@@ -10,6 +10,7 @@ import {
   IRequestCloseRequest,
   IRequestListCandidateRequest,
   IRequestGetAgreeCandidateRequest,
+  IRequestPayRequest,
 } from '@services/RequestService/type';
 import AuthMiddleware from '@middlewares/AuthMiddleware';
 import {
@@ -116,6 +117,19 @@ RequestController.post(
       requestId: parseInt(requestId),
       agrees,
     } as IRequestAgreeRequest);
+  }
+);
+
+RequestController.get(
+  '/pay',
+  AuthMiddleware.isCorporate,
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    const { requestId } = req.query;
+
+    return await RequestService.pay({
+      userId: req.user!.id,
+      requestId: parseInt(requestId as string),
+    } as IRequestPayRequest);
   }
 );
 
