@@ -17,6 +17,11 @@ import {
   IAuthPhoneSendResponse,
   IAuthPhoneVerifyRequest,
   IAuthPhoneVerifyResponse,
+  IAuthEmailSendRequest,
+  IAuthEmailSendResponse,
+  IAuthPasswordResetRequest,
+  IAuthPasswordResetResponse,
+  IResetTokenPayload,
 } from '@services/AuthService/type';
 import { compare, genSalt, hash } from 'bcrypt';
 import UserModel from '@models/UserModel';
@@ -31,6 +36,7 @@ import { SensSingleton } from '@utils/sens';
 import { InternalService } from '@services/InternalService';
 import { SlackSingleton } from '@utils/slack';
 import { SequelizeSingleton } from '@utils/sequelize';
+import { NodemailerSingleton } from '@utils/nodemailer';
 
 class AuthService {
   static async login({
@@ -567,6 +573,89 @@ class AuthService {
     } catch (e) {
       console.error(e);
       response.error = '전화번호 인증에 실패했습니다.';
+    }
+
+    return response;
+  }
+
+  static async emailSend({
+    email,
+  }: IAuthEmailSendRequest): Promise<IAuthEmailSendResponse> {
+    const response: IAuthEmailSendResponse = {
+      ok: false,
+      error: '',
+    };
+
+    try {
+      // find user and check oauth provider
+      const userFindOneResult = await UserModel.findOne({
+        attributes: ['oauthProvider'],
+        where: { email },
+      });
+      if (!userFindOneResult) {
+        response.error = '해당 이메일로 가입된 회원이 없습니다.';
+        return response;
+      } else if (userFindOneResult.oauthProvider) {
+        response.error = '소셜 로그인으로 가입된 회원입니다.';
+        return response;
+      }
+      // generate resetToken
+      const resetToken = JwtSingleton.sign({ email } as IResetTokenPayload);
+      // send email
+      const sendMessageResponse = await NodemailerSingleton.sendMessage({
+        to: email,
+        subject: '[크라우드체크] 비밀번호 재설정',
+        html: `비밀번호를 재설정하려면 <a href="https://crowdcheck.io/auth/password/reset?resetToken=${resetToken}">여기</a>를 클릭하세요.`,
+      });
+      if (!sendMessageResponse.ok) {
+        response.error = sendMessageResponse.error;
+        return response;
+      }
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '이메일 발송에 실패했습니다.';
+    }
+
+    return response;
+  }
+
+  static async passwordReset({
+    resetToken,
+    password,
+  }: IAuthPasswordResetRequest): Promise<IAuthPasswordResetResponse> {
+    const response: IAuthPasswordResetResponse = {
+      ok: false,
+      error: '',
+    };
+
+    try {
+      // verify resetToken
+      const { email, exp } = JwtSingleton.verify(
+        resetToken
+      ) as IResetTokenPayload;
+      if (!exp || Date.now() > exp * 1000) {
+        response.error = '만료된 요청입니다.';
+        return response;
+      }
+      // hash password
+      const salt = await genSalt(10);
+      const hashed = await hash(password, salt);
+      // update user
+      const userUpdateResult = await UserModel.update(
+        {
+          hashed,
+        },
+        { where: { email } }
+      );
+      if (!userUpdateResult) {
+        response.error = '사용자 업데이트 오류입니다.';
+        return response;
+      }
+      response.ok = true;
+    } catch (e) {
+      console.error(e);
+      response.error = '비밀번호 재설정에 실패했습니다.';
     }
 
     return response;

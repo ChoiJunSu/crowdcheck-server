@@ -14,6 +14,7 @@ import ReceiverController from '@controllers/ReceiverController';
 import ReferenceController from '@controllers/ReferenceController';
 import { CronSingleton } from '@utils/cron';
 import { SlackSingleton } from '@utils/slack';
+import { NodemailerSingleton } from '@utils/nodemailer';
 
 const app = express();
 const port = 4000;
@@ -44,6 +45,9 @@ SecretsManagerSingleton.prepare([
 
   // slack
   await SlackSingleton.prepare();
+
+  // nodemailer
+  NodemailerSingleton.prepare();
 });
 
 // body parser

@@ -17,6 +17,10 @@ export interface IRegisterTokenPayload extends JwtPayload {
   email: string;
 }
 
+export interface IResetTokenPayload extends JwtPayload {
+  email: string;
+}
+
 export interface IAuthLoginRequest extends IBaseServiceRequest {
   email: string;
   password: string;
@@ -89,3 +93,16 @@ export interface IAuthPhoneVerifyRequest extends IBaseServiceRequest {
 }
 
 export interface IAuthPhoneVerifyResponse extends IBaseServiceResponse {}
+
+export interface IAuthEmailSendRequest extends IBaseServiceRequest {
+  email: string;
+}
+
+export interface IAuthEmailSendResponse extends IBaseServiceResponse {}
+
+export interface IAuthPasswordResetRequest extends IBaseServiceRequest {
+  resetToken: string;
+  password: string;
+}
+
+export interface IAuthPasswordResetResponse extends IBaseServiceResponse {}

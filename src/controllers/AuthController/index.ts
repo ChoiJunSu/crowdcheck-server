@@ -9,6 +9,8 @@ import {
   IAuthRegisterOauthPersonalRequest,
   IAuthPhoneSendRequest,
   IAuthPhoneVerifyRequest,
+  IAuthEmailSendRequest,
+  IAuthPasswordResetRequest,
 } from '@services/AuthService/type';
 import AuthMiddleware from '@middlewares/AuthMiddleware';
 import {
@@ -140,6 +142,33 @@ AuthController.post(
         phone,
         code: parseInt(code),
       } as IAuthPhoneVerifyRequest)
+    );
+  }
+);
+
+AuthController.post(
+  '/email/send',
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    const { email } = req.body;
+
+    return res.send(
+      await AuthService.emailSend({
+        email,
+      } as IAuthEmailSendRequest)
+    );
+  }
+);
+
+AuthController.post(
+  '/password/reset',
+  async (req: IRequest, res: IResponse, next: INextFunction) => {
+    const { resetToken, password } = req.body;
+
+    return res.send(
+      await AuthService.passwordReset({
+        resetToken,
+        password,
+      } as IAuthPasswordResetRequest)
     );
   }
 );
