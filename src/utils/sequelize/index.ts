@@ -14,7 +14,7 @@ export const SequelizeSingleton = (() => {
   let sequelize: Sequelize;
 
   return {
-    prepare: () => {
+    prepare: async () => {
       // construct
       sequelize = new Sequelize(
         SecretsManagerSingleton.getSecrete('dbname'),
@@ -38,25 +38,14 @@ export const SequelizeSingleton = (() => {
       initReferenceModel(sequelize);
       initReferenceDetailModel(sequelize);
 
-      // authenticate
-      sequelize
-        .authenticate()
-        .then(() => {
-          console.log('database connected');
-        })
-        .catch((e: Error) => {
-          console.error(e);
-        });
-
-      // migrate
-      sequelize
-        .sync({
-          force: false,
-        })
-        .then(() => {})
-        .catch((e: Error) => {
-          console.error(e);
-        });
+      try {
+        // authenticate
+        await sequelize.authenticate();
+        // migrate
+        await sequelize.sync({ force: false });
+      } catch (e) {
+        console.error(e);
+      }
     },
     getInstance: () => sequelize,
   };
