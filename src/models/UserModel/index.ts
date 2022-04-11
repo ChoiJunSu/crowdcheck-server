@@ -19,11 +19,14 @@ class UserModel
   declare phone: string;
   declare type: TUserType;
   declare oauthProvider: TOauthProvider | null;
+  declare recommendCode: string | null;
+  declare recommenderId: number | null;
   declare corporateId: number | null;
   declare certificateBucket: string | null;
   declare certificateKey: string | null;
   declare verifiedAt: Date | null;
   declare loginAt: Date | null;
+  declare passwordResetAt: Date | null;
 
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
@@ -66,6 +69,15 @@ export const initUserModel = (sequelize: Sequelize) => {
         type: DataTypes.ENUM('google', 'kakao'),
         defaultValue: null,
       },
+      recommendCode: {
+        type: DataTypes.STRING,
+        defaultValue: null,
+        unique: true,
+      },
+      recommenderId: {
+        type: DataTypes.INTEGER,
+        defaultValue: null,
+      },
       corporateId: {
         type: DataTypes.INTEGER,
         unique: true,
@@ -83,6 +95,10 @@ export const initUserModel = (sequelize: Sequelize) => {
         defaultValue: null,
       },
       loginAt: {
+        type: DataTypes.DATE,
+        defaultValue: null,
+      },
+      passwordResetAt: {
         type: DataTypes.DATE,
         defaultValue: null,
       },
@@ -113,6 +129,15 @@ export const initUserModel = (sequelize: Sequelize) => {
   });
   UserModel.belongsTo(CorporateModel, {
     foreignKey: 'corporateId',
+  });
+
+  UserModel.hasOne(UserModel, {
+    foreignKey: 'recommenderId',
+    onDelete: 'SET NULL',
+    onUpdate: 'CASCADE',
+  });
+  UserModel.belongsTo(UserModel, {
+    foreignKey: 'recommenderId',
   });
 };
 

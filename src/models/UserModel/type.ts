@@ -13,6 +13,8 @@ export interface IUserAttributes {
   type: TUserType;
   // personal
   oauthProvider?: TOauthProvider | null;
+  recommendCode?: string | null;
+  recommenderId?: number | null;
   // personal
   // corporate
   corporateId?: number | null;
@@ -21,6 +23,7 @@ export interface IUserAttributes {
   verifiedAt?: Date | null;
   // corporate
   loginAt?: Date | null;
+  passwordResetAt?: Date | null;
   createdAt?: Date;
   updatedAt?: Date;
 }

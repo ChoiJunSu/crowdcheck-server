@@ -37,6 +37,7 @@ import { InternalService } from '@services/InternalService';
 import { SlackSingleton } from '@utils/slack';
 import { SequelizeSingleton } from '@utils/sequelize';
 import { NodemailerSingleton } from '@utils/nodemailer';
+import { randomBytes } from 'crypto';
 
 class AuthService {
   static async login({
@@ -211,6 +212,7 @@ class AuthService {
     email,
     password,
     careers,
+    recommenderCode,
   }: IAuthRegisterPersonalRequest): Promise<IAuthRegisterPersonalResponse> {
     const response: IAuthRegisterPersonalResponse = {
       ok: false,
@@ -232,9 +234,35 @@ class AuthService {
         response.error = '전화번호 인증 기록이 없습니다.';
         return response;
       }
+      // find if phone exists in production
+      if (process.env.NODE_ENV === 'production') {
+        const userCountResult = await UserModel.count({
+          attributes: ['id'],
+          where: { phone, type: 'personal' },
+        });
+        if (userCountResult > 0) {
+          response.error = '해당 전화번호로 가입된 개인 회원이 존재합니다.';
+          return response;
+        }
+      }
       // hash password
       const salt = await genSalt(10);
       const hashed = await hash(password, salt);
+      // generate recommend code
+      const recommendCode = randomBytes(6).toString('hex');
+      // find recommender id
+      let recommenderId: number | null = null;
+      if (recommenderCode) {
+        const userFindOneResult = await UserModel.findOne({
+          attributes: ['id'],
+          where: { recommendCode: recommenderCode },
+        });
+        if (!userFindOneResult) {
+          response.error = '추천인 코드가 올바르지 않습니다.';
+          return response;
+        }
+        recommenderId = userFindOneResult.id;
+      }
       // transaction
       const transactionResult =
         await SequelizeSingleton.getInstance().transaction(async (t) => {
@@ -246,6 +274,8 @@ class AuthService {
               email,
               hashed,
               type: 'personal',
+              recommendCode,
+              recommenderId,
             },
             { transaction: t }
           );
@@ -307,6 +337,7 @@ class AuthService {
     name,
     phone,
     careers,
+    recommenderCode,
     registerToken,
   }: IAuthRegisterOauthPersonalRequest): Promise<IAuthRegisterOauthPersonalResponse> {
     const response: IAuthRegisterOauthPersonalResponse = {
@@ -333,6 +364,32 @@ class AuthService {
         response.error = '전화번호 인증 기록이 없습니다.';
         return response;
       }
+      // find if phone exists in production
+      if (process.env.NODE_ENV === 'production') {
+        const userCountResult = await UserModel.count({
+          attributes: ['id'],
+          where: { phone, type: 'personal' },
+        });
+        if (userCountResult > 0) {
+          response.error = '해당 전화번호로 가입된 개인 회원이 존재합니다.';
+          return response;
+        }
+      }
+      // generate recommend code
+      const recommendCode = randomBytes(6).toString('hex');
+      // find recommender id
+      let recommenderId: number | null = null;
+      if (recommenderCode) {
+        const userFindOneResult = await UserModel.findOne({
+          attributes: ['id'],
+          where: { recommendCode: recommenderCode },
+        });
+        if (!userFindOneResult) {
+          response.error = '추천인 코드가 올바르지 않습니다.';
+          return response;
+        }
+        recommenderId = userFindOneResult.id;
+      }
       // transaction
       const transactionResult =
         await SequelizeSingleton.getInstance().transaction(async (t) => {
@@ -344,6 +401,8 @@ class AuthService {
               email,
               type: 'personal',
               oauthProvider: provider,
+              recommendCode,
+              recommenderId,
             },
             { transaction: t }
           );
@@ -645,6 +704,7 @@ class AuthService {
       const userUpdateResult = await UserModel.update(
         {
           hashed,
+          passwordResetAt: new Date(),
         },
         { where: { email } }
       );

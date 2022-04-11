@@ -57,6 +57,7 @@ export interface IAuthRegisterPersonalRequest extends IBaseServiceRequest {
   email: string;
   password: string;
   careers: Array<ICareer>;
+  recommenderCode?: string;
 }
 
 export interface IAuthRegisterPersonalResponse extends IBaseServiceResponse {}
@@ -65,6 +66,7 @@ export interface IAuthRegisterOauthPersonalRequest extends IBaseServiceRequest {
   name: string;
   phone: string;
   careers: Array<ICareer>;
+  recommenderCode?: string;
   registerToken: string;
 }
 

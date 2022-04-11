@@ -34,7 +34,7 @@ class UserService {
     try {
       // find user
       const userFindOneResult = await UserModel.findOne({
-        attributes: ['email', 'name', 'phone'],
+        attributes: ['email', 'name', 'phone', 'recommendCode'],
         where: { id: userId },
       });
       if (!userFindOneResult) {
@@ -66,6 +66,7 @@ class UserService {
         email: userFindOneResult.email,
         name: userFindOneResult.name,
         phone: userFindOneResult.phone,
+        recommendCode: userFindOneResult.recommendCode,
       };
       for (const {
         id,

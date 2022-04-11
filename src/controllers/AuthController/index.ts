@@ -71,7 +71,7 @@ AuthController.post(
   '/register/personal',
   MulterMiddleware.upload.array('certificates'),
   async (req: IRequest, res: IResponse, next: INextFunction) => {
-    const { name, phone, email, password, careers } = req.body;
+    const { name, phone, email, password, careers, recommenderCode } = req.body;
 
     return res.send(
       await AuthService.registerPersonal({
@@ -80,6 +80,7 @@ AuthController.post(
         email,
         password,
         careers,
+        recommenderCode,
       } as IAuthRegisterPersonalRequest)
     );
   }
@@ -88,13 +89,14 @@ AuthController.post(
 AuthController.post(
   '/register/oauth/personal',
   async (req: IRequest, res: IResponse, next: INextFunction) => {
-    const { name, phone, careers, registerToken } = req.body;
+    const { name, phone, careers, recommenderCode, registerToken } = req.body;
 
     return res.send(
       await AuthService.registerOauthPersonal({
         name,
         phone,
         careers,
+        recommenderCode,
         registerToken,
       } as IAuthRegisterOauthPersonalRequest)
     );
